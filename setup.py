@@ -30,4 +30,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires, )
+    install_requires=requires,
+    extras_require={
+        'test': ["nose", "coverage", ],
+    },
+    test_suite='cornice_swagger.tests',
+    setup_requires=["setuptools_git"],
+)

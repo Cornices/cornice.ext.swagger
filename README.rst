@@ -3,6 +3,16 @@ cornice_swagger
 
 *Cornice extension to generate Swagger*
 
+Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagger
+
+.. |travisci| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
+.. _travisci: https://travis-ci.org/Cornices/cornice.ext.swagger
+
+.. image:: https://coveralls.io/repos/Cornices/cornice.ext.swagger/badge.png
+    :target: https://coveralls.io/r/Cornices/cornice.ext.swagger
+
+|travisci|_
+
 !!! TODO This is all just copied from the pull request!!!
 
 To create a full swagger spec, this module will maximize extracting
