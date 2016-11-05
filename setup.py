@@ -25,7 +25,7 @@ setup(
     ],
     keywords="web services",
     author="Josip Delic",
-    author_email="delicj@delijati.net",
+    author_email="delijati@gmx.net",
     url="https://github.com/Cornices/cornice.ext.swagger",
     packages=find_packages(),
     include_package_data=True,

@@ -13,8 +13,6 @@ Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagge
 
 |travisci|_
 
-!!! TODO This is all just copied from the pull request!!!
-
 To create a full swagger spec, this module will maximize extracting
 documentation data from functional code, while allowing users to
 directly specify parts of the Swagger Spec. This documentation serves as
@@ -40,7 +38,7 @@ Throughout this documentation, ``code-styled text`` indicates a sort of
 Description Docstrings
 ======================
 
--  ``cornice.@resource()``-decorated classes in your view file should
+-  ``cornice.resource.resource``-decorated classes in your view file should
    have docstrings (triple-quoted strings immediately after your class
    declaration)
 
@@ -50,7 +48,7 @@ Description Docstrings
       with the same URL base (the text between the first two ``/``
       characters in your URL after the true URL base).
 
--  ``cornice.@view()``-decorated methods with your decorated Cornice
+-  ``cornice.resource.view``-decorated methods with your decorated Cornice
    Resource classes should have docstrings to document the individual
    HTTP method descriptions
 
@@ -61,7 +59,7 @@ beginning. Technically, a Swagger Spec stores a ``basePath`` in the
 a RESTful object with which to be interacted, this object (between the
 first slashes) will be used to tag similar paths into a group.
 
-*Warning* ﻿If you implement multiple ``@resource``-decorated classes
+*Warning* If you implement multiple ``@resource``-decorated classes
 beginning with the same first URL segment in the ``path`` argument, it
 may become ambiguous which docstring will be displayed in Swagger UI.
 Only put a docstring on one such class to remove ambiguity.
@@ -75,6 +73,7 @@ the actual Swagger Spec JSON. The arguments are:
 
 .. _Swagger 2.0 compliant spec: https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md
 .. _root document object: https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#fixed-fields
+
 1. ``services`` - a list of Pyramid Services. Note that Cornice
    Resources are really Services under the hood.
 2. ``title`` and ``version`` are both required Swagger Spec details for
@@ -92,55 +91,91 @@ Resources and Services to generate a ``swagger.json`` Spec:
 
 .. code:: python
 
-    from pyramid.view import view_config
-    from cornice import service
-    from swagger import generate_swagger_spec
-    # This OrderedDict import is for Extra Credit below
-    from collections import OrderedDict
+   from pyramid.view import view_config
+   from cornice import service
+   from swagger import generate_swagger_spec
 
-    @view_config(route_name='swagger_json', renderer='json')
-    def swagger_json(request):
-        info = {'title': 'Joes API', 'version': '0.1', 'contact': {
-                'name': 'Joe Smith',
-                'email': 'joe.cool@swagger.com'}
-                }
 
-        # Pretend our API is served on our host with a prefix, such as
-        # an API version number or a username
-        base_path = '/jcool'
-        security_definition = {
-            "authId": {
-                "type": "apiKey",
-                "name": "ID-Token",
-                "in": "header"
-            }
-        }
+   @view_config(route_name="swagger", renderer="templates/index.pt")
+   def swagger(request):
+       return {"request": request}
 
-        # Get our list of services
-        services = service.get_services()
-        swagger_spec = generate_swagger_spec(services, info['title'], info['version'],
-                                             info=info, basePath=base_path)
 
-        # Extra Credit: We want to put paths in a special order with /cool
-        # endpoints first, and OrderedPaths act just like a dict as far ase
-        # the JSON parser is concerned.
-        paths_dict = swagger_spec['paths']
-        ordered_paths = OrderedDict()
-        first_items = ['/tokens', '/tokens/{authId}']
-        for item in first_items:
-            ordered_paths[item] = paths_dict[item]
-        # Now add all the other paths
-        ordered_paths.update(sorted(paths_dict.items(), key=lambda t: t[0]))
-        # Replace our paths with the ordered ones
-        swagger_spec['paths'] = ordered_paths
-        return swagger_spec
+   @view_config(route_name="swagger_json", renderer="json")
+   def swagger_json(request):
+       info = {"title": "Joes API", "version": "0.1", "contact": {
+               "name": "Joe Smith",
+               "email": "joe.cool@swagger.com"}
+               }
+       base_path = "/"
+       services = get_services()
+       spec = generate_swagger_spec(services, info["title"],
+                                    info["version"], info=info,
+                                    base_path=base_path, head=False)
+       return spec
 
+Swagger-UI integration
+----------------------
+
+To serve the swagger-ui we create a ``index.html`` and download the needed js
+files with ``bower``.
+
+.. code:: html
+
+   <!DOCTYPE html>
+   <html>
+
+   <head>
+       <!-- swagger -->
+       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/typography.css')}"
+       type='text/css' rel="stylesheet" />
+       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/reset.css')}"
+       type='text/css' rel="stylesheet" />
+       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/screen.css')}"
+       type='text/css' rel="stylesheet" />
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/object-assign-pollyfill.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery-1.8.0.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.slideto.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.wiggle.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.ba-bbq.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/handlebars-2.0.0.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/lodash.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/backbone-min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/dist/swagger-ui.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/highlight.9.1.0.pack.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/highlight.9.1.0.pack_extended.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jsoneditor.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/js-yaml.min.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/marked.js')}"></script>
+       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/swagger-oauth.js')}"></script>
+   </head>
+
+   <body>
+       <div class="swagger-section container">
+           <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+       </div>
+       <script type="text/javascript">
+           $(function()
+           {
+               var swaggerUi = new SwaggerUi(
+               {
+                   url: "${request.route_url('swagger_json')}",
+                   dom_id: "swagger-ui-container",
+                   validatorUrl: null,
+                   docExpansion: "list"
+               });
+               swaggerUi.load();
+           });
+       </script>
+   </body>
+
+   </html>
 
 Converters
 ----------
 
-Ideally, we’d maximaize how much documentation comes from functional code. As
-we’re already using Cornice, we can leverage its operators internally to
+Ideally, we'd maximaize how much documentation comes from functional code. As
+we're already using Cornice, we can leverage its operators internally to
 ``generate_swagger_spec()``. This only gets us so far, and currently only
 leverages the ``@resource`` decorator as it identifies services and provides
 some path info from which to gleen ``path`` parameters and a description. For
@@ -148,36 +183,36 @@ example, this code...
 
 .. code:: python
 
-    class Body(MappingSchema):
-        # foo and bar are required, baz is optional
-        foo = SchemaNode(String())
-        ipsum = SchemaNode(Integer(), missing=1, validator=Range(0, 3))
-        integers = Integers(missing=())
+   class Body(MappingSchema):
+       # foo and bar are required, baz is optional
+       foo = SchemaNode(String())
+       ipsum = SchemaNode(Integer(), missing=1, validator=Range(0, 3))
+       integers = Integers(missing=())
 
 
-    class Query(MappingSchema):
-        yeah = SchemaNode(String())
-        mau = SchemaNode(String())
+   class Query(MappingSchema):
+       yeah = SchemaNode(String())
+       mau = SchemaNode(String())
 
 
-    class RequestSchema(MappingSchema):
-        body = Body(description="Defines a cornice body schema")
-        querystring = Query()
+   class RequestSchema(MappingSchema):
+       body = Body(description="Defines a cornice body schema")
+       querystring = Query()
 
-    @resource(collection_path='/tokens', path='/tokens/{authId}',
-              description='quick token description')
-    class Token(object):
-        """Authenticate by POSTing here"""
-        def __init__(self, request):
-            self.request = request
+   @resource(collection_path='/tokens', path='/tokens/{authId}',
+             description='quick token description')
+   class Token(object):
+       """Authenticate by POSTing here"""
+       def __init__(self, request):
+           self.request = request
 
-        @view(validators=(colander_validator, ), schema=RequestSchema())
-        def collection_post(self):
-            """Get authKey here and use as X-Identity-Token for future calls"""
-            ...
-        def delete(self):
-            """Log out of system by deleting a token from your previous authId"""
-            ...
+       @view(validators=(colander_validator, ), schema=RequestSchema())
+       def collection_post(self):
+           """Get authKey here and use as X-Identity-Token for future calls"""
+           ...
+       def delete(self):
+           """Log out of system by deleting a token from your previous authId"""
+           ...
 
 Colander
 ~~~~~~~~
@@ -198,13 +233,19 @@ create ``Parameter Objects``
 Scaffold
 --------
 
-There is a swagger scaffold to get startet.
-TODO
+To get easier started there is a scaffold with can be used.
 
 ::
 
-   $ pcreate -t cornice_swagger swagger_demo
-   $ cd swagger_demo
+   $ cookiecutter https://github.com/Cornices/cookiecutter-cornice_swagger.git
+   $ cd demo
    $ pip install -e .
-   $ cd swagger_demo/static
+   $ cd demo/static
    $ bower install
+
+Contributors
+============
+
+- Jason Haury
+
+- Josip Delic
