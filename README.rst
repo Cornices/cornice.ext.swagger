@@ -237,7 +237,7 @@ To get easier started there is a scaffold with can be used.
 
 ::
 
-   $ cookiecutter https://github.com/Cornices/cookiecutter-cornice_swagger.git
+   $ cookiecutter https://github.com/delijati/cookiecutter-cornice_swagger.git
    $ cd demo
    $ pip install -e .
    $ cd demo/static
