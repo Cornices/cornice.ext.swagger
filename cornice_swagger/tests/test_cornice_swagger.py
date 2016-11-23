@@ -78,7 +78,7 @@ class TestSwaggerService(TestCase):
                              '$ref': '#/definitions/Body'
                          }])
         self.assertEqual([x.get("description") for x in params],
-                         [None, None, "Defines a cornice body schema"])
+                         [None, "Defines querystring yeah", "Defines a cornice body schema"])
 
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
@@ -117,7 +117,7 @@ class TestSwaggerService(TestCase):
                              '$ref': '#/definitions/Body'
                          }])
         self.assertEqual([x.get("description") for x in params],
-                         [None, None, "Defines a cornice body schema"])
+                         [None, "Defines querystring yeah", "Defines a cornice body schema"])
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
 
@@ -164,7 +164,7 @@ class TestSwaggerService(TestCase):
                              '$ref': '#/definitions/Body'
                          }])
         self.assertEqual([x.get("description") for x in params],
-                         [None, None, "Defines a cornice body schema"])
+                         [None, "Defines querystring yeah", "Defines a cornice body schema"])
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
 
