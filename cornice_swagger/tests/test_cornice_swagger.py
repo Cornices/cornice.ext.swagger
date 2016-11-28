@@ -77,8 +77,10 @@ class TestSwaggerService(TestCase):
                          [None, None, {
                              '$ref': '#/definitions/Body'
                          }])
-        self.assertEqual(sorted([x.get("description") for x in params], key=lambda x: x or ""),
-                         [None, "Defines a cornice body schema", "Defines querystring yeah"])
+        self.assertEqual(
+         sorted([x.get("description") for x in params], key=lambda x: x or ""),
+         [None, "Defines a cornice body schema", "Defines querystring yeah"]
+        )
 
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
@@ -116,8 +118,10 @@ class TestSwaggerService(TestCase):
                          [None, None, {
                              '$ref': '#/definitions/Body'
                          }])
-        self.assertEqual(sorted([x.get("description") for x in params], key=lambda x: x or ""),
-                         [None, "Defines a cornice body schema", "Defines querystring yeah"])
+        self.assertEqual(
+         sorted([x.get("description") for x in params], key=lambda x: x or ""),
+         [None, "Defines a cornice body schema", "Defines querystring yeah"]
+        )
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
 
@@ -163,8 +167,10 @@ class TestSwaggerService(TestCase):
                          [None, None, {
                              '$ref': '#/definitions/Body'
                          }])
-        self.assertListEqual(sorted([x.get("description") for x in params], key=lambda x: x or ""),
-                             [None, "Defines a cornice body schema", "Defines querystring yeah"])
+        self.assertListEqual(
+         sorted([x.get("description") for x in params], key=lambda x: x or ""),
+         [None, "Defines a cornice body schema", "Defines querystring yeah"]
+        )
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
 
