@@ -46,6 +46,8 @@ def schema_to_parameters(schema, service=None):
                     parameter["name"] = v["name"]
                     parameter["required"] = v["required"]
                     parameter["type"] = v["type"]
+                    if "description" in v:
+                        parameter["description"] = v["description"]
                     ret.append(parameter)
                     swag.models = {}
 
