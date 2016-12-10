@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.2.1 (unreleased)
+0.2.1 (2016-12-10)
 ------------------
 
 - Check if schema is not instantiated.
