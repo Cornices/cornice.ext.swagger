@@ -1,10 +1,10 @@
 CHANGES
 =======
 
-0.3 (unreleased)
-----------------
+0.2.1 (unreleased)
+------------------
 
-- Nothing changed yet.
+- Check if schema is not instantiated.
 
 
 0.2 (2016-11-08)

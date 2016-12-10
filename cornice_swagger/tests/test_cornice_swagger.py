@@ -168,6 +168,32 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(ret["definitions"]['Body']["required"]), ['bar', 'foo'])
 
+    def test_schema_not_instantiated(self):
+        class TemperatureCooler(object):
+            """Temp class docstring"""
+
+            def get_view(self):
+                """Temp view docstring"""
+                pass
+
+        service = Service(
+            "TemperatureCooler", "/freshair", klass=TemperatureCooler)
+        service.add_view(
+            "get",
+            "get_view",
+            validators=(colander_validator, ),
+            schema=RequestSchema)
+        ret = _generate_swagger([service])
+        self.assertEqual(ret["info"], {
+            'version': '0.1',
+            'contact': {
+                'name': 'Joe Smith',
+                'email': 'joe.cool@swagger.com'
+            },
+            'title': 'Joes API'
+        })
+        self.assertEqual(ret["basePath"], '/jcool')
+
 
 class TestSwaggerResource(TestCase):
     def tearDown(self):

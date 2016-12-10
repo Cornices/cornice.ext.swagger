@@ -18,7 +18,8 @@ def schema_to_parameters(schema, service=None):
     models = {}
 
     for location in ("path", "header", "querystring", "body"):
-
+        if not cornice_swagger.util.is_object(schema):
+            schema = schema()
         location_schema = schema.get(location)
         swag = cornice_swagger.swagger_model.SwaggerModel()
         if not location_schema:

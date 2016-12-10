@@ -72,3 +72,14 @@ def get_class_that_defined_method(meth):
             if isinstance(cls, type):
                 return cls
     return None
+
+
+def is_object(obj):
+    if not hasattr(obj, '__dict__'):
+        return False
+    if inspect.isroutine(obj):
+        return False
+    if inspect.isclass(obj):
+        return False
+    else:
+        return True
