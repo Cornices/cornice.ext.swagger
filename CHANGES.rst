@@ -6,6 +6,8 @@ CHANGES
 
 - Check if schema is not instantiated.
 
+- Add support for query parameter description. [ridha]
+
 
 0.2 (2016-11-08)
 ----------------
