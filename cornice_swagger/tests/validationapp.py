@@ -21,7 +21,7 @@ class Body(MappingSchema):
 
 
 class Query(MappingSchema):
-    yeah = SchemaNode(String())
+    yeah = SchemaNode(String(), description="Defines querystring yeah")
     mau = SchemaNode(String())
 
 
