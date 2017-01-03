@@ -1,153 +1,281 @@
+# -*- coding: utf-8 -*-
+
 import colander
+import colander.interfaces
+
+class ConversionError(Exception):
+    pass
 
 
-class SwaggerModel(object):
+class NoSuchConverter(ConversionError):
+    pass
 
-    def __init__(self):
-        self.mappings = {
-            colander.Mapping: self._swagger_mapping,
-            colander.Sequence: self._swagger_sequence,
-            colander.Tuple: self._swagger_tuple,
-            colander.DateTime: self._swagger_datetime,
-            colander.Integer: self._swagger_integer,
-            colander.Float: self._swagger_number,
-            colander.String: self._swagger_string,
-            colander.Money: self._swagger_number,
-            colander.Boolean: self._swagger_boolean,
-            colander.Decimal: self._swagger_number,
-            colander.Date: self._swagger_date,
-            colander.Time: self._swagger_time,
-        }
-        self.models = {}
 
-    def add_model(self, model):
-        _model = {model["name"]: {
-            "type": model["type"],
-            "properties": model[model["name"]],
-            "required": [x["name"]
-                         for x in model[model["name"]].values()
-                         if "required" in x and x["required"]]
-        }}
-        self.models.update(_model)
-        return {"$ref": "#/definitions/%s" % model["name"]}
+def convert_length_validator_factory(max_key, min_key):
 
-    def to_swagger(self, node):
-        nodetype = type(node.typ)
-        converter = self.mappings.get(nodetype)
-        ret = converter(node)
-        title = node.title or node.__class__.__name__
-        ret["name"] = title
-        if node.description:
-            ret["description"] = node.description
-        if node.default != colander.null:
-            ret["default"] = node.default
-        if ret.get("type", "") == "object":
-            return self.add_model(ret)
+    def validator_converter(schema_node, validator):
+        converted = None
+
+        if isinstance(validator, colander.Length):
+            converted = {}
+            if validator.max is not None:
+                converted[max_key] = validator.max
+            if validator.min is not None:
+                converted[min_key] = validator.min
+
+        return converted
+
+    return validator_converter
+
+
+def convert_oneof_validator_factory():
+
+    def validator_converter(schema_node, validator):
+
+        converted = None
+
+        if isinstance(validator, colander.OneOf):
+            converted = {}
+            converted['enum'] = list(validator.choices)
+
+        return converted
+
+    return validator_converter
+
+
+def convert_range_validator(schema_node, validator):
+
+    converted = None
+
+    if isinstance(validator, colander.Range):
+        converted = {}
+
+        if validator.max is not None:
+            converted['maximum'] = validator.max
+        if validator.min is not None:
+            converted['minimum'] = validator.min
+
+    return converted
+
+
+def convert_regex_validator(schema_node, validator):
+
+    converted = None
+
+    if isinstance(validator, colander.Regex):
+        converted = {}
+
+        if hasattr(colander, 'url') and validator is colander.url:
+            converted['format'] = 'uri'
+        elif isinstance(validator, colander.Email):
+            converted['format'] = 'email'
         else:
-            ret["name"] = title.lower()
-        return ret
+            converted['pattern'] = validator.match_object.pattern
 
-    def _swagger_mapping(self, node):
-        ret = {}
-        title = node.title or node.__class__.__name__
-        ret["type"] = "object"
-        ret["required"] = node.required
-        props = {}
-        ret[title] = props
-        for cnode in node.children:
-            name = cnode.name
-            tmp = self.to_swagger(cnode)
-            if tmp:
-                props[name] = tmp
-        return ret
+    return converted
 
-    def _swagger_sequence(self, node):
-        ret = {}
-        ret["required"] = node.required
-        tmp = self.to_swagger(node.children[0])
-        if not tmp:
-            return ret
-        items = tmp
-        ret["schema"] = {"items": items}
-        ret["schema"]["type"] = "array"
 
-        for v in self._node_validators(node):
-            if isinstance(v, colander.Length):
-                if v.min is not None:
-                    ret["schema"]["minItems"] = v.min
-                if v.max is not None:
-                    ret["schema"]["maxItems"] = v.max
-        return ret
+class ValidatorConversionDispatcher(object):
 
-    def _swagger_tuple(self, node):
-        ret = {}
-        ret["required"] = node.required
-        items = []
-        ret["schema"] = {"items": items}
-        ret["schema"]["type"] = "array"
-        for cnode in node.children:
-            tmp = self.to_swagger(cnode)
-            if tmp:
-                items.append(tmp)
-        return ret
+    def __init__(self, *converters):
 
-    def _swagger_datetime(self, node, format="date-time"):
-        ret = {}
-        ret["type"] = "string"
-        ret["required"] = node.required
-        ret["format"] = format
-        return ret
+        self.converters = converters
 
-    def _swagger_date(self, node):
-        return self._swagger_datetime(node, format="date")
+    def __call__(self, schema_node, validator=None):
+        if validator is None:
+            validator = schema_node.validator
 
-    def _swagger_time(self, node):
-        return self._swagger_datetime(node, format="time")
+        converted = {}
+        if validator is not None:
+            for converter in (self.convert_all_validator,) + self.converters:
+                ret = converter(schema_node, validator)
+                if ret is not None:
+                    converted = ret
+                    break
 
-    def _swagger_string(self, node):
-        ret = {}
-        ret["type"] = "string"
-        ret["required"] = node.required
+        return converted
 
-        for v in self._node_validators(node):
-            if isinstance(v, colander.Length):
-                if v.min is not None:
-                    ret["minLength"] = v.min
-                if v.max is not None:
-                    ret["maxLength"] = v.max
-            elif isinstance(v, colander.OneOf):
-                ret["enum"] = v.choices
-        return ret
+    def convert_all_validator(self, schema_node, validator):
 
-    def _swagger_number(self, node, typename="number"):
-        ret = {}
-        ret["type"] = typename
-        ret["required"] = node.required
+        converted = None
 
-        for v in self._node_validators(node):
-            if isinstance(v, colander.Range):
-                if v.max is not None:
-                    ret["maximum"] = v.max
-                if v.min is not None:
-                    ret["minimum"] = v.min
-            elif isinstance(v, colander.OneOf):
-                ret["enum"] = v.choices
-        return ret
+        if isinstance(validator, colander.All):
+            converted = {}
+            for v in validator.validators:
+                ret = self(schema_node, v)
+                converted.update(ret)
 
-    def _swagger_boolean(self, node):
-        ret = {}
-        ret["type"] = "boolean"
-        ret["required"] = node.required
-        return ret
+        return converted
 
-    def _swagger_integer(self, node):
-        return self._swagger_number(node, typename="integer")
 
-    def _node_validators(self, node):
-        ret = []
-        if node.validator is not None:
-            if isinstance(node.validator, colander.All):
-                ret = node.validator.validators
-            else:
-                ret.append(node.validator)
-        return ret
+class TypeConverter(object):
+
+    type = ''
+    convert_validator = lambda self, schema_node: {}
+
+    def __init__(self, dispatcher):
+
+        self.dispatcher = dispatcher
+
+    def convert_type(self, schema_node, converted):
+
+        converted['type'] = self.type
+
+        if schema_node.title:
+            converted['title'] = schema_node.title
+        if schema_node.description:
+            converted['description'] = schema_node.description
+        if schema_node.default is not colander.null:
+            converted['default'] = schema_node.default
+
+        return converted
+
+    def __call__(self, schema_node, converted=None):
+
+        if converted is None:
+            converted = {}
+
+        converted = self.convert_type(schema_node, converted)
+        converted.update(self.convert_validator(schema_node))
+
+        return converted
+
+
+class BaseStringTypeConverter(TypeConverter):
+    type = 'string'
+    format = None
+
+    def convert_type(self, schema_node, converted):
+
+        converted = super(BaseStringTypeConverter,
+                          self).convert_type(schema_node, converted)
+
+        if self.format is not None:
+            converted['format'] = self.format
+
+        return converted
+
+
+class BooleanTypeConverter(TypeConverter):
+    type = 'boolean'
+
+
+class DateTypeConverter(BaseStringTypeConverter):
+    format = 'date'
+
+
+class DateTimeTypeConverter(BaseStringTypeConverter):
+    format = 'date-time'
+
+
+class NumberTypeConverter(TypeConverter):
+    type = 'number'
+
+    convert_validator = ValidatorConversionDispatcher(
+        convert_range_validator,
+        convert_oneof_validator_factory(),
+    )
+
+
+class IntegerTypeConverter(NumberTypeConverter):
+    type = 'integer'
+
+
+class StringTypeConverter(BaseStringTypeConverter):
+
+    convert_validator = ValidatorConversionDispatcher(
+        convert_length_validator_factory('maxLength', 'minLength'),
+        convert_regex_validator,
+        convert_oneof_validator_factory(),
+    )
+
+
+class TimeTypeConverter(BaseStringTypeConverter):
+    format = 'time'
+
+
+class ObjectTypeConverter(TypeConverter):
+    type = 'object'
+
+    def convert_type(self, schema_node, converted):
+
+        converted = super(ObjectTypeConverter,
+                          self).convert_type(schema_node, converted)
+
+        properties = {}
+        required = []
+
+        for sub_node in schema_node.children:
+            properties[sub_node.name] = self.dispatcher(sub_node)
+            if sub_node.required:
+                required.append(sub_node.name)
+
+        if len(properties) > 0:
+            converted['properties'] = properties
+
+        if len(required) > 0:
+            converted['required'] = required
+
+        if schema_node.typ.unknown == 'preserve':
+            converted['additionalProperties'] = {}
+
+        return converted
+
+
+class ArrayTypeConverter(TypeConverter):
+    type = 'array'
+
+    convert_validator = ValidatorConversionDispatcher(
+        convert_length_validator_factory('maxItems', 'minItems'),
+    )
+
+    def convert_type(self, schema_node, converted):
+
+        converted = super(ArrayTypeConverter,
+                          self).convert_type(schema_node, converted)
+
+        converted['items'] = self.dispatcher(schema_node.children[0])
+
+        return converted
+
+
+class TypeConversionDispatcher(object):
+
+    converters = {
+        colander.Boolean: BooleanTypeConverter,
+        colander.Date: DateTypeConverter,
+        colander.DateTime: DateTimeTypeConverter,
+        colander.Float: NumberTypeConverter,
+        colander.Integer: IntegerTypeConverter,
+        colander.Mapping: ObjectTypeConverter,
+        colander.Sequence: ArrayTypeConverter,
+        colander.String: StringTypeConverter,
+        colander.Time: TimeTypeConverter,
+    }
+
+    def __init__(self, converters=None):
+
+        if converters is not None:
+            self.converters.update(converters)
+
+    def __call__(self, schema_node):
+
+        schema_type = schema_node.typ
+        schema_type = type(schema_type)
+
+        converter_class = self.converters.get(schema_type)
+        if converter_class is None:
+            raise NoSuchConverter
+
+        converter = converter_class(self)
+        converted = converter(schema_node)
+
+        return converted
+
+
+def convert(schema_node, converters=None):
+
+    dispatcher = TypeConversionDispatcher(converters)
+    converted = dispatcher(schema_node)
+
+    return converted
