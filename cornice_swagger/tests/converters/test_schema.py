@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import unittest
 import colander
 
-from cornice_swagger.swagger_model import convert
+from cornice_swagger.converters import convert_schema as convert
 
 
 class StringConversionTest(unittest.TestCase):
@@ -124,6 +122,7 @@ class DateTimeConversionTest(unittest.TestCase):
             'type': 'string',
             'format': 'date-time',
         })
+
 
 class MappingConversionTest(unittest.TestCase):
 

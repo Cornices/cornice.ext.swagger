@@ -1,35 +1,61 @@
 """Cornice Swagger 2.0 documentor"""
-
 import re
-import cornice_swagger.swagger_model
-from cornice_swagger.swagger_model import convert
+
+import colander
+from cornice.validators import colander_validator, colander_body_validator
+
 import cornice_swagger.util
+from cornice_swagger.converters import convert_schema, convert_parameter
 
 
 class CorniceSwaggerException(Exception):
-    pass
+    """Raised when cornice services have structural problems to be converted."""
 
 
 class CorniceSwagger(object):
+    """Handles the creation of a swagger document from a cornice applicationi."""
 
     def __init__(self, services, def_ref_depth=0,
-                                 param_ref_depth=0):
+                                 param_ref=False):
+        """
+        :param services:
+            List of cornice services to document. You may use
+            cornice.service.get_services() to get it.
+        :param def_ref_depth:
+            How depth swagger object schemas should be split into
+            swaggger definitions with JSON pointers. Default (0) is no split.
+            You may use negative values to split everything.
+        :param param_ref_depth:
+            Defines if swagger parameters should be put inline on the operation
+            or on the parameters section and referenced by JSON pointers.
+            Defauilt is inline.
+        """
 
         self.services = services
 
-        self.definitions = DefinitionHandler(ref_depth=def_ref_depth)
+        self.definitions = DefinitionHandler(ref=def_ref_depth)
         self.parameters = ParameterHandler(self.definitions,
-                                           ref_depth=param_ref_depth)
+                                           ref=param_ref)
 
-    def __call__(self, title, version, base_path='/', info={}, **kwargs):
+    def __call__(self, title, version, base_path='/', info={}, swagger={}, **kwargs):
+        """
+        Generate a Swagger 2.0 documentation. Keyword arguments may be used
+        to provide additional information to build methods as such ignores.
+
+        :param title:
+            The name presented on the swagger document.
+        :param version:
+            The version of the API presented on the swagger document.
+        :param base_path:
+            The path that all requests to the API must refer to.
+        :param info:
+            Swagger info field.
+        :param swagger:
+            Extra fields that should be provided on the swagger documentation.
+        """
 
         info.update(title=title, version=version)
-
-        swagger = {
-            'swagger': '2.0',
-            'info': info,
-            'basePath': base_path
-        }
+        swagger.update(swagger='2.0', info=info, basePath=base_path)
 
         paths, tags = self._build_paths(**kwargs)
         if paths:
@@ -47,7 +73,14 @@ class CorniceSwagger(object):
 
         return swagger
 
-    def _build_paths(self, sort=False, ignore=['head', 'options'], **kwargs):
+    def _build_paths(self, ignore=['head', 'options'], **kwargs):
+        """
+        Build the Swagger "paths" and "tags" attributes from cornice service
+        definitions.
+
+        :param ignore:
+            List of service methods that should NOT be presented on the documentation.
+        """
 
         paths = {}
         tags = []
@@ -63,11 +96,22 @@ class CorniceSwagger(object):
 
                 # XXX: If tag not defined, try to guess it from path
                 default_tag = service.path.split("/")[1]
-                op.setdefault('tags', [default_tag])
+                if 'tags' not in op:
+                    op['tags'] = [default_tag]
 
-                if default_tag not in [t['name'] for t in tags]:
-                    tag = {'name': default_tag}
-                    tags.append(tag)
+                    if default_tag not in [t['name'] for t in tags]:
+                        tag = {'name': default_tag}
+                        if cornice_swagger.util.is_string(view):
+                            ob = args['klass']
+                            view_ = getattr(ob, view.lower())
+                            desc = cornice_swagger.util.trim(ob.__doc__)
+                            tag['description'] = desc
+                        else:
+                            ob = cornice_swagger.util.get_class_that_defined_method(view)
+                            desc = cornice_swagger.util.trim(ob.__doc__)
+                            tag["description"] = desc
+
+                        tags.append(tag)
 
                 # If method is defined for more than one ctype, get previous ones
                 ctypes = path.get(method_name.lower(), {}).get('consumes')
@@ -91,18 +135,38 @@ class CorniceSwagger(object):
         return paths, tags
 
     def _extract_path_from_service(self, service):
+        """
+        Extract path object and its parameters from service definitions.
+
+        :param service:
+            Cornice service to extract information from.
+
+        :rtype: dict
+            Path definition.
+        """
 
         path = {}
 
         # Extract path parameters
-        param_names = re.findall('\{(.*?)\}', service.path)
-        parameters = self.parameters.from_path(param_names)
+        parameters = self.parameters.from_path(service.path)
         if parameters:
             path['parameters'] = parameters
 
         return path
 
-    def _extract_operation_from_view(self, view, args):
+    def _extract_operation_from_view(self, view, args={}):
+        """
+        Extract swagger operation details from colander view definitions.
+
+        :param view:
+            View to extract information from.
+        :param args:
+            Arguments from the view decorator.
+
+        :rtype: dict
+            Operation definition.
+        """
+
 
         op = {
             'responses': {
@@ -113,12 +177,12 @@ class CorniceSwagger(object):
         }
 
         # If ctypes are defined in view, try get from renderers
-        renderer = args['renderer']
+        renderer = args.get('renderer', '')
 
         if "json" in renderer:  # allows for "json" or "simplejson"
-            ctype = set(["application/json"])
-        elif renderer == "xml":
-            ctype = set(["text/xml"])
+            ctype = set(['application/json'])
+        elif renderer == 'xml':
+            ctype = set(['text/xml'])
         else:
             ctype = None
 
@@ -131,7 +195,8 @@ class CorniceSwagger(object):
 
         # Get parameters from view schema
         if 'schema' in args:
-            parameters = self.parameters.from_schema(args['schema'])
+            validators = args.get('validators')
+            parameters = self.parameters.from_schema(args['schema'], validators)
             if parameters:
                 op['parameters'] = parameters
 
@@ -151,110 +216,163 @@ class CorniceSwagger(object):
 
 
 class DefinitionHandler(object):
+    """Handles Swagger object definitions provided by cornice as colander schemas."""
 
-    definitions = {}
     json_pointer = '#/definitions/'
 
-    def __init__(self, ref_depth=1):
-        self.ref_depth = ref_depth
+    def __init__(self, ref=0):
+        """
+        :param ref:
+            The depth that should be used by self.ref when calling self.from_schema.
+        """
 
-    def from_schema(self, obj, base_name=None):
-        return self._ref(convert(obj), self.ref_depth, base_name)
+        self.definitions = {}
+        self.ref = ref
 
-    # XXX: Dismantle schemas can be dangerous since definition names must be unique
+    def from_schema(self, schema_node, base_name=None):
+        """
+        Creates a Swagger definition from a colander schema.
+
+        :param schema_node:
+            Colander schema to be transformed into a Swagger definition.
+        :param base_name:
+            Schema alternative title.
+
+        :rtype: dict
+            Swagger schema.
+        """
+        return self._ref(convert_schema(schema_node), self.ref, base_name)
+
     def _ref(self, schema, depth, base_name=None):
+        """
+        Dismantle nested swagger schemas into several definitions using JSON pointers.
+        Note: This can be dangerous since definition titles must be unique.
+
+        :param schema:
+            Base swagger schema.
+        :param depth:
+            How many levels of the swagger object schemas should be split into
+            swaggger definitions with JSON pointers. Default (0) is no split.
+            You may use negative values to split everything.
+        :param base_name:
+            If schema doesn't have a name, the caller may provide it to be
+            used as reference.
+
+        :rtype: dict
+            Swagger schema.
+        """
 
         if depth == 0:
             return schema
 
-        # If schema doesnt have a title, the caller may provide it
-        if 'title' not in schema:
-            if base_name:
-                schema['title'] = base_name
-            else:
-                raise CorniceSwaggerException('Schema needs a title to be referenced')
-
-        def set_pointers(schema, depth):
-            if depth == 0:
-                return schema
-
-            if schema['type'] == 'object' and 'properties' in schema:
-                for name, prop in schema['properties'].items():
-                    if 'title' not in prop:
-                        prop['title'] = name
-                    pointer = self.json_pointer + prop['title']
-                    schema['properties'][name] = {'$ref': pointer}
-                    prop = set_pointers(prop, depth-1)
-                    self.definitions[prop['title']] = prop
-
+        if schema['type'] != 'object':
             return schema
 
-        root_pointer = self.json_pointer + schema['title']
-        schema = set_pointers(schema, depth)
-        self.definitions[schema['title']] = schema
+        name = base_name or schema['title']
 
-        return {'$ref': root_pointer}
+        pointer = self.json_pointer + name
+        for child_name, child in schema.get('properties', {}).items():
+            schema['properties'][child_name] = self._ref(child, depth-1)
+
+        self.definitions[name] = schema
+
+        return {'$ref': pointer}
+
 
 
 class ParameterHandler(object):
+    """
+    Handles swagger parameter definitions.
+    """
 
-    parameters = {}
     json_pointer = '#/parameters/'
 
-    def __init__(self, definition_handler=DefinitionHandler(), ref_depth=0):
-        self.definitions = definition_handler
+    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
+        """
+        :param definition_handler:
+            Callable that handles swagger definition schemas.
+        :param ref:
+            Specifies the ref value when calling from_xxx methods.
+        """
 
-    def from_schema(self, schema):
+        self.parameters = {}
+
+        self.definitions = definition_handler
+        self.ref = ref
+
+    def from_schema(self, schema_node, validators=[]):
+        """
+        Creates a list of Swagger params from a colander request schema.
+
+        :param schema_node:
+            Request schema to be transformed into Swagger.
+        :param validators:
+            Validators used in colander with the schema.
+        :rtype: list
+            List of Swagger parameters.
+        """
 
         params = []
 
-        if not cornice_swagger.util.is_object(schema):
-            schema = schema()
+        if not cornice_swagger.util.is_object(schema_node):
+            schema_node = schema_node()
 
-        for param_schema in schema.children:
-            location = param_schema.name
+        print schema_node.serialize()
+        if colander_validator in validators:
+            for param_schema in schema_node.children:
+                location = param_schema.name
+                if location is 'body':
+                    param = self._ref(convert_parameter(location,
+                                                        param_schema,
+                                                        self.definitions.from_schema),
+                                      self.ref)
+                    params.append(param)
 
-            if location in ('path', 'header', 'querystring', 'body'):
-                for obj in param_schema.children:
-                    param = {
-                        'name': obj.name,
-                        'in': location,
-                        'required': obj.required
-                    }
+                elif location in ('path', 'headers', 'querystring'):
+                    for node_schema in param_schema.children:
+                        param = self._ref(convert_parameter(location,
+                                                            node_schema,
+                                                            self.definitions.from_schema),
+                                          self.ref)
+                        params.append(param)
 
-                    schema = self.definitions.from_schema(obj)
-                    if '$ref' in schema or schema['type'] == 'object':
-                        param['schema'] = schema
-                    else:
-                        param.update(obj)
-
-            # XXX: if only one object is provided, assume it to be body
-            else:
-                name = schema.get('name', str(schema.__class__.__name__))
-                schema = self.definitions.from_schema(schema, base_name=name)
-                param = {
-                    'name': name,
-                    'in': 'body',
-                    'schema': schema
-                }
-
+        elif colander_body_validator in validators:
+            param = self._ref(convert_parameter('body', schema_node,
+                                                self.definitions.from_schema),
+                              self.ref)
             params.append(param)
 
         return params
 
-    def from_path(self, param_names):
+    def from_path(self, path):
+        """
+        Create a list of Swagger path params from a cornice service path.
 
+        :type path: string
+        :rtype: list
+        """
+
+        param_names = re.findall('\{(.*?)\}', path)
         params = []
         for name in param_names:
-            param = {
-                "name": name,
-                "in": "path",
-                "type": "string",
-                "required": True,
-            }
+            param_schema = colander.SchemaNode(colander.String(), name=name)
+            param = self._ref(convert_parameter('path', param_schema), self.ref)
             params.append(param)
 
         return params
+
+    def _ref(self, param, depth, base_name=None):
+
+        if depth == 0:
+            return param
+
+        name = base_name or param['name']
+
+        pointer = self.json_pointer + name
+        self.parameters[name] = param
+
+        return {'$ref': pointer}
+
 
 
 def generate_swagger_spec(services, title, version, **kwargs):
@@ -265,7 +383,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
     """
 
 
-    swag = CorniceSwagger(services, def_ref_depth=-1, param_ref_depth=0)
+    swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
     doc = swag(title, version, ignores=('head'), **kwargs)
     doc.update(**kwargs)
 
