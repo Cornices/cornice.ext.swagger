@@ -143,7 +143,7 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         names = [param['name'] for param in params]
         expected = ['BodySchema', 'foo', 'bar', 'meh']
-        self.assertItemsEqual(names, expected)
+        self.assertEqual(sorted(names), sorted(expected))
 
     def test_convert_descriptions(self):
         class RequestSchema(colander.MappingSchema):
@@ -174,7 +174,7 @@ class PathParamConversionTest(unittest.TestCase):
         params = self.handler.from_path('/my/{param}/path/{id}')
         names = [param['name'] for param in params]
         expected = ['param', 'id']
-        self.assertItemsEqual(names, expected)
+        self.assertEqual(sorted(names), sorted(expected))
         for param in params:
             self.assertEquals(param['in'], 'path')
 

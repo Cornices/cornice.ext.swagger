@@ -158,7 +158,6 @@ class TestSwaggerService(TestCase):
         self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
         params = ret["paths"]["/freshair"]["put"]['parameters']
-        print params
         self.assertEqual(len(params), 3)
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
