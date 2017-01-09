@@ -34,6 +34,6 @@ setup(
     extras_require={
         'test': ["pytest", "coverage", "flex"],
     },
-    test_suite='cornice_swagger.tests',
+    test_suite='tests',
     setup_requires=["setuptools_git"],
 )

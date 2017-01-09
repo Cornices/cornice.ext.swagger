@@ -7,7 +7,7 @@ from flex.core import validate
 from cornice_swagger.swagger import generate_swagger_spec
 from cornice_swagger.util import PY3
 from cornice.validators import colander_validator
-from cornice_swagger.tests.validationapp import RequestSchema
+from .validationapp import RequestSchema
 
 
 def _generate_swagger(services):

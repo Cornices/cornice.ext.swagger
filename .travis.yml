@@ -1,18 +1,25 @@
 language: python
-python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "pypy"
-# command to install dependencies
+python: 2.7
+
+env:
+  - TOX_ENV=py27
+  - TOX_ENV=py33
+  - TOX_ENV=py34
+  - TOX_ENV=py35
+  - TOX_ENV=py36
+  - TOX_ENV=flake8
+
 install:
   - pip install -e .[test]
+  - pip install tox
   - pip install pytest
   - pip install coveralls
   - pip install flex
 
-script: py.test cornice_swagger
+script:
+  - tox -e $TOX_ENV
+
 after_success:
-    coveralls --verbose
+  # Report coverage results to coveralls.io
+  - pip install coveralls
+  - coveralls
