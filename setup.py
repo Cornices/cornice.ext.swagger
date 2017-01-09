@@ -32,7 +32,7 @@ setup(
     zip_safe=False,
     install_requires=requires,
     extras_require={
-        'test': ["nose", "coverage", ],
+        'test': ["pytest", "coverage", "flex"],
     },
     test_suite='cornice_swagger.tests',
     setup_requires=["setuptools_git"],

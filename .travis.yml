@@ -9,8 +9,10 @@ python:
 # command to install dependencies
 install:
   - pip install -e .[test]
+  - pip install pytest
   - pip install coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
-script: nosetests -s cornice_swagger
+  - pip install flex
+
+script: py.test cornice_swagger
 after_success:
     coveralls --verbose
