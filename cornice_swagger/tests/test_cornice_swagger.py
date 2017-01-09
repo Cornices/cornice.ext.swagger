@@ -1,5 +1,7 @@
 from cornice.resource import resource, view
 from cornice.service import Service, clear_services, get_services
+from flex.core import validate
+
 from cornice_swagger.tests.support import TestCase
 from cornice_swagger.swagger import generate_swagger_spec
 from cornice_swagger.util import PY3
@@ -23,6 +25,8 @@ def _generate_swagger(services):
         info['version'],
         info=info,
         basePath=base_path)
+
+    validate(spec)
     return spec
 
 
