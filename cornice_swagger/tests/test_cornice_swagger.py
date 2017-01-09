@@ -1,8 +1,9 @@
+import unittest
+
 from cornice.resource import resource, view
 from cornice.service import Service, clear_services, get_services
 from flex.core import validate
 
-from cornice_swagger.tests.support import TestCase
 from cornice_swagger.swagger import generate_swagger_spec
 from cornice_swagger.util import PY3
 from cornice.validators import colander_validator
@@ -30,7 +31,7 @@ def _generate_swagger(services):
     return spec
 
 
-class TestSwaggerService(TestCase):
+class TestSwaggerService(unittest.TestCase):
     def tearDown(self):
         clear_services()
 
@@ -205,7 +206,7 @@ class TestSwaggerService(TestCase):
         self.assertEqual(ret["basePath"], '/jcool')
 
 
-class TestSwaggerResource(TestCase):
+class TestSwaggerResource(unittest.TestCase):
     def tearDown(self):
         clear_services()
 
