@@ -72,7 +72,7 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
                          [True, True, True])
         self.assertEqual([x.get("type") for x in params],
@@ -113,7 +113,7 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
                          [True, True, True])
         self.assertEqual([x.get("type") for x in params],
@@ -163,7 +163,7 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
                          [True, True, True])
         self.assertEqual([x.get("type") for x in params],

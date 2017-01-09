@@ -279,11 +279,8 @@ class DefinitionHandler(object):
         return {'$ref': pointer}
 
 
-
 class ParameterHandler(object):
-    """
-    Handles swagger parameter definitions.
-    """
+    """Handles swagger parameter definitions."""
 
     json_pointer = '#/parameters/'
 
@@ -317,29 +314,31 @@ class ParameterHandler(object):
         if not cornice_swagger.util.is_object(schema_node):
             schema_node = schema_node()
 
-        print schema_node.serialize()
         if colander_validator in validators:
             for param_schema in schema_node.children:
                 location = param_schema.name
                 if location is 'body':
-                    param = self._ref(convert_parameter(location,
-                                                        param_schema,
-                                                        self.definitions.from_schema),
-                                      self.ref)
+                    name = param_schema.__class__.__name__
+                    param = convert_parameter(location,
+                                              param_schema,
+                                              self.definitions.from_schema)
+                    param['name'] = name
+                    param = self._ref(param, self.ref)
                     params.append(param)
 
                 elif location in ('path', 'headers', 'querystring'):
                     for node_schema in param_schema.children:
-                        param = self._ref(convert_parameter(location,
-                                                            node_schema,
-                                                            self.definitions.from_schema),
-                                          self.ref)
+                        param = convert_parameter(location,
+                                                  node_schema,
+                                                  self.definitions.from_schema)
+                        param = self._ref(param, self.ref)
                         params.append(param)
 
         elif colander_body_validator in validators:
-            param = self._ref(convert_parameter('body', schema_node,
-                                                self.definitions.from_schema),
-                              self.ref)
+            name = schema_node.__class__.__name__
+            param = convert_parameter('body', schema_node)
+            param['name'] = name
+            param = self._ref(param, self.ref, schema_node.__class__.__name__)
             params.append(param)
 
         return params
@@ -366,7 +365,10 @@ class ParameterHandler(object):
         if depth == 0:
             return param
 
-        name = base_name or param['name']
+        name = base_name or param.get('title', '') or param.get('name', '')
+
+        if not name:
+            raise CorniceSwaggerException('Parameter needs a name')
 
         pointer = self.json_pointer + name
         self.parameters[name] = param

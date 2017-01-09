@@ -86,7 +86,6 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         expected = {
             'name':'foo',
-            'title': 'Foo',
             'in': 'query',
             'type': 'string',
             'required': False
@@ -105,7 +104,6 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         expected = {
             'name':'bar',
-            'title': 'Bar',
             'in': 'header',
             'type': 'string',
             'required': True,
@@ -124,7 +122,6 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         expected = {
             'name':'meh',
-            'title': 'Meh',
             'in': 'path',
             'type': 'string',
             'required': True,
@@ -192,7 +189,6 @@ class RefParamTest(unittest.TestCase):
         params = self.handler.from_path('/path/{id}')
         expected = {
             'name': 'id',
-            'title': 'Id',
             'in': 'path',
             'type': 'string',
             'required': True,
@@ -227,7 +223,6 @@ class RefParamTest(unittest.TestCase):
 
         expected = {
             'name':'foo',
-            'title': 'Foo',
             'in': 'query',
             'type': 'string',
             'required': False

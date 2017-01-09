@@ -60,10 +60,5 @@ class RefDefinitionTest(unittest.TestCase):
         self.assertDictContainsSubset(feelings_schema,
                                       handler.definitions['Feelings'])
 
-        anxiety_schema = {
-            'properties': {
-                'level': {'type: integer'},
-            }
-        }
-        self.assertDictContainsSubset(anxiety_schema,
+        self.assertDictContainsSubset(convert(AnxietySchema()),
                                       handler.definitions['Aaaa'])
