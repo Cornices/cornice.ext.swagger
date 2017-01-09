@@ -34,15 +34,15 @@ class TestSwaggerService(TestCase):
         class TemperatureCooler(object):
             """Temp class docstring"""
 
-            def get_view(self):
+            def put_view(self):
                 """Temp view docstring"""
                 pass
 
         service = Service(
             "TemperatureCooler", "/freshair", klass=TemperatureCooler)
         service.add_view(
-            "get",
-            "get_view",
+            "put",
+            "put_view",
             validators=(colander_validator, ),
             schema=RequestSchema())
         ret = _generate_swagger([service])
@@ -60,23 +60,23 @@ class TestSwaggerService(TestCase):
             'name': 'freshair',
             'description': 'Temp class docstring'
         }])
-        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+        self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
         self.assertEqual(len(params), 3)
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
             sorted(x["name"] for x in params), ["body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
@@ -111,13 +111,13 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(x["name"] for x in params), ["body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
@@ -131,13 +131,13 @@ class TestSwaggerService(TestCase):
         class TemperatureCooler(object):
             """Temp class docstring"""
 
-            def view_get(self, request):
+            def view_put(self, request):
                 """Temp view docstring"""
                 return "red"
 
         service.add_view(
-            "get",
-            TemperatureCooler.view_get,
+            "put",
+            TemperatureCooler.view_put,
             validators=(colander_validator, ),
             schema=RequestSchema())
         ret = _generate_swagger([service])
@@ -151,22 +151,23 @@ class TestSwaggerService(TestCase):
                 'name': 'freshair',
                 'description': 'Temp class docstring'
             }])
-        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+        self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
+        print params
         self.assertEqual(len(params), 3)
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
             sorted(x["name"] for x in params), ["body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertListEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
