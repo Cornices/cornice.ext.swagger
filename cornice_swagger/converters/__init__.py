@@ -21,4 +21,3 @@ def convert_parameter(location, schema_node, definition_handler=convert_schema):
     converted = dispatcher(location, schema_node)
 
     return converted
-

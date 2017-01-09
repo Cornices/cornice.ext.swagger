@@ -176,7 +176,6 @@ class MappingConversionTest(unittest.TestCase):
         class TopMapping(colander.MappingSchema):
             bar = BaseMapping(missing=colander.drop)
 
-
         node = TopMapping()
         ret = convert(node)
         self.assertDictEqual(ret, {
@@ -199,6 +198,7 @@ class MappingConversionTest(unittest.TestCase):
         class Mapping(colander.MappingSchema):
             foo = colander.SchemaNode(colander.String(),
                                       missing=colander.drop)
+
             @staticmethod
             def schema_type():
                 return colander.Mapping(unknown='preserve')
@@ -262,5 +262,3 @@ class SequenceConversionTest(unittest.TestCase):
                 'title': 'Base Mapping',
             },
         })
-
-

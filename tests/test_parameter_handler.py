@@ -47,7 +47,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertEquals(len(params), 1)
 
         expected = {
-            'name':'BodySchema',
+            'name': 'BodySchema',
             'in': 'body',
             'required': True,
             'schema': convert_schema(BodySchema(title='BodySchema'))
@@ -66,7 +66,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertEquals(len(params), 1)
 
         expected = {
-            'name':'BodySchema',
+            'name': 'BodySchema',
             'in': 'body',
             'required': True,
             'schema': convert_schema(BodySchema(title='BodySchema'))
@@ -85,7 +85,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertEquals(len(params), 1)
 
         expected = {
-            'name':'foo',
+            'name': 'foo',
             'in': 'query',
             'type': 'string',
             'required': False
@@ -103,7 +103,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertEquals(len(params), 1)
 
         expected = {
-            'name':'bar',
+            'name': 'bar',
             'in': 'header',
             'type': 'string',
             'required': True,
@@ -121,7 +121,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertEquals(len(params), 1)
 
         expected = {
-            'name':'meh',
+            'name': 'meh',
             'in': 'path',
             'type': 'string',
             'required': True,
@@ -154,7 +154,7 @@ class SchemaParamConversionTest(unittest.TestCase):
         params = self.handler.from_schema(node, validators)
 
         expected = {
-            'name':'BodySchema',
+            'name': 'BodySchema',
             'in': 'body',
             'required': True,
             'description': 'my body',
@@ -203,7 +203,7 @@ class RefParamTest(unittest.TestCase):
         params = self.handler.from_schema(node, validators)
 
         expected = {
-            'name':'BodySchema',
+            'name': 'BodySchema',
             'in': 'body',
             'required': True,
             'schema': convert_schema(BodySchema(title='BodySchema'))
@@ -222,7 +222,7 @@ class RefParamTest(unittest.TestCase):
         params = self.handler.from_schema(node, validators)
 
         expected = {
-            'name':'foo',
+            'name': 'foo',
             'in': 'query',
             'type': 'string',
             'required': False
@@ -230,4 +230,3 @@ class RefParamTest(unittest.TestCase):
 
         self.assertEquals(params, [{'$ref': '#/parameters/foo'}])
         self.assertDictEqual(self.handler.parameters, dict(foo=expected))
-

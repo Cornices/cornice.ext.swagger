@@ -4,6 +4,7 @@ import colander
 
 from cornice_swagger.converters import convert_parameter, convert_schema
 
+
 class ParameterConversionTest(unittest.TestCase):
 
     def test_path(self):

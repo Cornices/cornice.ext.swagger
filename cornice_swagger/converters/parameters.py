@@ -1,6 +1,6 @@
 """Converts from colander request chema to Swagger parameters."""
 
-from cornice_swagger.converters.schema import TypeConversionDispatcher
+from cornice_swagger.converters.exceptions import NoSuchConverter
 
 
 class ParameterConverter(object):
@@ -70,11 +70,9 @@ class ParameterConversionDispatcher(object):
 
         converter_class = self.converters.get(location)
         if converter_class is None:
-            raise NoSuchConverter
+            raise NoSuchConverter()
 
         converter = converter_class()
         converted = converter.convert(schema_node, self.definition_handler)
 
         return converted
-
-

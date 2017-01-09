@@ -35,6 +35,7 @@ class DefinitionTest(unittest.TestCase):
         self.assertDictEqual(self.handler.from_schema(FeelingsSchema()),
                              convert(FeelingsSchema()))
 
+
 class RefDefinitionTest(unittest.TestCase):
 
     def test_single_level(self):

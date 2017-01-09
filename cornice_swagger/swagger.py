@@ -15,8 +15,7 @@ class CorniceSwaggerException(Exception):
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice applicationi."""
 
-    def __init__(self, services, def_ref_depth=0,
-                                 param_ref=False):
+    def __init__(self, services, def_ref_depth=0, param_ref=False):
         """
         :param services:
             List of cornice services to document. You may use
@@ -103,7 +102,6 @@ class CorniceSwagger(object):
                         tag = {'name': default_tag}
                         if cornice_swagger.util.is_string(view):
                             ob = args['klass']
-                            view_ = getattr(ob, view.lower())
                             desc = cornice_swagger.util.trim(ob.__doc__)
                             tag['description'] = desc
                         else:
@@ -166,7 +164,6 @@ class CorniceSwagger(object):
         :rtype: dict
             Operation definition.
         """
-
 
         op = {
             'responses': {
@@ -376,14 +373,12 @@ class ParameterHandler(object):
         return {'$ref': pointer}
 
 
-
 def generate_swagger_spec(services, title, version, **kwargs):
     """Utility to turn cornice web services into a Swagger-readable file.
 
     See https://helloreverb.com/developers/swagger for more information.
     https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md
     """
-
 
     swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
     doc = swag(title, version, ignores=('head'), **kwargs)

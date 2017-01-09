@@ -5,13 +5,7 @@ object schemas by converting types and node validators.
 
 import colander
 
-
-class ConversionError(Exception):
-    pass
-
-
-class NoSuchConverter(ConversionError):
-    pass
+from cornice_swagger.converters.exceptions import NoSuchConverter
 
 
 def convert_length_validator_factory(max_key, min_key):
@@ -90,7 +84,7 @@ class ValidatorConversionDispatcher(object):
         converted = {}
         if validator is not None:
             for converter in (self.convert_all_validator,) + self.converters:
-                ret = converter( validator)
+                ret = converter(validator)
                 if ret is not None:
                     converted = ret
                     break
@@ -112,11 +106,13 @@ class ValidatorConversionDispatcher(object):
 class TypeConverter(object):
 
     type = ''
-    convert_validator = lambda self, schema_node: {}
 
     def __init__(self, dispatcher):
 
         self.dispatcher = dispatcher
+
+    def convert_validator(self, schema_node):
+        return {}
 
     def convert_type(self, schema_node):
 
