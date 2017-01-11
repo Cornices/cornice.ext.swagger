@@ -87,7 +87,7 @@ class TestExtractContentTypes(unittest.TestCase):
         swagger = CorniceSwagger([service])
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(spec['paths']['/icecream/{flavour}']['get']['produces'],
-                          set(['application/json']))
+                          ['application/json'])
 
     def test_xml_renderer(self):
 
@@ -104,7 +104,7 @@ class TestExtractContentTypes(unittest.TestCase):
         swagger = CorniceSwagger([service])
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(spec['paths']['/icecream/{flavour}']['get']['produces'],
-                          set(['text/xml']))
+                          ['text/xml'])
 
     def test_unkown_renderer(self):
 
@@ -137,7 +137,7 @@ class TestExtractContentTypes(unittest.TestCase):
         swagger = CorniceSwagger([service])
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
-                          set(['application/json']))
+                          ['application/json'])
 
     def test_multiple_views_with_different_ctypes(self):
 
@@ -168,4 +168,4 @@ class TestExtractContentTypes(unittest.TestCase):
         swagger = CorniceSwagger([service])
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['produces'],
-                          set(['application/json']))
+                          ['application/json'])
