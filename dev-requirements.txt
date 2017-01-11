@@ -1,0 +1,10 @@
+coverage
+coveralls
+flake8
+flex
+pytest
+pytest-cache
+pytest-capturelog
+pytest-cover
+pytest-sugar
+tox
