@@ -6,28 +6,7 @@ from cornice.validators import colander_validator, colander_body_validator
 
 from cornice_swagger.swagger import ParameterHandler
 from cornice_swagger.converters import convert_schema
-
-
-class MyNestedSchema(colander.MappingSchema):
-    my_precious = colander.SchemaNode(colander.Boolean())
-
-
-class BodySchema(colander.MappingSchema):
-    id = colander.SchemaNode(colander.String())
-    timestamp = colander.SchemaNode(colander.Int())
-    obj = MyNestedSchema()
-
-
-class QuerySchema(colander.MappingSchema):
-    foo = colander.SchemaNode(colander.String(), missing=colander.drop)
-
-
-class HeaderSchema(colander.MappingSchema):
-    bar = colander.SchemaNode(colander.String())
-
-
-class PathSchema(colander.MappingSchema):
-    meh = colander.SchemaNode(colander.String(), default='default')
+from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema
 
 
 class SchemaParamConversionTest(unittest.TestCase):

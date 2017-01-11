@@ -62,7 +62,7 @@ def convert_regex_validator(validator):
         converted = {}
 
         if hasattr(colander, 'url') and validator is colander.url:
-            converted['format'] = 'uri'
+            converted['format'] = 'url'
         elif isinstance(validator, colander.Email):
             converted['format'] = 'email'
         else:
@@ -96,7 +96,7 @@ class ValidatorConversionDispatcher(object):
         if isinstance(validator, colander.All):
             converted = {}
             for v in validator.validators:
-                ret = self(v)
+                ret = self(None, v)
                 converted.update(ret)
             return converted
         else:
