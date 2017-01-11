@@ -2,6 +2,28 @@ import unittest
 import colander
 
 from cornice_swagger.converters import convert_schema as convert
+from cornice_swagger.converters.exceptions import NoSuchConverter
+
+
+class ConversionTest(unittest.TestCase):
+
+    def test_validate_all(self):
+        node = colander.SchemaNode(colander.String(),
+                                   validator=colander.All(
+                                       colander.Length(12, 42),
+                                       colander.Regex(r'foo*bar')
+                                   ))
+        ret = convert(node)
+        self.assertDictEqual(ret, {
+            'type': 'string',
+            'pattern': 'foo*bar',
+            'maxLength': 42,
+            'minLength': 12,
+        })
+
+    def test_raise_no_such_converter_on_invalid_type(self):
+        node = colander.SchemaNode(dict)
+        self.assertRaises(NoSuchConverter, convert, node)
 
 
 class StringConversionTest(unittest.TestCase):
@@ -47,6 +69,15 @@ class StringConversionTest(unittest.TestCase):
         self.assertDictEqual(ret, {
             'type': 'string',
             'format': 'email',
+        })
+
+    def test_validate_regex_url(self):
+        node = colander.SchemaNode(colander.String(),
+                                   validator=colander.url)
+        ret = convert(node)
+        self.assertDictEqual(ret, {
+            'type': 'string',
+            'format': 'url',
         })
 
     def test_validate_oneof(self):

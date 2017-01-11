@@ -3,6 +3,7 @@ import unittest
 import colander
 
 from cornice_swagger.converters import convert_parameter, convert_schema
+from cornice_swagger.converters.exceptions import NoSuchConverter
 
 
 class ParameterConversionTest(unittest.TestCase):
@@ -51,3 +52,7 @@ class ParameterConversionTest(unittest.TestCase):
             'required': True,
             'schema': convert_schema(MyBody(title='MyBody')),
         })
+
+    def test_raise_no_such_converter_on_invalid_location(self):
+        node = colander.SchemaNode(colander.String(), name='foo')
+        self.assertRaises(NoSuchConverter, convert_parameter, 'aaa', node)

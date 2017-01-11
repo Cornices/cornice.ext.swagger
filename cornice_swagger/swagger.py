@@ -1,5 +1,6 @@
 """Cornice Swagger 2.0 documentor"""
 import re
+import six
 
 import colander
 from cornice.validators import colander_validator, colander_body_validator
@@ -100,7 +101,7 @@ class CorniceSwagger(object):
 
                     if default_tag not in [t['name'] for t in tags]:
                         tag = {'name': default_tag}
-                        if cornice_swagger.util.is_string(view):
+                        if isinstance(view, six.string_types):
                             ob = args['klass']
                             desc = cornice_swagger.util.trim(ob.__doc__)
                             tag['description'] = desc
@@ -198,7 +199,7 @@ class CorniceSwagger(object):
                 op['parameters'] = parameters
 
         # Get summary from docstring
-        if cornice_swagger.util.is_string(view):
+        if isinstance(view, six.string_types):
             if 'klass' in args:
                 ob = args['klass']
                 view_ = getattr(ob, view.lower())
@@ -308,7 +309,7 @@ class ParameterHandler(object):
 
         params = []
 
-        if not cornice_swagger.util.is_object(schema_node):
+        if not isinstance(schema_node, colander.Schema):
             schema_node = schema_node()
 
         if colander_validator in validators:
@@ -363,9 +364,6 @@ class ParameterHandler(object):
             return param
 
         name = base_name or param.get('title', '') or param.get('name', '')
-
-        if not name:
-            raise CorniceSwaggerException('Parameter needs a name')
 
         pointer = self.json_pointer + name
         self.parameters[name] = param
