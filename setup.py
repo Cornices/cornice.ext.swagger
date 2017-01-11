@@ -13,6 +13,25 @@ requires = [
     "colander",
 ]
 
+REQUIREMENTS = [
+    'six',
+    'cornice',
+    'colander',
+]
+
+REQUIREMENTS_DEV = [
+    'coverage',
+    'coveralls',
+    'flake8',
+    'flex',
+    'pytest',
+    'pytest-cache',
+    'pytest-capturelog',
+    'pytest-cover',
+    'pytest-sugar',
+    'tox',
+]
+
 setup(
     name="cornice_swagger",
     version='0.2.2.dev0',
@@ -30,10 +49,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires,
-    extras_require={
-        'test': ["pytest", "coverage", "flex"],
-    },
+    install_requires=REQUIREMENTS,
+    tests_require=REQUIREMENTS_DEV,
     test_suite='tests',
-    setup_requires=["setuptools_git"],
 )
