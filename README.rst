@@ -77,9 +77,9 @@ the actual Swagger Spec JSON. The arguments are:
 1. ``services`` - a list of Pyramid Services. Note that Cornice
    Resources are really Services under the hood.
 2. ``title`` and ``version`` are both required Swagger Spec details for
-   the `Info Object`_.
+   the `Info Object`.
 3. ``kwargs`` can be made of anything else which would go into the base
-   `Swagger Object`_.
+   `Swagger Object`.
 
 *Note* If you want to add to the ``Info Object``, simply pass in as an
 ``info`` argument with the additional details. The ``Info Object``
@@ -222,12 +222,13 @@ converters to convert Colander ``Schemas Nodes`` to Swagger ``Parameter
 Objects``.
 
 If you have defined Cornice ``Schema`` objects (comprised of ``Schema Nodes``),
-you can pass it to ``schema_to_parameters`` which then converts the ``Schema``
+you can pass it to ``cornice_swagger.ParameterHadler.from_schema`` which then
+converts the ``Schema``
 to a list of ``Swagger Parameters``. Since ``Schema Nodes`` take in a Colander
 type as an argument (``Tuple``, ``Boolean``, etc) the Swagger ``Parameter
 Object`` "type" can be derived. This function is used by
 ``generate_swagger_spec`` to scan for Colander Schmas being decorated onto an
-``Operation`` with the Cornice ``@view(schema=MyCoolSchema`` decorator, and the
+``Operation`` with the Cornice ``@view(schema=MyCoolSchema)`` decorator, and the
 create ``Parameter Objects``
 
 Scaffold
@@ -246,6 +247,7 @@ To get easier started there is a scaffold with can be used.
 Contributors
 ============
 
+- Gabriela Surita
 - Jason Haury
-
 - Josip Delic
+
