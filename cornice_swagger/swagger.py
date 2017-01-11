@@ -14,7 +14,7 @@ class CorniceSwaggerException(Exception):
 
 
 class CorniceSwagger(object):
-    """Handles the creation of a swagger document from a cornice applicationi."""
+    """Handles the creation of a swagger document from a cornice application."""
 
     def __init__(self, services, def_ref_depth=0, param_ref=False):
         """
@@ -114,9 +114,8 @@ class CorniceSwagger(object):
 
                 # If method is defined for more than one ctype, get previous ones
                 ctypes = path.get(method_name.lower(), {}).get('consumes')
-                if ctypes:
-                    op['consumes'].union(op.get('consumes'))
-                    op['consumes'] = ctypes
+                if ctypes and op.get('consumes') not in ctypes:
+                    op['consumes'] = ctypes + op['consumes']
 
                 # XXX: Swagger doesn't support different schemas for for a same
                 # method with different ctypes as cornice, so this may overwrite the
@@ -178,9 +177,9 @@ class CorniceSwagger(object):
         renderer = args.get('renderer', '')
 
         if "json" in renderer:  # allows for "json" or "simplejson"
-            ctype = set(['application/json'])
+            ctype = ['application/json']
         elif renderer == 'xml':
-            ctype = set(['text/xml'])
+            ctype = ['text/xml']
         else:
             ctype = None
 
@@ -189,7 +188,7 @@ class CorniceSwagger(object):
 
         # Get explicit content-types
         if args.get('content_type'):
-            op['consumes'] = set(args['content_type'])
+            op['consumes'] = args['content_type']
 
         # Get parameters from view schema
         if 'schema' in args:
@@ -359,8 +358,21 @@ class ParameterHandler(object):
         return params
 
     def _ref(self, param, depth, base_name=None):
+        """
+        Map parameters in the parameters section using JSON pointers.
 
-        if depth == 0:
+        :param schema:
+            Swagger parameter definition.
+        :param depth:
+            If param should be set as a reference. True means it should.
+        :param base_name:
+            Name that should be used for the reference.
+
+        :rtype: dict
+            Swagger schema.
+        """
+
+        if not depth:
             return param
 
         name = base_name or param.get('title', '') or param.get('name', '')
@@ -373,9 +385,6 @@ class ParameterHandler(object):
 
 def generate_swagger_spec(services, title, version, **kwargs):
     """Utility to turn cornice web services into a Swagger-readable file.
-
-    See https://helloreverb.com/developers/swagger for more information.
-    https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md
     """
 
     swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
