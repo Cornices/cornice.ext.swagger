@@ -1,10 +1,13 @@
+import unittest
+
 from cornice.resource import resource, view
 from cornice.service import Service, clear_services, get_services
-from cornice_swagger.tests.support import TestCase
+from flex.core import validate
+
 from cornice_swagger.swagger import generate_swagger_spec
 from cornice_swagger.util import PY3
 from cornice.validators import colander_validator
-from cornice_swagger.tests.validationapp import RequestSchema
+from .validationapp import RequestSchema
 
 
 def _generate_swagger(services):
@@ -23,10 +26,12 @@ def _generate_swagger(services):
         info['version'],
         info=info,
         basePath=base_path)
+
+    validate(spec)
     return spec
 
 
-class TestSwaggerService(TestCase):
+class TestSwaggerService(unittest.TestCase):
     def tearDown(self):
         clear_services()
 
@@ -34,15 +39,15 @@ class TestSwaggerService(TestCase):
         class TemperatureCooler(object):
             """Temp class docstring"""
 
-            def get_view(self):
+            def put_view(self):
                 """Temp view docstring"""
                 pass
 
         service = Service(
             "TemperatureCooler", "/freshair", klass=TemperatureCooler)
         service.add_view(
-            "get",
-            "get_view",
+            "put",
+            "put_view",
             validators=(colander_validator, ),
             schema=RequestSchema())
         ret = _generate_swagger([service])
@@ -60,23 +65,23 @@ class TestSwaggerService(TestCase):
             'name': 'freshair',
             'description': 'Temp class docstring'
         }])
-        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+        self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
         self.assertEqual(len(params), 3)
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
@@ -109,15 +114,15 @@ class TestSwaggerService(TestCase):
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
@@ -131,13 +136,13 @@ class TestSwaggerService(TestCase):
         class TemperatureCooler(object):
             """Temp class docstring"""
 
-            def view_get(self, request):
+            def view_put(self, request):
                 """Temp view docstring"""
                 return "red"
 
         service.add_view(
-            "get",
-            TemperatureCooler.view_get,
+            "put",
+            TemperatureCooler.view_put,
             validators=(colander_validator, ),
             schema=RequestSchema())
         ret = _generate_swagger([service])
@@ -151,22 +156,22 @@ class TestSwaggerService(TestCase):
                 'name': 'freshair',
                 'description': 'Temp class docstring'
             }])
-        self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
+        self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
-        params = ret["paths"]["/freshair"]["get"]['parameters']
+        params = ret["paths"]["/freshair"]["put"]['parameters']
         self.assertEqual(len(params), 3)
         self.assertEqual(
             sorted(x["in"] for x in params), ["body", "query", "query"])
         self.assertEqual(
-            sorted(x["name"] for x in params), ["body", "mau", "yeah"])
+            sorted(x["name"] for x in params), ["Body", "mau", "yeah"])
         self.assertEqual([x.get("required") for x in params],
-                         [True, True, None])
+                         [True, True, True])
         self.assertEqual([x.get("type") for x in params],
-                         ["string", "string", None])
+                         [None, "string", "string"])
         self.assertEqual([x.get("schema") for x in params],
-                         [None, None, {
+                         [{
                              '$ref': '#/definitions/Body'
-                         }])
+                         }, None, None])
         self.assertListEqual(
          sorted([x.get("description") for x in params], key=lambda x: x or ""),
          [None, "Defines a cornice body schema", "Defines querystring yeah"]
@@ -201,7 +206,7 @@ class TestSwaggerService(TestCase):
         self.assertEqual(ret["basePath"], '/jcool')
 
 
-class TestSwaggerResource(TestCase):
+class TestSwaggerResource(unittest.TestCase):
     def tearDown(self):
         clear_services()
 
