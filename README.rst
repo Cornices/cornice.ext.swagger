@@ -1,17 +1,24 @@
 cornice_swagger
 ===============
 
+|slack| |pypi| |travis| |master-coverage|
+
+.. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
+    :target: https://travis-ci.org/Cornices/cornice.ext.swagger
+
+.. |master-coverage| image:: https://coveralls.io/repos/Cornices/cornice.ext.swagger/badge.png
+    :target: https://coveralls.io/r/Cornices/cornice.ext.swagger
+
+.. |pypi| image:: https://img.shields.io/pypi/v/cornice_swagger.svg
+    :target: https://pypi.python.org/pypi/cornice_swagger
+
+.. |slack| image:: https://img.shields.io/badge/slack-chat-blue.svg
+    :target: https://corniceswagger.herokuapp.com/
+
+
 *Cornice extension to generate Swagger*
 
 Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagger
-
-.. |travisci| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
-.. _travisci: https://travis-ci.org/Cornices/cornice.ext.swagger
-
-.. image:: https://coveralls.io/repos/Cornices/cornice.ext.swagger/badge.png
-    :target: https://coveralls.io/r/Cornices/cornice.ext.swagger
-
-|travisci|_
 
 To create a full swagger spec, this module will maximize extracting
 documentation data from functional code, while allowing users to
