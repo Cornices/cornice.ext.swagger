@@ -1,4 +1,5 @@
 import sys
+import six
 
 
 PY3 = sys.version_info[0] == 3
@@ -15,8 +16,9 @@ def trim(docstring):
         return ''
     # Convert tabs to spaces (following the normal Python rules)
     # and split into a list of lines:
-    lines = docstring.expandtabs().splitlines()
-    res = '\n'.join(lines)
+    lines = six.u(docstring).expandtabs().splitlines()
+    lines = [line.strip() for line in lines]
+    res = six.u('\n').join(lines)
     return res
 
 
