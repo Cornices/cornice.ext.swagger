@@ -87,3 +87,11 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Sphinx output
+docs/build
+
+# Swap files
+*.swo
+*.swp
+

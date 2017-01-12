@@ -1,0 +1,3 @@
+mozilla-sphinx-theme
+cornice_sphinx
+colander
