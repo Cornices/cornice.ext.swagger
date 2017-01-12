@@ -5,9 +5,9 @@ cornice_swagger
 
 .. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
     :target: https://travis-ci.org/Cornices/cornice.ext.swagger
-
-.. |master-coverage| image:: https://coveralls.io/repos/Cornices/cornice.ext.swagger/badge.png
-    :target: https://coveralls.io/r/Cornices/cornice.ext.swagger
+   
+.. |master-coverage| image:: https://coveralls.io/repos/github/Cornices/cornice.ext.swagger/badge.svg?branch=master
+    :target: https://coveralls.io/github/Cornices/cornice.ext.swagger?branch=master
 
 .. |pypi| image:: https://img.shields.io/pypi/v/cornice_swagger.svg
     :target: https://pypi.python.org/pypi/cornice_swagger
