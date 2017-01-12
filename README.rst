@@ -1,10 +1,7 @@
 cornice_swagger
 ===============
 
-*Cornice extension to generate Swagger*
-
-
-|pypi| |travis| |master-coverage| |slack|
+|slack| |pypi| |travis| |master-coverage|
 
 .. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
     :target: https://travis-ci.org/Cornices/cornice.ext.swagger
@@ -15,9 +12,11 @@ cornice_swagger
 .. |pypi| image:: https://img.shields.io/pypi/v/cornice_swagger.svg
     :target: https://pypi.python.org/pypi/cornice_swagger
 
-.. |slack| image:: https://corniceswagger.herokuapp.com/badge.svg
+.. |slack| image:: https://img.shields.io/badge/slack-chat-blue.svg
     :target: https://corniceswagger.herokuapp.com/
 
+
+*Cornice extension to generate Swagger*
 
 Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagger
 
