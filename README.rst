@@ -1,7 +1,7 @@
 cornice_swagger
 ===============
 
-|slack| |pypi| |travis| |master-coverage|
+|pypi| |travis| |master-coverage| |slack|
 
 .. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
     :target: https://travis-ci.org/Cornices/cornice.ext.swagger
