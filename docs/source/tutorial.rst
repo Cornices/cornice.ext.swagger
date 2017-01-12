@@ -133,7 +133,7 @@ the parameters locations as follows:
 
 .. code-block:: python
 
-    from cornice.validators import colander_body_validator
+    from cornice.validators import colander_validator
 
     class BodySchema(colander.MappingSchema):
         value = colander.SchemaNode(colander.String(),
