@@ -1,11 +1,11 @@
-cornice_swagger
+Cornice Swagger
 ===============
 
 |pypi| |travis| |master-coverage| |slack|
 
 .. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
     :target: https://travis-ci.org/Cornices/cornice.ext.swagger
-   
+
 .. |master-coverage| image:: https://coveralls.io/repos/github/Cornices/cornice.ext.swagger/badge.svg?branch=master
     :target: https://coveralls.io/github/Cornices/cornice.ext.swagger?branch=master
 
@@ -16,15 +16,15 @@ cornice_swagger
     :target: https://corniceswagger.herokuapp.com/
 
 
-*Cornice extension to generate Swagger*
+*Cornice extension to generate OpenAPI/Swagger Specification*
 
-Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagger
+* Git Repository and issue tracker: https://github.com/Cornices/cornice.ext.swagger
+* Full Documentation: https://github.com/Cornices/cornice.ext.swagger
+
 
 To create a full swagger spec, this module will maximize extracting
 documentation data from functional code, while allowing users to
-directly specify parts of the Swagger Spec. This documentation serves as
-a "how-to". Readers are encouraged to look at the source for more
-detailed documentation if needed.
+directly specify parts of the Swagger Spec.
 
 This module creates a `Swagger 2.0 compliant spec`_.
 
@@ -250,11 +250,3 @@ To get easier started there is a scaffold with can be used.
    $ pip install -e .
    $ cd demo/static
    $ bower install
-
-Contributors
-============
-
-- Gabriela Surita
-- Jason Haury
-- Josip Delic
-
