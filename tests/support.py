@@ -21,3 +21,23 @@ class HeaderSchema(colander.MappingSchema):
 
 class PathSchema(colander.MappingSchema):
     meh = colander.SchemaNode(colander.String(), default='default')
+
+
+class GetRequestSchema(colander.MappingSchema):
+    querystring = QuerySchema()
+
+
+class PutRequestSchema(colander.MappingSchema):
+    body = BodySchema()
+    querystring = QuerySchema()
+    headers = HeaderSchema()
+
+
+class OkResponseSchema(colander.MappingSchema):
+    body = BodySchema()
+    headers = HeaderSchema()
+
+
+class ResponseSchemas(colander.MappingSchema):
+    ok = OkResponseSchema(name='200', description='Return ice cream')
+    ok = OkResponseSchema(name='200', description='Return sadness')

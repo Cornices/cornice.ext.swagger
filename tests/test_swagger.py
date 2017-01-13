@@ -1,30 +1,11 @@
 import unittest
 
-import colander
 from cornice.validators import colander_validator
 from cornice.service import Service
 from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger
-from .support import BodySchema, QuerySchema, HeaderSchema
-
-
-class GetRequestSchema(colander.MappingSchema):
-    querystring = QuerySchema()
-
-
-class PutRequestSchema(colander.MappingSchema):
-    querystring = QuerySchema()
-    body = BodySchema()
-
-
-class OkResponseSchema(colander.MappingSchema):
-    body = BodySchema()
-    headers = HeaderSchema()
-
-
-class GetResponseSchemas(colander.MappingSchema):
-    ok = OkResponseSchema(name='200', description='Return icecream')
+from .support import GetRequestSchema, PutRequestSchema, ResponseSchemas
 
 
 class TestCorniceSwaggerGenerator(unittest.TestCase):
@@ -40,7 +21,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema(),
-                         response_schemas=GetResponseSchemas())
+                         response_schemas=ResponseSchemas())
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
@@ -201,7 +182,7 @@ class NotInstanciatedSchemaTest(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema,
-                         response_schemas=GetResponseSchemas)
+                         response_schemas=ResponseSchemas)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
