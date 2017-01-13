@@ -26,12 +26,18 @@ Documentation content
 =====================
 
 .. toctree::
-   :maxdepth: 1
+    :maxdepth: 2
 
-   quickstart
-   tutorial
-   api
-   faq
+    quickstart
+    tutorial
+    api
+    faq
+
+.. toctree::
+    :maxdepth: 1
+
+    changelog
+    contributors
 
 
 Contribution & Feedback

@@ -1,6 +1,9 @@
 .. _quickstart:
 
 Quickstart
+##########
+
+Installing
 ==========
 
 You may install us with pip::
