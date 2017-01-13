@@ -216,8 +216,8 @@ class CorniceSwagger(object):
             op['summary'] = docstring
 
         # Get response definitions
-        if 'response_schema' in args:
-            op['responses'] = self.responses.from_schema(args['response_schema'])
+        if 'response_schemas' in args:
+            op['responses'] = self.responses.from_schema(args['response_schemas'])
 
         return op
 

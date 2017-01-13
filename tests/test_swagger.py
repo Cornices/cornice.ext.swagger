@@ -23,7 +23,7 @@ class OkResponseSchema(colander.MappingSchema):
     headers = HeaderSchema()
 
 
-class GetResponseSchema(colander.MappingSchema):
+class GetResponseSchemas(colander.MappingSchema):
     ok = OkResponseSchema(name='200', description='Return icecream')
 
 
@@ -40,7 +40,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema(),
-                         response_schema=GetResponseSchema())
+                         response_schemas=GetResponseSchemas())
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
@@ -201,7 +201,7 @@ class NotInstanciatedSchemaTest(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema,
-                         response_schema=GetResponseSchema)
+                         response_schemas=GetResponseSchemas)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
