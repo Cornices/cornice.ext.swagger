@@ -170,7 +170,7 @@ class TestExtractContentTypes(unittest.TestCase):
                           ['application/json'])
 
 
-class NotInstanciatedSchemaTest(unittest.TestCase):
+class NotInstantiatedSchemaTest(unittest.TestCase):
 
     def test_not_instanciated(self):
         service = Service("IceCream", "/icecream/{flavour}")
@@ -180,6 +180,7 @@ class NotInstanciatedSchemaTest(unittest.TestCase):
             Ice cream service
             """
 
+            # Use GetRequestSchema and ResponseSchemas classes instead of objects
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema,
                          response_schemas=ResponseSchemas)
