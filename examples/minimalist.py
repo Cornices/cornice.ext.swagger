@@ -27,16 +27,17 @@ class OkResponseSchema(colander.MappingSchema):
     body = BodySchema()
 
 
-# Aggregate the response schemas for out requests
-class ResponseSchemas(colander.MappingSchema):
-    ok = OkResponseSchema(name='200', description='Return value')
+# Aggregate the response schemas for get requests
+response_schemas = {
+    '200': OkResponseSchema(description='Return value')
+}
 
 
 # Create our cornice service views
 class MyValueApi(object):
     """My precious API."""
 
-    @values.get(response_schemas=ResponseSchemas())
+    @values.get(response_schemas=response_schemas)
     def get_value(request):
         """Returns the value."""
         key = request.matchdict['value']
@@ -44,7 +45,7 @@ class MyValueApi(object):
 
     @values.put(validators=(colander_body_validator, ),
                 schema=BodySchema(),
-                response_schemas=ResponseSchemas())
+                response_schemas=response_schemas)
     def set_value(request):
         """Set the value and returns *True* or *False*."""
 

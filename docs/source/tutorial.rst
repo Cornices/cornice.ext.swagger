@@ -197,20 +197,22 @@ For that you must provide a Response Colander Schema that follows the pattern:
         body = BodySchema()
         headers = HeaderSchema()
 
-    class GetResponseSchemas(colander.MappingSchema):
-        ok = ResponseSchema(name='200', description='Returns my OK response')
-        not_found = ResponseSchema(name='404',
-                                   description='Return my not found response')
+
+    get_response_schemas = {
+        '200': ResponseSchema(description='Returns my OK response'),
+        '404': ResponseSchema(description='Return my not found response')
+    }
 
 
 Notice that the ``ResponseSchema`` class follows the same pattern as the
 Cornice requests using ``cornice.validators.colander_validator``
 (except for querystrings, since obviously we don't have querystrings on responses).
 
-The ``GetResponseSchemas`` class should aggregate response schemas as the one
-defined as ``ResponseSchema`` with names following the response status code of the
-expected responses and non-empty descriptions. You may also provide a ``default``
-response schema to be used if the response doesn't match any of the status provided.
+A response schema mapping, as the ``get_response_schemas`` dict should aggregate
+response schemas as the one defined as ``ResponseSchema`` with keys matching the
+response status code of for each entry. All schema entries should contain descriptions.
+You may also provide a ``default`` response schema to be used if the response doesn't
+match any of the status codes provided.
 
 From our minimalist example:
 
@@ -231,11 +233,13 @@ From our minimalist example:
         body = BodySchema()
 
 
-    # Aggregate the response schemas for out requests
-    class ResponseSchemas(colander.MappingSchema):
-        ok = OkResponseSchema(name='200', description='Return value')
+    # Aggregate the response schemas for get requests
+    response_schemas = {
+        '200': OkResponseSchema(description='Return value')
+    }
 
-    @values.put(response_schemas=PutBodySchema())
+
+    @values.put(response_schemas=response_schemas)
     def set_value(request):
         """Set the value and returns *True* or *False*."""
 

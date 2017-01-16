@@ -5,7 +5,7 @@ from cornice.service import Service
 from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger
-from .support import GetRequestSchema, PutRequestSchema, ResponseSchemas
+from .support import GetRequestSchema, PutRequestSchema, response_schemas
 
 
 class TestCorniceSwaggerGenerator(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema(),
-                         response_schemas=ResponseSchemas())
+                         response_schemas=response_schemas)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
@@ -182,8 +182,7 @@ class NotInstantiatedSchemaTest(unittest.TestCase):
 
             # Use GetRequestSchema and ResponseSchemas classes instead of objects
             @service.get(validators=(colander_validator, ),
-                         schema=GetRequestSchema,
-                         response_schemas=ResponseSchemas)
+                         schema=GetRequestSchema)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated

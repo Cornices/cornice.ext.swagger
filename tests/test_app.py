@@ -6,7 +6,7 @@ from cornice import Service
 from cornice.validators import colander_validator
 from flex.core import validate
 
-from .support import GetRequestSchema, PutRequestSchema, ResponseSchemas
+from .support import GetRequestSchema, PutRequestSchema, response_schemas
 from cornice_swagger.swagger import CorniceSwagger
 
 
@@ -22,7 +22,7 @@ class AppTest(unittest.TestCase):
 
             @service.get(validators=(colander_validator, ),
                          schema=GetRequestSchema(),
-                         response_schemas=ResponseSchemas())
+                         response_schemas=response_schemas)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated

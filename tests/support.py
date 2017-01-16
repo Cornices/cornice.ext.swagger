@@ -33,11 +33,12 @@ class PutRequestSchema(colander.MappingSchema):
     headers = HeaderSchema()
 
 
-class OkResponseSchema(colander.MappingSchema):
+class ResponseSchema(colander.MappingSchema):
     body = BodySchema()
     headers = HeaderSchema()
 
 
-class ResponseSchemas(colander.MappingSchema):
-    ok = OkResponseSchema(name='200', description='Return ice cream')
-    ok = OkResponseSchema(name='200', description='Return sadness')
+response_schemas = {
+    '200': ResponseSchema(description='Return ice cream'),
+    '404': ResponseSchema(description='Return sadness')
+}

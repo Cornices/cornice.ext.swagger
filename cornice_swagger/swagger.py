@@ -217,7 +217,7 @@ class CorniceSwagger(object):
 
         # Get response definitions
         if 'response_schemas' in args:
-            op['responses'] = self.responses.from_schema(args['response_schemas'])
+            op['responses'] = self.responses.from_schema_mapping(args['response_schemas'])
 
         return op
 
@@ -411,22 +411,19 @@ class ResponseHandler(object):
         self.definitions = definition_handler
         self.ref = ref
 
-    def from_schema(self, schema_node, content_type='application/json'):
+    def from_schema_mapping(self, schema_mapping):
         """
-        Creates a Swagger response object from a colander response schema.
+        Creates a Swagger response object from a dict of response schemas.
 
-        :param schema_node:
-            Response schema to be transformed into Swagger.
-        :rtype: list
+        :param schema_mapping:
+            Dict with entries matching ``{status_code: response_schema}``.
+        :rtype: dict
             Response schema.
         """
 
         responses = {}
 
-        if not isinstance(schema_node, colander.Schema):
-            schema_node = schema_node()
-
-        for response_schema in schema_node.children:
+        for status, response_schema in schema_mapping.items():
 
             response = {}
             if response_schema.description:
@@ -446,7 +443,7 @@ class ResponseHandler(object):
 
             pointer = response_schema.__class__.__name__
             response = self._ref(response, self.ref, pointer)
-            responses[response_schema.name] = response
+            responses[status] = response
 
         return responses
 
