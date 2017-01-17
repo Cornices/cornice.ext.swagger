@@ -1,5 +1,15 @@
-# -*- coding: utf-8 -*-
-
 __author__ = """Josip Delic"""
 __email__ = 'delicj@delijati.net'
-__version__ = '0.1.0'
+__version__ = '0.3.0'
+
+
+class ResponseSchemaPredicate(object):
+    def __init__(self, schema, config):
+        self.schema = schema
+
+    def phash(self):
+        return str(self.schema)
+
+
+def includeme(config):
+    config.add_view_predicate('response_schemas', ResponseSchemaPredicate)

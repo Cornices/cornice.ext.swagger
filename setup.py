@@ -8,11 +8,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, "README.rst")).read()
 CHANGES = open(os.path.join(here, "CHANGES.rst")).read()
 
-requires = [
-    "cornice",
-    "colander",
-]
-
 REQUIREMENTS = [
     'six',
     'cornice',
@@ -24,12 +19,14 @@ REQUIREMENTS_DEV = [
     'coveralls',
     'flake8',
     'flex',
+    'pyramid',
     'pytest',
     'pytest-cache',
     'pytest-capturelog',
     'pytest-cover',
     'pytest-sugar',
     'tox',
+    'webtest'
 ]
 
 setup(

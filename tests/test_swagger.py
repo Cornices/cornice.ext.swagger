@@ -1,20 +1,11 @@
 import unittest
 
-import colander
 from cornice.validators import colander_validator
 from cornice.service import Service
+from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger
-from .support import BodySchema, QuerySchema
-
-
-class GetRequestSchema(colander.MappingSchema):
-    querystring = QuerySchema()
-
-
-class PutRequestSchema(colander.MappingSchema):
-    querystring = QuerySchema()
-    body = BodySchema()
+from .support import GetRequestSchema, PutRequestSchema, response_schemas
 
 
 class TestCorniceSwaggerGenerator(unittest.TestCase):
@@ -28,7 +19,9 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
             Ice cream service
             """
 
-            @service.get(validators=(colander_validator, ), schema=GetRequestSchema())
+            @service.get(validators=(colander_validator, ),
+                         schema=GetRequestSchema(),
+                         response_schemas=response_schemas)
             def view_get(self, request):
                 """Serve icecream"""
                 return self.request.validated
@@ -41,6 +34,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         self.service = service
         self.swagger = CorniceSwagger([self.service])
         self.spec = self.swagger('IceCreamAPI', '4.2')
+        validate(self.spec)
 
     def test_path(self):
         self.assertIn('/icecream/{flavour}', self.spec['paths'])
@@ -68,6 +62,11 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         swagger = CorniceSwagger([self.service], param_ref=True)
         spec = swagger('IceCreamAPI', '4.2')
         self.assertIn('parameters', spec)
+
+    def test_with_resp_ref(self):
+        swagger = CorniceSwagger([self.service], resp_ref=True)
+        spec = swagger('IceCreamAPI', '4.2')
+        self.assertIn('responses', spec)
 
 
 class TestExtractContentTypes(unittest.TestCase):
@@ -169,3 +168,31 @@ class TestExtractContentTypes(unittest.TestCase):
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['produces'],
                           ['application/json'])
+
+
+class NotInstantiatedSchemaTest(unittest.TestCase):
+
+    def test_not_instantiated(self):
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            """
+            Ice cream service
+            """
+
+            # Use GetRequestSchema and ResponseSchemas classes instead of objects
+            @service.get(validators=(colander_validator, ),
+                         schema=GetRequestSchema)
+            def view_get(self, request):
+                """Serve icecream"""
+                return self.request.validated
+
+            @service.put(validators=(colander_validator, ), schema=PutRequestSchema())
+            def view_put(self, request):
+                """Add flavour"""
+                return self.request.validated
+
+        self.service = service
+        self.swagger = CorniceSwagger([self.service])
+        self.spec = self.swagger('IceCreamAPI', '4.2')
+        validate(self.spec)
