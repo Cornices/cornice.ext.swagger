@@ -1,0 +1,440 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Cornice Swagger API &#8212; Cornice Swagger 0.3.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/mozilla.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequently Asked Questions (FAQ)" href="faq.html" />
+    <link rel="prev" title="Full Tutorial" href="tutorial.html" /> 
+  </head>
+  <body role="document"><a href="http://www.mozilla.org/" id="tabzilla">mozilla</a>
+
+    <div class="document">
+  <div class="documentwrapper">
+    
+    <div class="sphinxsidebar">
+        <nav>
+        <h2><a href="index.html">Cornice Swagger</a></h2>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Full Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cornice Swagger API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornice_swagger">Basic Generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generator-internals">Generator Internals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#section-handlers">Section Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colander-converters">Colander converters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributors</a></li>
+</ul>
+
+        </nav>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+    </div>
+    <div class="bodywrapper">
+      <div class="body">
+        
+  <div class="section" id="cornice-swagger-api">
+<h1>Cornice Swagger API<a class="headerlink" href="#cornice-swagger-api" title="Permalink to this headline">¶</a></h1>
+<p>Here you may find information about the Cornice Swagger internals and methods that
+may be overwritten by applications.</p>
+<div class="section" id="module-cornice_swagger">
+<span id="basic-generator"></span><h2>Basic Generator<a class="headerlink" href="#module-cornice_swagger" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cornice_swagger.swagger.CorniceSwagger">
+<em class="property">class </em><code class="descclassname">cornice_swagger.swagger.</code><code class="descname">CorniceSwagger</code><span class="sig-paren">(</span><em>services</em>, <em>def_ref_depth=0</em>, <em>param_ref=False</em>, <em>resp_ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles the creation of a swagger document from a cornice application.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.CorniceSwagger.__init__">
+<code class="descclassname">CorniceSwagger.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>services</em>, <em>def_ref_depth=0</em>, <em>param_ref=False</em>, <em>resp_ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>services</strong> &#8211; List of cornice services to document. You may use
+cornice.service.get_services() to get it.</li>
+<li><strong>def_ref_depth</strong> &#8211; How depth swagger object schemas should be split into
+swaggger definitions with JSON pointers. Default (0) is no split.
+You may use negative values to split everything.</li>
+<li><strong>param_ref</strong> &#8211; Defines if swagger parameters should be put inline on the operation
+or on the parameters section and referenced by JSON pointers.
+Default is inline.</li>
+<li><strong>resp_ref</strong> &#8211; Defines if swagger responses should be put inline on the operation
+or on the responses section and referenced by JSON pointers.
+Default is inline.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.CorniceSwagger.__call__">
+<code class="descclassname">CorniceSwagger.</code><code class="descname">__call__</code><span class="sig-paren">(</span><em>title</em>, <em>version</em>, <em>base_path='/'</em>, <em>info={}</em>, <em>swagger={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a Swagger 2.0 documentation. Keyword arguments may be used
+to provide additional information to build methods as such ignores.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>title</strong> &#8211; The name presented on the swagger document.</li>
+<li><strong>version</strong> &#8211; The version of the API presented on the swagger document.</li>
+<li><strong>base_path</strong> &#8211; The path that all requests to the API must refer to.</li>
+<li><strong>info</strong> &#8211; Swagger info field.</li>
+<li><strong>swagger</strong> &#8211; Extra fields that should be provided on the swagger documentation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="generator-internals">
+<h2>Generator Internals<a class="headerlink" href="#generator-internals" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="cornice_swagger.swagger.CorniceSwagger._build_paths">
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_build_paths</code><span class="sig-paren">(</span><em>ignore=['head', 'options'], **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._build_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the Swagger &#8220;paths&#8221; and &#8220;tags&#8221; attributes from cornice service
+definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; List of service methods that should NOT be presented on the documentation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.CorniceSwagger._extract_path_from_service">
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_path_from_service</code><span class="sig-paren">(</span><em>service</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_path_from_service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract path object and its parameters from service definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>service</strong> &#8211; Cornice service to extract information from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict
+Path definition.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.CorniceSwagger._extract_operation_from_view">
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_operation_from_view</code><span class="sig-paren">(</span><em>view</em>, <em>args={}</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_operation_from_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract swagger operation details from colander view definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>view</strong> &#8211; View to extract information from.</li>
+<li><strong>args</strong> &#8211; Arguments from the view decorator.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict
+Operation definition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="section-handlers">
+<h2>Section Handlers<a class="headerlink" href="#section-handlers" title="Permalink to this headline">¶</a></h2>
+<p>Swagger definitions and parameters are handled in separate classes. You may overwrite
+those if you want to change the converters behaviour.</p>
+<dl class="class">
+<dt id="cornice_swagger.swagger.DefinitionHandler">
+<em class="property">class </em><code class="descclassname">cornice_swagger.swagger.</code><code class="descname">DefinitionHandler</code><span class="sig-paren">(</span><em>ref=0</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.DefinitionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles Swagger object definitions provided by cornice as colander schemas.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.DefinitionHandler.__init__">
+<code class="descclassname">DefinitionHandler.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>ref=0</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.DefinitionHandler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ref</strong> &#8211; The depth that should be used by self.ref when calling self.from_schema.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.DefinitionHandler.from_schema">
+<code class="descclassname">DefinitionHandler.</code><code class="descname">from_schema</code><span class="sig-paren">(</span><em>schema_node</em>, <em>base_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.DefinitionHandler.from_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Swagger definition from a colander schema.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schema_node</strong> &#8211; Colander schema to be transformed into a Swagger definition.</li>
+<li><strong>base_name</strong> &#8211; Schema alternative title.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict
+Swagger schema.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.DefinitionHandler._ref_recursive">
+<code class="descclassname">DefinitionHandler.</code><code class="descname">_ref_recursive</code><span class="sig-paren">(</span><em>schema</em>, <em>depth</em>, <em>base_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.DefinitionHandler._ref_recursive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dismantle nested swagger schemas into several definitions using JSON pointers.
+Note: This can be dangerous since definition titles must be unique.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schema</strong> &#8211; Base swagger schema.</li>
+<li><strong>depth</strong> &#8211; How many levels of the swagger object schemas should be split into
+swaggger definitions with JSON pointers. Default (0) is no split.
+You may use negative values to split everything.</li>
+<li><strong>base_name</strong> &#8211; If schema doesn&#8217;t have a name, the caller may provide it to be
+used as reference.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict
+JSON pointer to the root definition schema,
+or the original definition if depth is zero.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="cornice_swagger.swagger.ParameterHandler">
+<em class="property">class </em><code class="descclassname">cornice_swagger.swagger.</code><code class="descname">ParameterHandler</code><span class="sig-paren">(</span><em>definition_handler=&lt;cornice_swagger.swagger.DefinitionHandler object&gt;</em>, <em>ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ParameterHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles swagger parameter definitions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ParameterHandler.__init__">
+<code class="descclassname">ParameterHandler.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>definition_handler=&lt;cornice_swagger.swagger.DefinitionHandler object&gt;</em>, <em>ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ParameterHandler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>definition_handler</strong> &#8211; Callable that handles swagger definition schemas.</li>
+<li><strong>ref</strong> &#8211; Specifies the ref value when calling from_xxx methods.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ParameterHandler.from_schema">
+<code class="descclassname">ParameterHandler.</code><code class="descname">from_schema</code><span class="sig-paren">(</span><em>schema_node</em>, <em>validators=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ParameterHandler.from_schema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a list of Swagger params from a colander request schema.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schema_node</strong> &#8211; Request schema to be transformed into Swagger.</li>
+<li><strong>validators</strong> &#8211; Validators used in colander with the schema.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list
+List of Swagger parameters.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ParameterHandler.from_path">
+<code class="descclassname">ParameterHandler.</code><code class="descname">from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ParameterHandler.from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of Swagger path params from a cornice service path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ParameterHandler._ref">
+<code class="descclassname">ParameterHandler.</code><code class="descname">_ref</code><span class="sig-paren">(</span><em>param</em>, <em>base_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ParameterHandler._ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store a parameter schema and return a reference to it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schema</strong> &#8211; Swagger parameter definition.</li>
+<li><strong>base_name</strong> &#8211; Name that should be used for the reference.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict
+JSON pointer to the original parameter definition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="cornice_swagger.swagger.ResponseHandler">
+<em class="property">class </em><code class="descclassname">cornice_swagger.swagger.</code><code class="descname">ResponseHandler</code><span class="sig-paren">(</span><em>definition_handler=&lt;cornice_swagger.swagger.DefinitionHandler object&gt;</em>, <em>ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ResponseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles swagger response definitions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ResponseHandler.__init__">
+<code class="descclassname">ResponseHandler.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>definition_handler=&lt;cornice_swagger.swagger.DefinitionHandler object&gt;</em>, <em>ref=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ResponseHandler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>definition_handler</strong> &#8211; Callable that handles swagger definition schemas.</li>
+<li><strong>ref</strong> &#8211; Specifies the ref value when calling from_xxx methods.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ResponseHandler.from_schema_mapping">
+<code class="descclassname">ResponseHandler.</code><code class="descname">from_schema_mapping</code><span class="sig-paren">(</span><em>schema_mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ResponseHandler.from_schema_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Swagger response object from a dict of response schemas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>schema_mapping</strong> &#8211; Dict with entries matching <code class="docutils literal"><span class="pre">{status_code:</span> <span class="pre">response_schema}</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict
+Response schema.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornice_swagger.swagger.ResponseHandler._ref">
+<code class="descclassname">ResponseHandler.</code><code class="descname">_ref</code><span class="sig-paren">(</span><em>resp</em>, <em>base_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.ResponseHandler._ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store a response schema and return a reference to it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schema</strong> &#8211; Swagger response definition.</li>
+<li><strong>base_name</strong> &#8211; Name that should be used for the reference.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict
+JSON pointer to the original response definition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="colander-converters">
+<h2>Colander converters<a class="headerlink" href="#colander-converters" title="Permalink to this headline">¶</a></h2>
+<p>You may use the <code class="docutils literal"><span class="pre">cornice_swagger.converters</span></code> submodule to access the colander
+to swagger request and schema converters. These may be also used without
+<code class="docutils literal"><span class="pre">cornice_swagger</span></code> generators.</p>
+<span class="target" id="module-cornice_swagger.converters"></span><p>This module handles the conversion between colander object schemas and swagger
+object schemas.</p>
+<dl class="function">
+<dt id="cornice_swagger.converters.convert_schema">
+<code class="descclassname">cornice_swagger.converters.</code><code class="descname">convert_schema</code><span class="sig-paren">(</span><em>schema_node</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.converters.convert_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cornice_swagger.converters.convert_parameter">
+<code class="descclassname">cornice_swagger.converters.</code><code class="descname">convert_parameter</code><span class="sig-paren">(</span><em>location</em>, <em>schema_node</em>, <em>definition_handler=&lt;function convert_schema&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.converters.convert_parameter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+      <div class="clearer"></div>
+    </div>
+  
+ 
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Josip Delic.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div> <script src="//www.mozilla.org/tabzilla/media/js/tabzilla.js"></script> 
+  </body>
+</html>

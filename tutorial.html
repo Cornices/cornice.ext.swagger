@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Full Tutorial &#8212; Cornice Swagger 0.3.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/mozilla.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Cornice Swagger API" href="api.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" /> 
+  </head>
+  <body role="document"><a href="http://www.mozilla.org/" id="tabzilla">mozilla</a>
+
+    <div class="document">
+  <div class="documentwrapper">
+    
+    <div class="sphinxsidebar">
+        <nav>
+        <h2><a href="index.html">Cornice Swagger</a></h2>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Full Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-pyramid-hook">Using the Pyramid Hook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-summaries-with-view-docstrings">Generating summaries with view docstrings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-path-parameters">Extracting path parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-parameters-from-cornice-schemas">Extracting parameters from cornice schemas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documenting-responses">Documenting responses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Cornice Swagger API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributors.html">Contributors</a></li>
+</ul>
+
+        </nav>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+    </div>
+    <div class="bodywrapper">
+      <div class="body">
+        
+  <div class="section" id="full-tutorial">
+<span id="tutorial"></span><h1>Full Tutorial<a class="headerlink" href="#full-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Here you may find the general aspects used by Colander Swagger to generate
+the swagger documentation. Most examples presented on this section refer
+to the example on <cite>quickstart</cite>.</p>
+<div class="section" id="using-the-pyramid-hook">
+<h2>Using the Pyramid Hook<a class="headerlink" href="#using-the-pyramid-hook" title="Permalink to this headline">¶</a></h2>
+<p>In order to enable response documentation, you must add this extension to
+your Pyramid config. For that you may use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="kn">import</span> <span class="n">Configurator</span>
+
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">Configurator</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice&#39;</span><span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice_swagger&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you don&#8217;t know what this is about or need more information, please check the
+<a class="reference external" href="http://docs.pylonsproject.org/projects/pyramid">Pyramid documentation</a></p>
+</div>
+<div class="section" id="generating-summaries-with-view-docstrings">
+<h2>Generating summaries with view docstrings<a class="headerlink" href="#generating-summaries-with-view-docstrings" title="Permalink to this headline">¶</a></h2>
+<p>You may use view docstrings to create operation summaries. For example,
+the following view definition docstring will correspond to the following
+swagger summary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values&#39;</span><span class="p">)</span>
+
+<span class="nd">@values.get</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Returns the value.&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-path-parameters">
+<h2>Extracting path parameters<a class="headerlink" href="#extracting-path-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Path parameters may be automatically extracted from the service definition,
+you may overwrite then with schemas on the view if you wish to add more
+view-specific information.</p>
+<p>Another example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-parameters-from-cornice-schemas">
+<h2>Extracting parameters from cornice schemas<a class="headerlink" href="#extracting-parameters-from-cornice-schemas" title="Permalink to this headline">¶</a></h2>
+<p>When using colander validators such as <code class="docutils literal"><span class="pre">colader_validator</span></code> or
+<code class="docutils literal"><span class="pre">colander_body_validator</span></code>, we can extract the operation parameters
+from the request schema. The schemas should comply with
+<a class="reference external" href="https://cornice.readthedocs.io/en/latest/schema.html#multiple-request-attributes">Cornice 2.0 colander schemas</a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cornice.validators</span> <span class="kn">import</span> <span class="n">colander_body_validator</span>
+
+<span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">PutBodySchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">colander</span><span class="o">.</span><span class="n">SchemaNode</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span>
+                                <span class="n">description</span><span class="o">=</span><span class="s1">&#39;My precious value&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">validators</span><span class="o">=</span><span class="p">(</span><span class="n">colander_body_validator</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">schema</span><span class="o">=</span><span class="n">PutBodySchema</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;put&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;PutBodySchema&quot;</span><span class="p">,</span>
+                        <span class="nt">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;body&quot;</span><span class="p">,</span>
+                        <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+                        <span class="nt">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;PutBodySchema&quot;</span><span class="p">,</span>
+                            <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                            <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                                    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;My precious value&quot;</span><span class="p">,</span>
+                                    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Value&quot;</span>
+                                <span class="p">}</span>
+                            <span class="p">},</span>
+                            <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="s2">&quot;value&quot;</span>
+                            <span class="p">]</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When using <cite>colander_validator</cite>, the request should have fields corresponding
+the parameters locations as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cornice.validators</span> <span class="kn">import</span> <span class="n">colander_validator</span>
+
+<span class="k">class</span> <span class="nc">BodySchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">colander</span><span class="o">.</span><span class="n">SchemaNode</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span>
+                                <span class="n">description</span><span class="o">=</span><span class="s1">&#39;My precious value&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">QuerySchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">foo</span> <span class="o">=</span> <span class="n">colander</span><span class="o">.</span><span class="n">SchemaNode</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span> <span class="n">missing</span><span class="o">=</span><span class="n">colander</span><span class="o">.</span><span class="n">drop</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">HeaderSchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">colander</span><span class="o">.</span><span class="n">SchemaNode</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;blah&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">PutRequestSchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">BodySchema</span><span class="p">()</span>
+    <span class="n">querystring</span> <span class="o">=</span> <span class="n">QuerySchema</span><span class="p">()</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">HeaderSchema</span><span class="p">()</span>
+
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">validators</span><span class="o">=</span><span class="p">(</span><span class="n">colander_validator</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">schema</span><span class="o">=</span><span class="n">PutRequestSchema</span><span class="p">())</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="documenting-responses">
+<h2>Documenting responses<a class="headerlink" href="#documenting-responses" title="Permalink to this headline">¶</a></h2>
+<p>Unfortunately, on Cornice we don&#8217;t have a way to provide response schemas, so
+this part must be provided separately and handled by Cornice Swagger.</p>
+<p>For that you must provide a Response Colander Schema that follows the pattern:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ResponseSchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">BodySchema</span><span class="p">()</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">HeaderSchema</span><span class="p">()</span>
+
+
+<span class="n">get_response_schemas</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;200&#39;</span><span class="p">:</span> <span class="n">ResponseSchema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Return my OK response&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;404&#39;</span><span class="p">:</span> <span class="n">ResponseSchema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Return my not found response&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Notice that the <code class="docutils literal"><span class="pre">ResponseSchema</span></code> class follows the same pattern as the
+Cornice requests using <code class="docutils literal"><span class="pre">cornice.validators.colander_validator</span></code>
+(except for querystrings, since obviously we don&#8217;t have querystrings on responses).</p>
+<p>A response schema mapping, as the <code class="docutils literal"><span class="pre">get_response_schemas</span></code> dict should aggregate
+response schemas as the one defined as <code class="docutils literal"><span class="pre">ResponseSchema</span></code> with keys matching the
+response status code of for each entry. All schema entries should contain descriptions.
+You may also provide a <code class="docutils literal"><span class="pre">default</span></code> response schema to be used if the response doesn&#8217;t
+match any of the status codes provided.</p>
+<p>From our minimalist example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create a body schema for our requests</span>
+<span class="k">class</span> <span class="nc">BodySchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">colander</span><span class="o">.</span><span class="n">SchemaNode</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span>
+                                <span class="n">description</span><span class="o">=</span><span class="s1">&#39;My precious value&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># Create a response schema for our 200 responses</span>
+<span class="k">class</span> <span class="nc">OkResponseSchema</span><span class="p">(</span><span class="n">colander</span><span class="o">.</span><span class="n">MappingSchema</span><span class="p">):</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">BodySchema</span><span class="p">()</span>
+
+
+<span class="c1"># Aggregate the response schemas for get requests</span>
+<span class="n">response_schemas</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;200&#39;</span><span class="p">:</span> <span class="n">OkResponseSchema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Return value&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;put&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;responses&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="nt">&quot;200&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Return value&quot;</span><span class="p">,</span>
+                        <span class="nt">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                                <span class="s2">&quot;value&quot;</span>
+                            <span class="p">],</span>
+                            <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                            <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                                    <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;My precious value&quot;</span><span class="p">,</span>
+                                    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Value&quot;</span>
+                                <span class="p">}</span>
+                            <span class="p">},</span>
+                            <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;BodySchema&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+    </div>
+  </div>
+      <div class="clearer"></div>
+    </div>
+  
+ 
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016-2017, Josip Delic.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div> <script src="//www.mozilla.org/tabzilla/media/js/tabzilla.js"></script> 
+  </body>
+</html>
