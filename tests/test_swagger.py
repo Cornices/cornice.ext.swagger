@@ -172,7 +172,7 @@ class TestExtractContentTypes(unittest.TestCase):
 
 class NotInstantiatedSchemaTest(unittest.TestCase):
 
-    def test_not_instanciated(self):
+    def test_not_instantiated(self):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):

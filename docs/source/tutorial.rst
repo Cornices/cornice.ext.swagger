@@ -199,7 +199,7 @@ For that you must provide a Response Colander Schema that follows the pattern:
 
 
     get_response_schemas = {
-        '200': ResponseSchema(description='Returns my OK response'),
+        '200': ResponseSchema(description='Return my OK response'),
         '404': ResponseSchema(description='Return my not found response')
     }
 

@@ -43,7 +43,7 @@ class RefDefinitionTest(unittest.TestCase):
         ref = handler.from_schema(FeelingsSchema(title='Feelings'))
 
         self.assertEquals(ref, {'$ref': '#/definitions/Feelings'})
-        self.assertDictEqual(handler.definitions['Feelings'],
+        self.assertDictEqual(handler.definition_registry['Feelings'],
                              convert(FeelingsSchema(title='Feelings')))
 
     def test_multi_level(self):
@@ -59,7 +59,7 @@ class RefDefinitionTest(unittest.TestCase):
             }
         }
         self.assertDictContainsSubset(feelings_schema,
-                                      handler.definitions['Feelings'])
+                                      handler.definition_registry['Feelings'])
 
         self.assertDictContainsSubset(convert(AnxietySchema()),
-                                      handler.definitions['Aaaa'])
+                                      handler.definition_registry['Aaaa'])

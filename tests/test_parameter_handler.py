@@ -174,7 +174,7 @@ class RefParamTest(unittest.TestCase):
         }
 
         self.assertEquals(params, [{'$ref': '#/parameters/id'}])
-        self.assertDictEqual(self.handler.parameters, dict(id=expected))
+        self.assertDictEqual(self.handler.parameter_registry, dict(id=expected))
 
     def test_ref_from_body_validator_schema(self):
         node = BodySchema()
@@ -189,7 +189,7 @@ class RefParamTest(unittest.TestCase):
         }
 
         self.assertEquals(params, [{'$ref': '#/parameters/BodySchema'}])
-        self.assertDictEqual(self.handler.parameters, dict(BodySchema=expected))
+        self.assertDictEqual(self.handler.parameter_registry, dict(BodySchema=expected))
 
     def test_ref_from_request_validator_schema(self):
 
@@ -208,4 +208,4 @@ class RefParamTest(unittest.TestCase):
         }
 
         self.assertEquals(params, [{'$ref': '#/parameters/foo'}])
-        self.assertDictEqual(self.handler.parameters, dict(foo=expected))
+        self.assertDictEqual(self.handler.parameter_registry, dict(foo=expected))

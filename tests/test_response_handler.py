@@ -50,7 +50,7 @@ class RefResponseTest(unittest.TestCase):
             '404': {'$ref': '#/responses/ResponseSchema'}
         }
         self.assertEquals(expected, responses)
-        ref = self.handler.responses['ResponseSchema']
+        ref = self.handler.response_registry['ResponseSchema']
         self.assertDictEqual(ref['schema'],
                              convert_schema(BodySchema(title='BodySchema')))
         self.assertDictEqual(ref['headers'],
