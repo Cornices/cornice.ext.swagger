@@ -99,18 +99,10 @@ class CorniceSwagger(object):
                 if 'tags' not in op:
                     op['tags'] = [default_tag]
 
-                    if default_tag not in [t['name'] for t in tags]:
-                        tag = {'name': default_tag}
-                        if isinstance(view, six.string_types):
-                            ob = args['klass']
-                            desc = cornice_swagger.util.trim(ob.__doc__)
-                            tag['description'] = desc
-                        else:
-                            ob = cornice_swagger.util.get_class_that_defined_method(view)
-                            desc = cornice_swagger.util.trim(ob.__doc__)
-                            tag["description"] = desc
-
-                        tags.append(tag)
+                for tag in op['tags']:
+                    if tag not in [t['name'] for t in tags]:
+                        root_tag = {'name': tag}
+                        tags.append(root_tag)
 
                 # If method is defined for more than one ctype, get previous ones
                 ctypes = path.get(method_name.lower(), {}).get('consumes')
