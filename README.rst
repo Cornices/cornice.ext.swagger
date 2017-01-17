@@ -22,9 +22,10 @@ Cornice Swagger
 * Full Documentation: https://cornices.github.io/cornice.ext.swagger
 
 
-This module create a full `Swagger 2.0 compliant spec`_ maximizing the extracted 
-documentation data from functional code, while allowing users to
-directly specify parts of the Swagger Spec.
+This module create a full 
+`OpenAPI/Swagger 2.0 compliant spec <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_ 
+maximizing the extracted documentation data from functional code,
+while allowing users to directly specify parts of the spec.
 
 
 Scaffold
