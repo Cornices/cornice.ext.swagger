@@ -131,8 +131,6 @@ class CorniceSwagger(object):
                     for ctype in ctypes:
                         if ctype not in op['consumes']:
                             op['consumes'].append(ctype)
-                elif ctypes:
-                    op['consumes'] = ctypes
 
                 # XXX: Swagger doesn't support different schemas for for a same
                 # method with different ctypes as cornice, so this may overwrite the
