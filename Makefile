@@ -30,6 +30,7 @@ docs-pub:
 	git checkout gh-pages
 	rm -rf *
 	git checkout master $(SPHINXBUILDFILES)
+	git clean -X -f -d
 	git reset HEAD
 	make docs
 	mv -fv docs/build/html/* ./
