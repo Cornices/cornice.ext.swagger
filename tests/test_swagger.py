@@ -68,8 +68,7 @@ class TestExtractContentTypes(unittest.TestCase):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
-            @service.get(validators=(colander_validator, ), schema=GetRequestSchema(),
-                         renderer='json')
+            @service.get(renderer='json')
             def view_get(self, request):
                 return self.request.validated
 
@@ -83,8 +82,7 @@ class TestExtractContentTypes(unittest.TestCase):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
-            @service.get(validators=(colander_validator, ), schema=GetRequestSchema(),
-                         renderer='xml')
+            @service.get(renderer='xml')
             def view_get(self, request):
                 return self.request.validated
 
@@ -98,8 +96,7 @@ class TestExtractContentTypes(unittest.TestCase):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
-            @service.get(validators=(colander_validator, ), schema=GetRequestSchema(),
-                         renderer='')
+            @service.get(renderer='')
             def view_get(self, request):
                 return self.request.validated
 
@@ -112,8 +109,7 @@ class TestExtractContentTypes(unittest.TestCase):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
-            @service.put(validators=(colander_validator, ), schema=GetRequestSchema(),
-                         content_type='application/json')
+            @service.put(content_type='application/json')
             def view_put(self, request):
                 return self.request.validated
 
@@ -127,8 +123,7 @@ class TestExtractContentTypes(unittest.TestCase):
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
-            @service.put(validators=(colander_validator, ), schema=GetRequestSchema(),
-                         content_type=('application/json', 'text/xml'))
+            @service.put(content_type=('application/json', 'text/xml'))
             def view_put(self, request):
                 return self.request.validated
 
