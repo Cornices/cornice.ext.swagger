@@ -22,11 +22,15 @@ Cornice Swagger
 
 *Cornice extension to generate OpenAPI/Swagger Specification*
 
-
-This module create a full
-`OpenAPI/Swagger 2.0 compliant spec <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_ from `Cornice <https://github.com/Cornices/cornice>` applications
+Cornice Swagger creates an
+`OpenAPI/Swagger 2.0 compliant specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md>`_
+from `Cornice <https://github.com/Cornices/cornice>`_ applications
 maximizing the extracted documentation data from functional code,
-while allowing users to directly specify parts of the spec.
+while allowing users to override some parts of the generated document.
 
-Please refer `the documentation <https://cornices.github.io/cornice.ext.swagger>`_
-for more information.
+
+* `Documentation <https://cornices.github.io/cornice.ext.swagger/>`_
+* `Tutorial <https://cornices.github.io/cornice.ext.swagger/tutorial.html>`_
+* `Issue tracker <https://github.com/Cornices/cornice.ext.swagger/issues>`_
+* `Live chat <https://corniceswagger.herokuapp.com/>`_
+
