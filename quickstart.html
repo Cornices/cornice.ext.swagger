@@ -137,15 +137,14 @@ Pyramid configurator after including cornice:</p>
 <span class="k">class</span> <span class="nc">MyValueApi</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;My precious API.&quot;&quot;&quot;</span>
 
-    <span class="nd">@values.get</span><span class="p">(</span><span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
+    <span class="nd">@values.get</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
         <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">_VALUES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)}</span>
 
-    <span class="nd">@values.put</span><span class="p">(</span><span class="n">validators</span><span class="o">=</span><span class="p">(</span><span class="n">colander_body_validator</span><span class="p">,</span> <span class="p">),</span>
-                <span class="n">schema</span><span class="o">=</span><span class="n">BodySchema</span><span class="p">(),</span>
-                <span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
+    <span class="nd">@values.put</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">validators</span><span class="o">=</span><span class="p">(</span><span class="n">colander_body_validator</span><span class="p">,</span> <span class="p">),</span>
+                <span class="n">schema</span><span class="o">=</span><span class="n">BodySchema</span><span class="p">(),</span> <span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
 
@@ -194,9 +193,6 @@ Pyramid configurator after including cornice:</p>
     <span class="nt">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;values&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;__api__&quot;</span>
         <span class="p">}</span>
     <span class="p">]</span>
     <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -290,9 +286,6 @@ Pyramid configurator after including cornice:</p>
         <span class="p">},</span>
         <span class="nt">&quot;/__api__&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="nt">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="s2">&quot;__api__&quot;</span>
-                <span class="p">],</span>
                 <span class="nt">&quot;responses&quot;</span><span class="p">:</span> <span class="p">{</span>
                     <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
                         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;UNDOCUMENTED RESPONSE&quot;</span>

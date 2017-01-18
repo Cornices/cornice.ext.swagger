@@ -45,6 +45,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#extracting-path-parameters">Extracting path parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extracting-parameters-from-cornice-schemas">Extracting parameters from cornice schemas</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documenting-responses">Documenting responses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documenting-tags">Documenting tags</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Cornice Swagger API</a></li>
@@ -302,6 +303,53 @@ match any of the status codes provided.</p>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="documenting-tags">
+<h2>Documenting tags<a class="headerlink" href="#documenting-tags" title="Permalink to this headline">¶</a></h2>
+<p>Cornice Swagger supports two ways of documenting operation tags. You can either
+provide a list of tags on the view decorator or have a <code class="docutils literal"><span class="pre">default_tags</span></code>
+attribute when calling the generator.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;values&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;values&quot;</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When using the <code class="docutils literal"><span class="pre">default_tags</span></code> attribute, you can either use a raw list
+of tags or a callable that takes a cornice service and returns a list of tags.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default_tag_callable</span><span class="p">(</span><span class="n">service</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">service</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
+
+<span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span>
+               <span class="n">default_tags</span><span class="o">=</span><span class="n">default_tag_callable</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span>
+               <span class="n">default_tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>

@@ -134,14 +134,20 @@ to provide additional information to build methods as such ignores.</p>
 <h2>Generator Internals<a class="headerlink" href="#generator-internals" title="Permalink to this headline">¶</a></h2>
 <dl class="method">
 <dt id="cornice_swagger.swagger.CorniceSwagger._build_paths">
-<code class="descclassname">CorniceSwagger.</code><code class="descname">_build_paths</code><span class="sig-paren">(</span><em>ignore=['head', 'options'], **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._build_paths" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_build_paths</code><span class="sig-paren">(</span><em>ignore=['head', 'options'], default_tags=None, **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._build_paths" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build the Swagger &#8220;paths&#8221; and &#8220;tags&#8221; attributes from cornice service
 definitions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ignore</strong> &#8211; List of service methods that should NOT be presented on the documentation.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ignore</strong> &#8211; List of service methods that should NOT be presented on the documentation.</li>
+<li><strong>default_tags</strong> &#8211; Provide a default list of tags or a callable that takes a cornice
+service and returns a list of Swagger tags to be used if a tag is
+not provided by the view.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
