@@ -35,10 +35,10 @@ Pyramid configurator after including cornice::
     my_spec = my_generator('MyAPI', '1.0.0')
 
 
-Using an scaffold
-=================
+Using a scaffold
+================
 
-If you want to start a new project, there is a scaffold with can be used::
+If you want to start a new project, there is a cookiecutter scaffold that can be used::
 
    $ cookiecutter https://github.com/delijati/cookiecutter-cornice_swagger.git
    $ cd demo
