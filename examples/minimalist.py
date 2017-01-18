@@ -12,7 +12,7 @@ _VALUES = {}
 
 # Create a simple service that will store and retrieve values
 values = Service(name='foo',
-                 path='/values/{value}',
+                 path='/values/{key}',
                  description="Cornice Demo")
 
 
@@ -40,17 +40,17 @@ class MyValueApi(object):
     @values.get(tags=['values'], response_schemas=response_schemas)
     def get_value(request):
         """Returns the value."""
-        key = request.matchdict['value']
-        return {'value': _VALUES.get(key)}
+        key = request.matchdict['key']
+        return _VALUES.get(key)
 
     @values.put(tags=['values'], validators=(colander_body_validator, ),
                 schema=BodySchema(), response_schemas=response_schemas)
     def set_value(request):
         """Set the value and returns *True* or *False*."""
 
-        key = request.matchdict['value']
+        key = request.matchdict['key']
         _VALUES[key] = request.json_body
-        return _VALUES.get['key']
+        return _VALUES.get(key)
 
 
 # Create a service to serve our OpenAPI spec

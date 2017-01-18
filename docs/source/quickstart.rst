@@ -69,7 +69,7 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
             }
         ]
         "paths": {
-            "/values/{value}": {
+            "/values/{key}": {
                 "parameters": [
                     {
                         "name": "value",

@@ -10,6 +10,9 @@ class CorniceSwaggerPredicate(object):
     def phash(self):
         return str(self.schema)
 
+    def __call__(self, context, request):
+        return self.schema
+
 
 def includeme(config):
     config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
