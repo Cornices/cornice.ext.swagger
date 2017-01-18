@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.3.0 (2017-01-12)
+0.3.0 (2017-01-17)
 ------------------
 
 **Api**
@@ -10,6 +10,9 @@ CHANGES
   the swagger document rather then `generate_swagger_spec`.
 - Allow overriding extractors in the application.
 - Schemas are now broken into JSON pointers only if specified.
+- Allow documenting responses via `response_schemas` view attribute.
+- Allow documenting tags via `tags` view attribute or using a
+  `default_tags` parameter when calling the generator.
 
 **Internals**
 
@@ -19,7 +22,8 @@ CHANGES
 
 **Documentation**
 
-- Create a Sphinx documentation.
+- Create a Sphinx documentation hosted on
+  https://cornices.github.io/cornice.ext.swagger.
 
 
 0.2.1 (2016-12-10)
