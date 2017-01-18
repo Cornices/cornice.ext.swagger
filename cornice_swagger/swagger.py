@@ -126,9 +126,11 @@ class CorniceSwagger(object):
                         tags.append(root_tag)
 
                 # If method is defined for more than one ctype, get previous ones
-                ctypes = path.get(method_name.lower(), {}).get('consumes')
-                if ctypes and op.get('consumes') not in ctypes:
-                    op['consumes'] = ctypes + op['consumes']
+                ctypes = path.get(method_name.lower(), {}).get('consumes', [])
+                if 'consumes' in op and ctypes:
+                    for ctype in ctypes:
+                        if ctype not in op['consumes']:
+                            op['consumes'].append(ctype)
 
                 # XXX: Swagger doesn't support different schemas for for a same
                 # method with different ctypes as cornice, so this may overwrite the
@@ -186,22 +188,28 @@ class CorniceSwagger(object):
             },
         }
 
-        # If ctypes are defined in view, try get from renderers
+        # If 'produces' are not defined in the view, try get from renderers
         renderer = args.get('renderer', '')
 
         if "json" in renderer:  # allows for "json" or "simplejson"
-            ctype = ['application/json']
+            produces = ['application/json']
         elif renderer == 'xml':
-            ctype = ['text/xml']
+            produces = ['text/xml']
         else:
-            ctype = None
+            produces = None
 
-        if ctype:
-            op.setdefault('produces', ctype)
+        if produces:
+            op.setdefault('produces', produces)
 
-        # Get explicit content-types
-        if args.get('content_type'):
-            op['consumes'] = args['content_type']
+        # Get explicit accepted content-types
+        consumes = args.get('content_type')
+
+        # A single content-type is provided, so wrap it in a list
+        if isinstance(consumes, six.string_types):
+            consumes = [consumes]
+
+        if consumes:
+            op['consumes'] = list(consumes)
 
         # Get parameters from view schema
         if 'schema' in args:

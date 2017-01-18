@@ -183,6 +183,71 @@ the parameters locations as follows:
         """Set the value and returns *True* or *False*."""
 
 
+Extracting produced types from renderers
+========================================
+
+The produced content-type field is filled by the cornice renderer you are using.
+We currently support `json`, `simplejson` and `xml` renderers. Cornice uses `simplejson`
+renderer by default, so if you don't specify a renderer you may expect to find
+`application/json` on your operation produce fields.
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values/{value}')
+
+    @values.put(renderer='xml')
+    def set_value(request):
+        """Set the value and returns *True* or *False*."""
+
+
+.. code-block:: json
+
+    {
+        "paths": {
+            "/values/{value}": {
+                "put": {
+                    "produces": [
+                        "text/xml"
+                    ]
+                }
+            }
+        }
+    }
+
+
+Extracting accepted types from content_type field
+=================================================
+
+On cornice you can defined the accepted content-types for your view through
+the `content_type` field. And we use it to generate the Swagger `consumes` types.
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values/{value}')
+
+    @values.put(content_type=('application/json', 'text/xml'))
+    def set_value(request):
+        """Set the value and returns *True* or *False*."""
+
+
+.. code-block:: json
+
+    {
+        "paths": {
+            "/values/{value}": {
+                "put": {
+                    "consumes": [
+                        "application/json",
+                        "text/xml"
+                    ]
+                }
+            }
+        }
+    }
+
+
 Documenting responses
 =====================
 
