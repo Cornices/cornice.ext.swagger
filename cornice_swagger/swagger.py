@@ -101,13 +101,13 @@ class CorniceSwagger(object):
         tags = []
 
         for service in self.services:
-            path = self._extract_path_from_service(service)
+            path = self._extract_path_from_service(service, **kwargs)
 
             for method_name, view, args in service.definitions:
                 if method_name.lower() in ignore:
                     continue
 
-                op = self._extract_operation_from_view(view, args)
+                op = self._extract_operation_from_view(view, args, **kwargs)
 
                 # If tag not defined and a default tag is provided
                 if 'tags' not in op and default_tags:
@@ -147,7 +147,7 @@ class CorniceSwagger(object):
 
         return paths, tags
 
-    def _extract_path_from_service(self, service):
+    def _extract_path_from_service(self, service, **kwargs):
         """
         Extract path object and its parameters from service definitions.
 
@@ -167,7 +167,8 @@ class CorniceSwagger(object):
 
         return path
 
-    def _extract_operation_from_view(self, view, args={}):
+    def _extract_operation_from_view(self, view, args={},
+                                     summary_docstrings=False, **kwargs):
         """
         Extract swagger operation details from colander view definitions.
 
@@ -175,6 +176,8 @@ class CorniceSwagger(object):
             View to extract information from.
         :param args:
             Arguments from the view decorator.
+        :param summary_docstrings:
+            Enable extracting operation summaries from view docstrings.
 
         :rtype: dict
             Operation definition.
@@ -227,7 +230,7 @@ class CorniceSwagger(object):
         else:
             docstring = cornice_swagger.util.trim(view.__doc__)
 
-        if docstring:
+        if docstring and summary_docstrings:
             op['summary'] = docstring
 
         # Get response definitions
@@ -498,7 +501,8 @@ def generate_swagger_spec(services, title, version, **kwargs):
 
     swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
     doc = swag(title, version, ignores=('head'),
-               default_tags=get_tags_from_path, **kwargs)
+               default_tags=get_tags_from_path,
+               summary_docstrings=True, **kwargs)
     doc.update(**kwargs)
 
     return doc
