@@ -78,18 +78,15 @@
 </div>
 <p>From an existing Cornice application, you may add this extension to your
 Pyramid configurator after including cornice:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>   <span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="k">import</span> <span class="n">Configurator</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="k">import</span> <span class="n">Configurator</span>
 
-   <span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
-       <span class="n">config</span> <span class="o">=</span> <span class="n">Configurator</span><span class="p">()</span>
-       <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice&#39;</span><span class="p">)</span>
-       <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice_swagger&#39;</span><span class="p">)</span>
-
-
-
-<span class="ow">and</span> <span class="n">create</span> <span class="n">your</span> <span class="n">OpenAPI</span><span class="o">/</span><span class="n">Swagger</span> <span class="n">JSON</span> <span class="n">using</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">Configurator</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice&#39;</span><span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice_swagger&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>and create your OpenAPI/Swagger JSON using:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cornice_swagger.swagger</span> <span class="kn">import</span> <span class="n">CorniceSwagger</span>
 <span class="kn">from</span> <span class="nn">cornice.service</span> <span class="kn">import</span> <span class="n">get_services</span>
 

@@ -14,6 +14,7 @@ You may install us with pip::
 From an existing Cornice application, you may add this extension to your
 Pyramid configurator after including cornice::
 
+
     from pyramid.config import Configurator
 
     def setup():
@@ -23,7 +24,7 @@ Pyramid configurator after including cornice::
 
 
 
- and create your OpenAPI/Swagger JSON using:
+and create your OpenAPI/Swagger JSON using:
 
 
 .. code-block:: python
