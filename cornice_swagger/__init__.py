@@ -3,7 +3,7 @@ __email__ = 'delicj@delijati.net'
 __version__ = '0.3.0'
 
 
-class ResponseSchemaPredicate(object):
+class CorniceSwaggerPredicate(object):
     def __init__(self, schema, config):
         self.schema = schema
 
@@ -12,4 +12,5 @@ class ResponseSchemaPredicate(object):
 
 
 def includeme(config):
-    config.add_view_predicate('response_schemas', ResponseSchemaPredicate)
+    config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
+    config.add_view_predicate('tags', CorniceSwaggerPredicate)

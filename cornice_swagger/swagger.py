@@ -83,13 +83,18 @@ class CorniceSwagger(object):
 
         return swagger
 
-    def _build_paths(self, ignore=['head', 'options'], **kwargs):
+    def _build_paths(self, ignore=['head', 'options'], default_tags=None,
+                     **kwargs):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
 
         :param ignore:
             List of service methods that should NOT be presented on the documentation.
+        :param default_tags:
+            Provide a default list of tags or a callable that takes a cornice
+            service and returns a list of Swagger tags to be used if a tag is
+            not provided by the view.
         """
 
         paths = {}
@@ -104,12 +109,18 @@ class CorniceSwagger(object):
 
                 op = self._extract_operation_from_view(view, args)
 
-                # XXX: If tag not defined, try to guess it from path
-                default_tag = service.path.split("/")[1]
-                if 'tags' not in op:
-                    op['tags'] = [default_tag]
+                # If tag not defined and a default tag is provided
+                if 'tags' not in op and default_tags:
+                    if callable(default_tags):
+                        default_tags = default_tags(service)
+                    op['tags'] = default_tags
 
-                for tag in op['tags']:
+                # Check if tags was correctly defined as a list
+                if not isinstance(op.get('tags', []), list):
+                    raise CorniceSwaggerException('Tags should be defined as a list.')
+
+                # Add method tags to root tags
+                for tag in op.get('tags', []):
                     if tag not in [t['name'] for t in tags]:
                         root_tag = {'name': tag}
                         tags.append(root_tag)
@@ -214,6 +225,10 @@ class CorniceSwagger(object):
         # Get response definitions
         if 'response_schemas' in args:
             op['responses'] = self.responses.from_schema_mapping(args['response_schemas'])
+
+        # Get response tags
+        if 'tags' in args:
+            op['tags'] = args['tags']
 
         return op
 
@@ -470,8 +485,12 @@ def generate_swagger_spec(services, title, version, **kwargs):
     """Utility to turn cornice web services into a Swagger-readable file.
     """
 
+    def get_tags_from_path(service):
+        return [service.path.split("/")[1]]
+
     swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
-    doc = swag(title, version, ignores=('head'), **kwargs)
+    doc = swag(title, version, ignores=('head'),
+               default_tags=get_tags_from_path, **kwargs)
     doc.update(**kwargs)
 
     return doc

@@ -273,3 +273,62 @@ From our minimalist example:
             }
         }
     }
+
+
+Documenting tags
+================
+
+Cornice Swagger supports two ways of documenting operation tags. You can either
+provide a list of tags on the view decorator or have a ``default_tags``
+attribute when calling the generator.
+
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values/{value}')
+
+    @values.put(tags=['value'])
+    def set_value(request):
+        """Set the value and returns *True* or *False*."""
+
+
+.. code-block:: json
+
+    {
+        "tags": [
+            {
+                "name": "values"
+            }
+        ],
+        "paths": {
+            "/values/{value}": {
+                "get": {
+                    "tags": [
+                        "values"
+                    ]
+                }
+            }
+        }
+    }
+
+
+When using the ``default_tags`` attribute, you can either use a raw list
+of tags or a callable that takes a cornice service and returns a list of tags.
+
+
+.. code-block:: python
+
+    def default_tag_callable(service):
+        return [service.path.split('/')[1]]
+
+    swagger = CorniceSwagger(get_services())
+    spec = swagger('IceCreamAPI', '4.2',
+                   default_tags=default_tag_callable)
+
+.. code-block:: python
+
+    swagger = CorniceSwagger(get_services())
+    spec = swagger('IceCreamAPI', '4.2',
+                   default_tags=['MyAPI'])
+
