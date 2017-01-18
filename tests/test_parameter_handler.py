@@ -85,7 +85,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             'name': 'bar',
             'in': 'header',
             'type': 'string',
-            'required': True,
+            'required': False,
         }
         self.assertDictEqual(params[0], expected)
 

@@ -16,7 +16,7 @@ class QuerySchema(colander.MappingSchema):
 
 
 class HeaderSchema(colander.MappingSchema):
-    bar = colander.SchemaNode(colander.String())
+    bar = colander.SchemaNode(colander.String(), missing=colander.drop)
 
 
 class PathSchema(colander.MappingSchema):
@@ -30,12 +30,12 @@ class GetRequestSchema(colander.MappingSchema):
 class PutRequestSchema(colander.MappingSchema):
     body = BodySchema()
     querystring = QuerySchema()
-    headers = HeaderSchema()
+    header = HeaderSchema()
 
 
 class ResponseSchema(colander.MappingSchema):
     body = BodySchema()
-    headers = HeaderSchema()
+    header = HeaderSchema()
 
 
 response_schemas = {
