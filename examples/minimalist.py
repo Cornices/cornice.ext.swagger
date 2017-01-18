@@ -37,15 +37,14 @@ response_schemas = {
 class MyValueApi(object):
     """My precious API."""
 
-    @values.get(response_schemas=response_schemas)
+    @values.get(tags=['values'], response_schemas=response_schemas)
     def get_value(request):
         """Returns the value."""
         key = request.matchdict['value']
         return {'value': _VALUES.get(key)}
 
-    @values.put(validators=(colander_body_validator, ),
-                schema=BodySchema(),
-                response_schemas=response_schemas)
+    @values.put(tags=['values'], validators=(colander_body_validator, ),
+                schema=BodySchema(), response_schemas=response_schemas)
     def set_value(request):
         """Set the value and returns *True* or *False*."""
 

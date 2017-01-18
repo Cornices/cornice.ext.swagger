@@ -56,9 +56,6 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
         "tags": [
             {
                 "name": "values"
-            },
-            {
-                "name": "__api__"
             }
         ]
         "paths": {
@@ -152,9 +149,6 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
             },
             "/__api__": {
                 "get": {
-                    "tags": [
-                        "__api__"
-                    ],
                     "responses": {
                         "default": {
                             "description": "UNDOCUMENTED RESPONSE"
