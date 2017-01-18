@@ -79,7 +79,6 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
                     }
                 ],
                 "get": {
-                    "summary": "Returns the value.",
                     "tags": [
                         "values"
                     ],
@@ -108,7 +107,6 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
                     ]
                 },
                 "put": {
-                    "summary": "Set the value and returns *True* or *False*.",
                     "tags": [
                         "values"
                     ],

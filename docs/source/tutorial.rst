@@ -27,35 +27,6 @@ your Pyramid config. For that you may use:
 If you don't know what this is about or need more information, please check the
 `Pyramid documentation <http://docs.pylonsproject.org/projects/pyramid>`_
 
-Generating summaries with view docstrings
-=========================================
-
-You may use view docstrings to create operation summaries. For example,
-the following view definition docstring will correspond to the following
-swagger summary:
-
-.. code-block:: python
-
-    values = Service(name='foo',
-                     path='/values')
-
-    @values.get()
-    def get_value(request):
-        """Returns the value."""
-
-
-.. code-block:: json
-
-    {
-        "paths": {
-            "/values": {
-                "get": {
-                    "summary": "Returns the value."
-                }
-            }
-        }
-    }
-
 
 Extracting path parameters
 ==========================
@@ -397,3 +368,36 @@ of tags or a callable that takes a cornice service and returns a list of tags.
     spec = swagger('IceCreamAPI', '4.2',
                    default_tags=['MyAPI'])
 
+
+Generating summaries with view docstrings
+=========================================
+
+You may use view docstrings to create operation summaries. You may enable
+this by passing ``summary_docstrings=True`` when calling the generator.
+For example, the following view definition docstring will correspond to
+the following swagger summary:
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values')
+
+    @values.get()
+    def get_value(request):
+        """Returns the value."""
+
+    swagger = CorniceSwagger(get_services())
+    spec = swagger('IceCreamAPI', '4.2', summary_docstrings=True)
+
+
+.. code-block:: json
+
+    {
+        "paths": {
+            "/values": {
+                "get": {
+                    "summary": "Returns the value."
+                }
+            }
+        }
+    }
