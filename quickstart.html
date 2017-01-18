@@ -40,6 +40,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-an-scaffold">Using an scaffold</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#show-me-a-minimalist-useful-example">Show me a minimalist useful example</a></li>
 </ul>
 </li>
@@ -77,12 +78,13 @@
 </div>
 <p>From an existing Cornice application, you may add this extension to your
 Pyramid configurator after including cornice:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>   <span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="kn">import</span> <span class="n">Configurator</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span>   <span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="k">import</span> <span class="n">Configurator</span>
 
    <span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
        <span class="n">config</span> <span class="o">=</span> <span class="n">Configurator</span><span class="p">()</span>
        <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice&#39;</span><span class="p">)</span>
        <span class="n">config</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="s1">&#39;cornice_swagger&#39;</span><span class="p">)</span>
+
 
 
 <span class="ow">and</span> <span class="n">create</span> <span class="n">your</span> <span class="n">OpenAPI</span><span class="o">/</span><span class="n">Swagger</span> <span class="n">JSON</span> <span class="n">using</span><span class="p">:</span>
@@ -93,6 +95,17 @@ Pyramid configurator after including cornice:</p>
 
 <span class="n">my_generator</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
 <span class="n">my_spec</span> <span class="o">=</span> <span class="n">my_generator</span><span class="p">(</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-an-scaffold">
+<h2>Using an scaffold<a class="headerlink" href="#using-an-scaffold" title="Permalink to this headline">¶</a></h2>
+<p>If you want to start a new project, there is a scaffold with can be used:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ cookiecutter https://github.com/delijati/cookiecutter-cornice_swagger.git
+$ cd demo
+$ pip install -e .
+$ cd demo/static
+$ bower install
 </pre></div>
 </div>
 </div>

@@ -68,27 +68,51 @@
 <div class="section" id="changes">
 <h2>CHANGES<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="unreleased">
-<h3>0.2.2 (unreleased)<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h3>
+<h3>0.3.1 (unreleased)<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Nothing changed yet.</li>
 </ul>
 </div>
 <div class="section" id="id2">
-<h3>0.2.1 (2016-12-10)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>0.3.0 (2017-01-17)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p><strong>Api</strong></p>
+<ul class="simple">
+<li>Use <cite>cornice_swagger.swagger.CorniceSwagger</cite> class to generate
+the swagger document rather then <cite>generate_swagger_spec</cite>.</li>
+<li>Allow overriding extractors in the application.</li>
+<li>Schemas are now broken into JSON pointers only if specified.</li>
+<li>Allow documenting responses via <cite>response_schemas</cite> view attribute.</li>
+<li>Allow documenting tags via <cite>tags</cite> view attribute or using a
+<cite>default_tags</cite> parameter when calling the generator.</li>
+</ul>
+<p><strong>Internals</strong></p>
+<ul class="simple">
+<li>Decouples converters from path generators.</li>
+<li>Make considerable changes in the package organisation.</li>
+<li>Reach 100% coverage on tests.</li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul class="simple">
+<li>Create a Sphinx documentation hosted on
+<a class="reference external" href="https://cornices.github.io/cornice.ext.swagger">https://cornices.github.io/cornice.ext.swagger</a>.</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>0.2.1 (2016-12-10)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Check if schema is not instantiated.</li>
 <li>Add support for query parameter description. [ridha]</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>0.2 (2016-11-08)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>0.2 (2016-11-08)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Pypi release.</li>
 <li>Point scaffold doc to right url.</li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>0.1 (2016-11-05)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>0.1 (2016-11-05)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>First release for new cornice 2.0</li>
 </ul>
