@@ -1,6 +1,9 @@
 .. _quickstart:
 
 Quickstart
+##########
+
+Installing
 ==========
 
 You may install us with pip::
@@ -8,7 +11,20 @@ You may install us with pip::
     $ pip install cornice_swagger
 
 
-From an existing Cornice application, you may create you OpenAPI/Swagger JSON using:
+From an existing Cornice application, you may add this extension to your
+Pyramid configurator after including cornice:
+
+.. code-block:: python
+
+    from pyramid.config import Configurator
+
+    def setup():
+        config = Configurator()
+        config.include('cornice')
+        config.include('cornice_swagger')
+
+
+ and create your OpenAPI/Swagger JSON using:
 
 .. code-block:: python
 
@@ -22,79 +38,8 @@ From an existing Cornice application, you may create you OpenAPI/Swagger JSON us
 Show me a minimalist useful example
 ===================================
 
-.. code-block:: python
-
-    import colander
-    from cornice import Service
-    from cornice.service import get_services
-    from cornice.validators import colander_body_validator
-    from wsgiref.simple_server import make_server
-    from pyramid.config import Configurator
-    from cornice_swagger.swagger import CorniceSwagger
-
-    _VALUES = {}
-
-    # Create a simple service that will store and retrieve values
-    values = Service(name='foo',
-                     path='/values/{value}',
-                     description="Cornice Demo")
-
-
-    # Create a request schema for storing values
-    class PutBodySchema(colander.MappingSchema):
-        value = colander.SchemaNode(colander.String(),
-                                    description='My precious value')
-
-
-    # Create our cornice service views
-    class MyValueApi(object):
-        """My precious API."""
-
-        @values.get()
-        def get_value(request):
-            """Returns the value."""
-            key = request.matchdict['value']
-            return _VALUES.get(key)
-
-        @values.put(validators=(colander_body_validator, ),
-                    schema=PutBodySchema())
-        def set_value(request):
-            """Set the value and returns *True* or *False*."""
-
-            key = request.matchdict['value']
-            try:
-                _VALUES[key] = request.json_body
-            except ValueError:
-                return False
-            return True
-
-
-    # Create a service to serve our OpenAPI spec
-    swagger = Service(name='OpenAPI',
-                      path='/__api__',
-                      description="OpenAPI documentation")
-
-
-    @swagger.get()
-    def openAPI_spec(request):
-        my_generator = CorniceSwagger(get_services())
-        my_spec = my_generator('MyAPI', '1.0.0')
-        return my_spec
-
-
-    # Setup and run our app
-    def setup():
-        config = Configurator()
-        config.include("cornice")
-        config.scan()
-        app = config.make_wsgi_app()
-        return app
-
-
-    if __name__ == '__main__':
-        app = setup()
-        server = make_server('127.0.0.1', 8000, app)
-        server.serve_forever()
+.. literalinclude:: ../../examples/minimalist.py
+    :language: python
 
 
 The resulting `swagger.json` at `http://localhost:8000/__api__` is:
@@ -111,9 +56,6 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
         "tags": [
             {
                 "name": "values"
-            },
-            {
-                "name": "__api__"
             }
         ]
         "paths": {
@@ -128,28 +70,38 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
                 ],
                 "get": {
                     "summary": "Returns the value.",
-                    "responses": {
-                        "default": {
-                            "description": "UNDOCUMENTED RESPONSE"
-                        }
-                    },
                     "tags": [
                         "values"
                     ],
+                    "responses": {
+                        "200": {
+                            "description": "Return value",
+                            "schema": {
+                                "required": [
+                                    "value"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "My precious value",
+                                        "title": "Value"
+                                    }
+                                },
+                                "title": "BodySchema"
+                            }
+                        }
+
+                    },
                     "produces": [
                         "application/json"
                     ]
                 },
                 "put": {
+                    "summary": "Set the value and returns *True* or *False*.",
                     "tags": [
                         "values"
                     ],
-                    "summary": "Set the value and returns *True* or *False*.",
-                    "responses": {
-                        "default": {
-                            "description": "UNDOCUMENTED RESPONSE"
-                        }
-                    },
                     "parameters": [
                         {
                             "name": "PutBodySchema",
@@ -173,14 +125,30 @@ The resulting `swagger.json` at `http://localhost:8000/__api__` is:
                     ],
                     "produces": [
                         "application/json"
-                    ]
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Return value",
+                            "schema": {
+                                "required": [
+                                    "value"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "My precious value",
+                                        "title": "Value"
+                                    }
+                                },
+                                "title": "BodySchema"
+                            }
+                        }
+                    }
                 }
             },
             "/__api__": {
                 "get": {
-                    "tags": [
-                        "__api__"
-                    ],
                     "responses": {
                         "default": {
                             "description": "UNDOCUMENTED RESPONSE"

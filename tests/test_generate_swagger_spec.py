@@ -5,7 +5,6 @@ from cornice.service import Service, clear_services, get_services
 from flex.core import validate
 
 from cornice_swagger.swagger import generate_swagger_spec
-from cornice_swagger.util import PY3
 from cornice.validators import colander_validator
 from .validationapp import RequestSchema
 
@@ -61,10 +60,7 @@ class TestSwaggerService(unittest.TestCase):
         })
         self.assertEqual(ret["basePath"], '/jcool')
         self.assertEqual(ret["swagger"], '2.0')
-        self.assertEqual(ret["tags"], [{
-            'name': 'freshair',
-            'description': 'Temp class docstring'
-        }])
+        self.assertEqual(ret["tags"], [{'name': 'freshair'}])
         self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
         params = ret["paths"]["/freshair"]["put"]['parameters']
@@ -103,10 +99,7 @@ class TestSwaggerService(unittest.TestCase):
                 return "red"
 
         ret = _generate_swagger([service])
-        self.assertEqual(ret["tags"], [{
-            'name': 'freshair',
-            'description': ''
-        }])
+        self.assertEqual(ret["tags"], [{'name': 'freshair'}])
         self.assertEqual(ret["paths"]["/freshair"]["get"]["summary"],
                          'Temp view docstring')
         params = ret["paths"]["/freshair"]["get"]['parameters']
@@ -146,16 +139,7 @@ class TestSwaggerService(unittest.TestCase):
             validators=(colander_validator, ),
             schema=RequestSchema())
         ret = _generate_swagger([service])
-        if PY3:
-            self.assertEqual(ret["tags"], [{
-                'name': 'freshair',
-                'description': ''
-            }])
-        else:
-            self.assertEqual(ret["tags"], [{
-                'name': 'freshair',
-                'description': 'Temp class docstring'
-            }])
+        self.assertEqual(ret["tags"], [{'name': 'freshair'}])
         self.assertEqual(ret["paths"]["/freshair"]["put"]["summary"],
                          'Temp view docstring')
         params = ret["paths"]["/freshair"]["put"]['parameters']

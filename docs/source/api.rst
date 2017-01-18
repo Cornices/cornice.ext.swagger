@@ -30,13 +30,18 @@ those if you want to change the converters behaviour.
 .. autoclass:: cornice_swagger.swagger.DefinitionHandler
 .. automethod:: cornice_swagger.swagger.DefinitionHandler.__init__
 .. automethod:: cornice_swagger.swagger.DefinitionHandler.from_schema
-.. automethod:: cornice_swagger.swagger.DefinitionHandler._ref
+.. automethod:: cornice_swagger.swagger.DefinitionHandler._ref_recursive
 
 .. autoclass:: cornice_swagger.swagger.ParameterHandler
 .. automethod:: cornice_swagger.swagger.ParameterHandler.__init__
 .. automethod:: cornice_swagger.swagger.ParameterHandler.from_schema
 .. automethod:: cornice_swagger.swagger.ParameterHandler.from_path
 .. automethod:: cornice_swagger.swagger.ParameterHandler._ref
+
+.. autoclass:: cornice_swagger.swagger.ResponseHandler
+.. automethod:: cornice_swagger.swagger.ResponseHandler.__init__
+.. automethod:: cornice_swagger.swagger.ResponseHandler.from_schema_mapping
+.. automethod:: cornice_swagger.swagger.ResponseHandler._ref
 
 Colander converters
 ===================

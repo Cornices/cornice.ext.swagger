@@ -1,8 +1,4 @@
-import sys
 import six
-
-
-PY3 = sys.version_info[0] == 3
 
 
 def trim(docstring):
@@ -20,7 +16,3 @@ def trim(docstring):
     lines = [line.strip() for line in lines]
     res = six.u('\n').join(lines)
     return res
-
-
-def get_class_that_defined_method(meth):
-    return getattr(meth, 'im_class', None)

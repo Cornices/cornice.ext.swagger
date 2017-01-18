@@ -1,8 +1,31 @@
 .. _tutorial:
 
+Full Tutorial
+#############
+
 Here you may find the general aspects used by Colander Swagger to generate
 the swagger documentation. Most examples presented on this section refer
 to the example on `quickstart`.
+
+Using the Pyramid Hook
+======================
+
+In order to enable response documentation, you must add this extension to
+your Pyramid config. For that you may use:
+
+
+.. code-block:: python
+
+    from pyramid.config import Configurator
+
+    def setup():
+        config = Configurator()
+        config.include('cornice')
+        config.include('cornice_swagger')
+
+
+If you don't know what this is about or need more information, please check the
+`Pyramid documentation <http://docs.pylonsproject.org/projects/pyramid>`_
 
 Generating summaries with view docstrings
 =========================================
@@ -158,4 +181,154 @@ the parameters locations as follows:
                 schema=PutRequestSchema())
     def set_value(request):
         """Set the value and returns *True* or *False*."""
+
+
+Documenting responses
+=====================
+
+Unfortunately, on Cornice we don't have a way to provide response schemas, so
+this part must be provided separately and handled by Cornice Swagger.
+
+For that you must provide a Response Colander Schema that follows the pattern:
+
+.. code-block:: python
+
+    class ResponseSchema(colander.MappingSchema):
+        body = BodySchema()
+        headers = HeaderSchema()
+
+
+    get_response_schemas = {
+        '200': ResponseSchema(description='Return my OK response'),
+        '404': ResponseSchema(description='Return my not found response')
+    }
+
+
+Notice that the ``ResponseSchema`` class follows the same pattern as the
+Cornice requests using ``cornice.validators.colander_validator``
+(except for querystrings, since obviously we don't have querystrings on responses).
+
+A response schema mapping, as the ``get_response_schemas`` dict should aggregate
+response schemas as the one defined as ``ResponseSchema`` with keys matching the
+response status code of for each entry. All schema entries should contain descriptions.
+You may also provide a ``default`` response schema to be used if the response doesn't
+match any of the status codes provided.
+
+From our minimalist example:
+
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values/{value}')
+
+    # Create a body schema for our requests
+    class BodySchema(colander.MappingSchema):
+        value = colander.SchemaNode(colander.String(),
+                                    description='My precious value')
+
+
+    # Create a response schema for our 200 responses
+    class OkResponseSchema(colander.MappingSchema):
+        body = BodySchema()
+
+
+    # Aggregate the response schemas for get requests
+    response_schemas = {
+        '200': OkResponseSchema(description='Return value')
+    }
+
+
+    @values.put(response_schemas=response_schemas)
+    def set_value(request):
+        """Set the value and returns *True* or *False*."""
+
+
+.. code-block:: json
+
+    {
+        "paths": {
+            "/values/{value}": {
+                "put": {
+                    "responses": {
+                        "200": {
+                            "description": "Return value",
+                            "schema": {
+                                "required": [
+                                    "value"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "My precious value",
+                                        "title": "Value"
+                                    }
+                                },
+                                "title": "BodySchema"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+Documenting tags
+================
+
+Cornice Swagger supports two ways of documenting operation tags. You can either
+provide a list of tags on the view decorator or have a ``default_tags``
+attribute when calling the generator.
+
+
+.. code-block:: python
+
+    values = Service(name='foo',
+                     path='/values/{value}')
+
+    @values.put(tags=['value'])
+    def set_value(request):
+        """Set the value and returns *True* or *False*."""
+
+
+.. code-block:: json
+
+    {
+        "tags": [
+            {
+                "name": "values"
+            }
+        ],
+        "paths": {
+            "/values/{value}": {
+                "get": {
+                    "tags": [
+                        "values"
+                    ]
+                }
+            }
+        }
+    }
+
+
+When using the ``default_tags`` attribute, you can either use a raw list
+of tags or a callable that takes a cornice service and returns a list of tags.
+
+
+.. code-block:: python
+
+    def default_tag_callable(service):
+        return [service.path.split('/')[1]]
+
+    swagger = CorniceSwagger(get_services())
+    spec = swagger('IceCreamAPI', '4.2',
+                   default_tags=default_tag_callable)
+
+.. code-block:: python
+
+    swagger = CorniceSwagger(get_services())
+    spec = swagger('IceCreamAPI', '4.2',
+                   default_tags=['MyAPI'])
 
