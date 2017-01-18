@@ -16,11 +16,8 @@ Cornice swagger builds a valid OpenAPI document with basically these things:
    view definition.
 5. Produced content-types when using colander renderers.
 6. Accepted content types when they are provided on view definitions.
+7. Allow user defined tags and responses on view definitions.
 
-.. important::
-   Right now there still no way to document Swagger responses with this module.
-   If you can, please
-   `help us with that <https://github.com/Cornices/cornice.ext.swagger/issues/4>`_.
 
 Documentation content
 =====================
@@ -43,10 +40,10 @@ Documentation content
 Contribution & Feedback
 =======================
 
-You can find us at Github and leave us feedback on the Issue Tracker.
+You can find us at Github or the Slack chat.
 
 - GitHub Repository: https://github.com/Cornices/cornice.ext.swagger
-- Issue Tracker: https://github.com/Cornices/cornice.ext.swagger/issues
+- Slack chat: https://corniceswagger.herokuapp.com
 
 You may also try the Cornice Mailing List:
 

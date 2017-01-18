@@ -12,9 +12,7 @@ You may install us with pip::
 
 
 From an existing Cornice application, you may add this extension to your
-Pyramid configurator after including cornice:
-
-.. code-block:: python
+Pyramid configurator after including cornice::
 
     from pyramid.config import Configurator
 
@@ -24,15 +22,27 @@ Pyramid configurator after including cornice:
         config.include('cornice_swagger')
 
 
- and create your OpenAPI/Swagger JSON using:
+You can than create your OpenAPI/Swagger JSON using::
 
-.. code-block:: python
 
     from cornice_swagger.swagger import CorniceSwagger
     from cornice.service import get_services
 
     my_generator = CorniceSwagger(get_services())
     my_spec = my_generator('MyAPI', '1.0.0')
+
+
+Using a scaffold
+================
+
+If you want to start a new project, there is a cookiecutter scaffold that can be used::
+
+   $ cookiecutter https://github.com/delijati/cookiecutter-cornice_swagger.git
+   $ cd demo
+   $ pip install -e .
+   $ cd demo/static
+   $ bower install
+
 
 
 Show me a minimalist useful example
