@@ -11,7 +11,6 @@ from .support import GetRequestSchema, PutRequestSchema, response_schemas
 class TestCorniceSwaggerGenerator(unittest.TestCase):
 
     def setUp(self):
-
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
@@ -19,7 +18,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
                          schema=GetRequestSchema(),
                          response_schemas=response_schemas)
             def view_get(self, request):
-                """Serve icecream"""
+                """Serve ice cream"""
                 return self.request.validated
 
             @service.put(validators=(colander_validator, ), schema=PutRequestSchema())
@@ -44,6 +43,12 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         parameters = self.spec['paths']['/icecream/{flavour}']['parameters']
         self.assertEquals(len(parameters), 1)
         self.assertEquals(parameters[0]['name'], 'flavour')
+
+    def test_summary_docstrings(self):
+        self.spec = self.swagger('IceCreamAPI', '4.2', summary_docstrings=True)
+        validate(self.spec)
+        summary = self.spec['paths']['/icecream/{flavour}']['get']['summary']
+        self.assertEquals(summary, 'Serve ice cream')
 
     def test_with_schema_ref(self):
         swagger = CorniceSwagger([self.service], def_ref_depth=1)
