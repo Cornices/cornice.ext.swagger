@@ -41,11 +41,13 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Full Tutorial</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#using-the-pyramid-hook">Using the Pyramid Hook</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#generating-summaries-with-view-docstrings">Generating summaries with view docstrings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extracting-path-parameters">Extracting path parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extracting-parameters-from-cornice-schemas">Extracting parameters from cornice schemas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-produced-types-from-renderers">Extracting produced types from renderers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-accepted-types-from-content-type-field">Extracting accepted types from content_type field</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documenting-responses">Documenting responses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documenting-tags">Documenting tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-summaries-with-view-docstrings">Generating summaries with view docstrings</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Cornice Swagger API</a></li>
@@ -90,31 +92,6 @@ your Pyramid config. For that you may use:</p>
 </div>
 <p>If you don&#8217;t know what this is about or need more information, please check the
 <a class="reference external" href="http://docs.pylonsproject.org/projects/pyramid">Pyramid documentation</a></p>
-</div>
-<div class="section" id="generating-summaries-with-view-docstrings">
-<h2>Generating summaries with view docstrings<a class="headerlink" href="#generating-summaries-with-view-docstrings" title="Permalink to this headline">¶</a></h2>
-<p>You may use view docstrings to create operation summaries. For example,
-the following view definition docstring will correspond to the following
-swagger summary:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
-                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values&#39;</span><span class="p">)</span>
-
-<span class="nd">@values.get</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
-</pre></div>
-</div>
-<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;/values&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Returns the value.&quot;</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="extracting-path-parameters">
 <h2>Extracting path parameters<a class="headerlink" href="#extracting-path-parameters" title="Permalink to this headline">¶</a></h2>
@@ -223,6 +200,61 @@ the parameters locations as follows:</p>
             <span class="n">schema</span><span class="o">=</span><span class="n">PutRequestSchema</span><span class="p">())</span>
 <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-produced-types-from-renderers">
+<h2>Extracting produced types from renderers<a class="headerlink" href="#extracting-produced-types-from-renderers" title="Permalink to this headline">¶</a></h2>
+<p>The produced content-type field is filled by the cornice renderer you are using.
+We currently support <cite>json</cite>, <cite>simplejson</cite> and <cite>xml</cite> renderers. Cornice uses <cite>simplejson</cite>
+renderer by default, so if you don&#8217;t specify a renderer you may expect to find
+<cite>application/json</cite> on your operation produce fields.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">renderer</span><span class="o">=</span><span class="s1">&#39;xml&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;put&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;produces&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;text/xml&quot;</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-accepted-types-from-content-type-field">
+<h2>Extracting accepted types from content_type field<a class="headerlink" href="#extracting-accepted-types-from-content-type-field" title="Permalink to this headline">¶</a></h2>
+<p>On cornice you can defined the accepted content-types for your view through
+the <cite>content_type</cite> field. And we use it to generate the Swagger <cite>consumes</cite> types.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">)</span>
+
+<span class="nd">@values.put</span><span class="p">(</span><span class="n">content_type</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">,</span> <span class="s1">&#39;text/xml&#39;</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;put&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;consumes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;text/xml&quot;</span>
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -350,6 +382,35 @@ of tags or a callable that takes a cornice service and returns a list of tags.</
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span>
                <span class="n">default_tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="generating-summaries-with-view-docstrings">
+<h2>Generating summaries with view docstrings<a class="headerlink" href="#generating-summaries-with-view-docstrings" title="Permalink to this headline">¶</a></h2>
+<p>You may use view docstrings to create operation summaries. You may enable
+this by passing <code class="docutils literal"><span class="pre">summary_docstrings=True</span></code> when calling the generator.
+For example, the following view definition docstring will correspond to
+the following swagger summary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values&#39;</span><span class="p">)</span>
+
+<span class="nd">@values.get</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
+
+<span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span> <span class="n">summary_docstrings</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Returns the value.&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>

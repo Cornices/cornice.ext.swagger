@@ -155,7 +155,7 @@ not provided by the view.</li>
 
 <dl class="method">
 <dt id="cornice_swagger.swagger.CorniceSwagger._extract_path_from_service">
-<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_path_from_service</code><span class="sig-paren">(</span><em>service</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_path_from_service" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_path_from_service</code><span class="sig-paren">(</span><em>service</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_path_from_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract path object and its parameters from service definitions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -172,7 +172,7 @@ Path definition.</td>
 
 <dl class="method">
 <dt id="cornice_swagger.swagger.CorniceSwagger._extract_operation_from_view">
-<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_operation_from_view</code><span class="sig-paren">(</span><em>view</em>, <em>args={}</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_operation_from_view" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CorniceSwagger.</code><code class="descname">_extract_operation_from_view</code><span class="sig-paren">(</span><em>view</em>, <em>args={}</em>, <em>summary_docstrings=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#cornice_swagger.swagger.CorniceSwagger._extract_operation_from_view" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract swagger operation details from colander view definitions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -181,6 +181,7 @@ Path definition.</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>view</strong> &#8211; View to extract information from.</li>
 <li><strong>args</strong> &#8211; Arguments from the view decorator.</li>
+<li><strong>summary_docstrings</strong> &#8211; Enable extracting operation summaries from view docstrings.</li>
 </ul>
 </td>
 </tr>
