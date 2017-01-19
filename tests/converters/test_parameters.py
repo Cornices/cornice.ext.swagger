@@ -28,6 +28,21 @@ class ParameterConversionTest(unittest.TestCase):
             'required': True,
         })
 
+    def test_query_array(self):
+
+        class MyArray(colander.SequenceSchema):
+            values = colander.SchemaNode(colander.String())
+
+        node = MyArray(name='bar')
+        ret = convert_parameter('querystring', node)
+        self.assertDictEqual(ret, {
+            'in': 'query',
+            'name': 'bar',
+            'type': 'array',
+            'items': {'type': 'string'},
+            'required': True,
+        })
+
     def test_header(self):
         node = colander.SchemaNode(colander.String(), name='meh')
         ret = convert_parameter('headers', node)

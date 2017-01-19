@@ -24,10 +24,15 @@ class ParameterConverter(object):
 
         schema = definition_handler(schema_node)
 
-        if '$ref' in schema or schema['type'] == 'object':
+        if '$ref' in schema or schema.get('type') == 'object':
             converted['schema'] = schema
         else:
             converted['type'] = schema['type']
+
+        if schema.get('type') == 'array':
+            converted['items'] = {}
+            converted['items']['type'] = schema['items']['type']
+
         return converted
 
 
