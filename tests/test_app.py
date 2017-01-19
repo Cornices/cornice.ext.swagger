@@ -15,22 +15,17 @@ class AppTest(unittest.TestCase):
     def setUp(self):
         service = Service('IceCream', '/icecream/{flavour}')
 
-        class IceCream(object):
-            """
-            Ice cream service
-            """
+        @service.get(validators=(colander_validator, ),
+                     schema=GetRequestSchema(),
+                     response_schemas=response_schemas)
+        def view_get(request):
+            """Serve icecream"""
+            return request.validated
 
-            @service.get(validators=(colander_validator, ),
-                         schema=GetRequestSchema(),
-                         response_schemas=response_schemas)
-            def view_get(self, request):
-                """Serve icecream"""
-                return self.request.validated
-
-            @service.put(validators=(colander_validator, ), schema=PutRequestSchema())
-            def view_put(self, request):
-                """Add flavour"""
-                return self.request.validated
+        @service.put(validators=(colander_validator, ), schema=PutRequestSchema())
+        def view_put(request):
+            """Add flavour"""
+            return request.validated
 
         api_service = Service('OpenAPI', '/api')
 
@@ -45,6 +40,14 @@ class AppTest(unittest.TestCase):
         self.config.add_cornice_service(service)
         self.config.add_cornice_service(api_service)
         self.app = webtest.TestApp(self.config.make_wsgi_app())
+
+    def test_app_get(self):
+        self.app.get('/icecream/strawberry')
+
+    def test_app_put(self):
+        body = {'id': 'chocolate', 'timestamp': 123, 'obj': {'my_precious': True}}
+        headers = {'bar': 'foo'}
+        self.app.put_json('/icecream/chocolate', body, headers=headers)
 
     def test_validate_spec(self):
         spec = self.app.get('/api').json
