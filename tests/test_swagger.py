@@ -150,20 +150,20 @@ class TestExtractContentTypes(unittest.TestCase):
             IceCream.view_put,
             validators=(colander_validator, ),
             schema=PutRequestSchema(),
-            content_type=['application/json'],
+            content_type='application/json',
         )
         service.add_view(
             "put",
             IceCream.view_put,
             validators=(colander_validator, ),
             schema=PutRequestSchema(),
-            content_type=['text/xml'],
+            content_type='text/xml',
         )
 
         swagger = CorniceSwagger([service])
         spec = swagger('IceCreamAPI', '4.2')
-        self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['produces'],
-                          ['application/json'])
+        self.assertEquals(sorted(spec['paths']['/icecream/{flavour}']['put']['consumes']),
+                          ['application/json', 'text/xml'])
 
 
 class TestExtractTags(unittest.TestCase):
