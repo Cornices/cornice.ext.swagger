@@ -1,5 +1,7 @@
 """Cornice Swagger 2.0 documentor"""
 import re
+from functools import partial
+
 import six
 
 import colander
@@ -215,11 +217,12 @@ class CorniceSwagger(object):
             op['consumes'] = list(consumes)
 
         # Get parameters from view schema
-        if 'schema' in args:
-            validators = args.get('validators')
-            parameters = self.parameters.from_schema(args['schema'], validators)
-            if parameters:
-                op['parameters'] = parameters
+        schema = args.get('schema', colander.MappingSchema())
+        validators = args.get('validators', [])
+
+        parameters = self.parameters.from_schema(schema, validators)
+        if parameters:
+            op['parameters'] = parameters
 
         # Get summary from docstring
         if isinstance(view, six.string_types):
@@ -344,35 +347,33 @@ class ParameterHandler(object):
         if not isinstance(schema_node, colander.Schema):
             schema_node = schema_node()
 
-        if colander_validator in validators:
-            for param_schema in schema_node.children:
-                location = param_schema.name
-                if location is 'body':
-                    name = param_schema.__class__.__name__
+        if colander_body_validator in validators:
+            body_schema = schema_node
+            schema_node = colander.MappingSchema()
+            schema_node['body'] = body_schema
+
+        for param_schema in schema_node.children:
+            location = param_schema.name
+            if location is 'body':
+                name = param_schema.__class__.__name__
+                if name == location:
+                    name = schema_node.__class__.__name__ + location.title()
+                param = convert_parameter(location,
+                                          param_schema,
+                                          partial(self.definitions.from_schema, base_name=name))
+                param['name'] = name
+                if self.ref:
+                    param = self._ref(param)
+                params.append(param)
+
+            elif location in ('path', 'headers', 'querystring'):
+                for node_schema in param_schema.children:
                     param = convert_parameter(location,
-                                              param_schema,
+                                              node_schema,
                                               self.definitions.from_schema)
-                    param['name'] = name
                     if self.ref:
                         param = self._ref(param)
                     params.append(param)
-
-                elif location in ('path', 'headers', 'querystring'):
-                    for node_schema in param_schema.children:
-                        param = convert_parameter(location,
-                                                  node_schema,
-                                                  self.definitions.from_schema)
-                        if self.ref:
-                            param = self._ref(param)
-                        params.append(param)
-
-        elif colander_body_validator in validators:
-            name = schema_node.__class__.__name__
-            param = convert_parameter('body', schema_node)
-            param['name'] = name
-            if self.ref:
-                param = self._ref(param, schema_node.__class__.__name__)
-            params.append(param)
 
         return params
 

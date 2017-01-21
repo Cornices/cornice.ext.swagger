@@ -209,6 +209,18 @@ class RefParamTest(unittest.TestCase):
         self.assertEquals(params, [{'$ref': '#/parameters/BodySchema'}])
         self.assertDictEqual(self.handler.parameter_registry, dict(BodySchema=expected))
 
+    def test_ref_from_declarative_body_validator_schema(self):
+        class DeclarativeSchema(colander.MappingSchema):
+            @colander.instantiate()
+            class body(colander.MappingSchema):
+                id = colander.SchemaNode(colander.String())
+                timestamp = colander.SchemaNode(colander.Int())
+
+        validators = [colander_body_validator]
+        params = self.handler.from_schema(DeclarativeSchema()['body'], validators)
+
+        self.assertEquals([{'$ref': '#/parameters/SchemaBody'}], params)
+
     def test_ref_from_request_validator_schema(self):
 
         class RequestSchema(colander.MappingSchema):
