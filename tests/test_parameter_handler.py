@@ -4,7 +4,7 @@ import colander
 
 from cornice.validators import colander_validator, colander_body_validator
 
-from cornice_swagger.swagger import ParameterHandler
+from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
 from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema
 
@@ -142,6 +142,24 @@ class SchemaParamConversionTest(unittest.TestCase):
         }
 
         self.assertDictEqual(params[0], expected)
+
+    def test_declarative_schema_handling(self):
+        class RequestSchema(colander.MappingSchema):
+            @colander.instantiate(description='my body')
+            class body(colander.MappingSchema):
+                id = colander.SchemaNode(colander.String())
+
+        class AnotherRequestSchema(colander.MappingSchema):
+            @colander.instantiate(description='my another body')
+            class body(colander.MappingSchema):
+                timestamp = colander.SchemaNode(colander.Int())
+
+        validators = [colander_validator]
+        handler = ParameterHandler(DefinitionHandler(ref=-1))
+        params = handler.from_schema(RequestSchema(), validators)
+        another_params = handler.from_schema(AnotherRequestSchema(), validators)
+
+        self.assertNotEqual(params[0]['schema'], another_params[0]['schema'])
 
 
 class PathParamConversionTest(unittest.TestCase):
