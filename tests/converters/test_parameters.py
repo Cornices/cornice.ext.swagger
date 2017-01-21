@@ -53,6 +53,20 @@ class ParameterConversionTest(unittest.TestCase):
             'required': True,
         })
 
+    def test_body_array(self):
+
+        class MyArray(colander.SequenceSchema):
+            values = colander.SchemaNode(colander.String())
+
+        node = MyArray(name='bla')
+        ret = convert_parameter('body', node)
+        self.assertDictEqual(ret, {
+            'in': 'body',
+            'name': 'bla',
+            'required': True,
+            'schema': convert_schema(MyArray(title='MyArray')),
+        })
+
     def test_body(self):
 
         class MyBody(colander.MappingSchema):
