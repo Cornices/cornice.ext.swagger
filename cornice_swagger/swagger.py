@@ -83,14 +83,21 @@ class CorniceSwagger(object):
 
         return swagger
 
-    def _build_paths(self, ignore=['head', 'options'], default_tags=None,
-                     **kwargs):
+    def _build_paths(self, ignore_methods=['head', 'options'], ignore_ctypes=[],
+                     default_tags=None, **kwargs):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
 
-        :param ignore:
-            List of service methods that should NOT be presented on the documentation.
+        :param ignore_methods:
+            List of service methods that should NOT be presented on the
+            documentation. You may use this to remove methods that are not
+            essential on the API documentation. Default ignores HEAD ans OPTIONS.
+        :param ignore_ctypes:
+            List of service content-types that should NOT be presented on
+            the documentation. You may use this when a Cornice service definition
+            has multiple view definitions for a same method, which is not supported
+            on Swagger.
         :param default_tags:
             Provide a default list of tags or a callable that takes a cornice
             service and returns a list of Swagger tags to be used if a tag is
@@ -104,10 +111,25 @@ class CorniceSwagger(object):
             path = self._extract_path_from_service(service, **kwargs)
 
             for method_name, view, args in service.definitions:
-                if method_name.lower() in ignore:
+
+                if method_name.lower() in ignore_methods:
                     continue
 
                 op = self._extract_operation_from_view(view, args, **kwargs)
+
+                if ignore_ctypes and 'consumes' in op:
+                    if set(op.get('consumes')).issubset(set(ignore_ctypes)):
+                        continue
+
+                # XXX: Swagger doesn't support different schemas for for a same method
+                # with different ctypes as cornice. If this happens, you may ignore one
+                # content-type from the documentation otherwise we raise an Exception
+                # Related to https://github.com/OAI/OpenAPI-Specification/issues/146
+                previous_definition = path.get(method_name.lower())
+                if previous_definition:
+                    raise CorniceSwaggerException(("Swagger doesn't support multiple "
+                                                   "views for a same method. You may "
+                                                   "ignore one."))
 
                 # If tag not defined and a default tag is provided
                 if 'tags' not in op and default_tags:
@@ -124,23 +146,6 @@ class CorniceSwagger(object):
                     if tag not in [t['name'] for t in tags]:
                         root_tag = {'name': tag}
                         tags.append(root_tag)
-
-                # If method is defined for more than one ctype, get previous ones
-                ctypes = path.get(method_name.lower(), {}).get('consumes', [])
-                if 'consumes' in op and ctypes:
-                    for ctype in ctypes:
-                        if ctype not in op['consumes']:
-                            op['consumes'].append(ctype)
-
-                # XXX: Swagger doesn't support different schemas for for a same
-                # method with different ctypes as cornice, so this may overwrite the
-                # previously defined schemas. We try to merge the existing schemas
-                # with the previouly defined ones.
-                parameters = op.get('parameters', [])
-                def_params = path.get(method_name.lower(), {}).get('parameters', [])
-
-                if parameters or def_params:
-                    op['parameters'] = def_params + parameters
 
                 path[method_name.lower()] = op
             paths[service.path] = path
