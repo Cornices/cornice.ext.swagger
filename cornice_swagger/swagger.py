@@ -5,7 +5,7 @@ from functools import partial
 import six
 
 import colander
-from cornice.validators import colander_validator, colander_body_validator
+from cornice.validators import colander_body_validator
 
 import cornice_swagger.util
 from cornice_swagger.converters import convert_schema, convert_parameter

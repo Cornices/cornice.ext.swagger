@@ -6,7 +6,12 @@ from cornice.validators import colander_validator, colander_body_validator
 
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
-from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema
+from .support import (BodySchema,
+                      PathSchema,
+                      QuerySchema,
+                      HeaderSchema,
+                      DeclarativeSchema,
+                      AnotherDeclarativeSchema)
 
 
 class SchemaParamConversionTest(unittest.TestCase):
@@ -144,20 +149,10 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertDictEqual(params[0], expected)
 
     def test_declarative_schema_handling(self):
-        class RequestSchema(colander.MappingSchema):
-            @colander.instantiate(description='my body')
-            class body(colander.MappingSchema):
-                id = colander.SchemaNode(colander.String())
-
-        class AnotherRequestSchema(colander.MappingSchema):
-            @colander.instantiate(description='my another body')
-            class body(colander.MappingSchema):
-                timestamp = colander.SchemaNode(colander.Int())
-
         validators = [colander_validator]
         handler = ParameterHandler(DefinitionHandler(ref=-1))
-        params = handler.from_schema(RequestSchema(), validators)
-        another_params = handler.from_schema(AnotherRequestSchema(), validators)
+        params = handler.from_schema(DeclarativeSchema(), validators)
+        another_params = handler.from_schema(AnotherDeclarativeSchema(), validators)
 
         self.assertNotEqual(params[0]['schema'], another_params[0]['schema'])
 
@@ -210,12 +205,6 @@ class RefParamTest(unittest.TestCase):
         self.assertDictEqual(self.handler.parameter_registry, dict(BodySchema=expected))
 
     def test_ref_from_declarative_body_validator_schema(self):
-        class DeclarativeSchema(colander.MappingSchema):
-            @colander.instantiate()
-            class body(colander.MappingSchema):
-                id = colander.SchemaNode(colander.String())
-                timestamp = colander.SchemaNode(colander.Int())
-
         validators = [colander_body_validator]
         params = self.handler.from_schema(DeclarativeSchema()['body'], validators)
 

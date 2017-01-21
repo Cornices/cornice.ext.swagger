@@ -42,3 +42,15 @@ response_schemas = {
     '200': ResponseSchema(description='Return ice cream'),
     '404': ResponseSchema(description='Return sadness')
 }
+
+
+class DeclarativeSchema(colander.MappingSchema):
+    @colander.instantiate(description='my body')
+    class body(colander.MappingSchema):
+        id = colander.SchemaNode(colander.String())
+
+
+class AnotherDeclarativeSchema(colander.MappingSchema):
+    @colander.instantiate(description='my another body')
+    class body(colander.MappingSchema):
+        timestamp = colander.SchemaNode(colander.Int())
