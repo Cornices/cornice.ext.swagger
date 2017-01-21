@@ -23,15 +23,10 @@ class ParameterConverter(object):
             converted['default'] = schema_node.default
 
         schema = definition_handler(schema_node)
-
-        if '$ref' in schema or schema.get('type') == 'object':
-            converted['schema'] = schema
-        else:
-            converted['type'] = schema['type']
+        converted['type'] = schema['type']
 
         if schema.get('type') == 'array':
-            converted['items'] = {}
-            converted['items']['type'] = schema['items']['type']
+            converted['items'] = {'type': schema['items']['type']}
 
         return converted
 
@@ -52,9 +47,18 @@ class BodyParameterConverter(ParameterConverter):
     _in = 'body'
 
     def convert(self, schema_node, definition_handler):
+
+        converted = {
+            'name': schema_node.name,
+            'in': self._in,
+            'required': schema_node.required
+        }
+        if schema_node.description:
+            converted['description'] = schema_node.description
+
         schema_node.title = schema_node.__class__.__name__
-        converted = super(BodyParameterConverter, self).convert(schema_node,
-                                                                definition_handler)
+        schema = definition_handler(schema_node)
+        converted['schema'] = schema
 
         return converted
 
