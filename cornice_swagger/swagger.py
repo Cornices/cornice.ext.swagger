@@ -356,8 +356,8 @@ class ParameterHandler(object):
             location = param_schema.name
             if location is 'body':
                 name = param_schema.__class__.__name__
-                if name == location:
-                    name = schema_node.__class__.__name__ + location.title()
+                if name == 'body':
+                    name = schema_node.__class__.__name__ + 'Body'
                 param = convert_parameter(location,
                                           param_schema,
                                           partial(self.definitions.from_schema, base_name=name))
@@ -458,7 +458,11 @@ class ResponseHandler(object):
             for field_schema in response_schema.children:
                 location = field_schema.name
                 if location == 'body':
-                    field_schema.title = field_schema.__class__.__name__
+                    title = field_schema.__class__.__name__
+                    if title == 'body':
+                        title = response_schema.__class__.__name__ + 'Body'
+                    field_schema.title = title
+
                     response['schema'] = self.definitions.from_schema(field_schema)
                 elif location == 'header':
                     headers = convert_schema(field_schema)

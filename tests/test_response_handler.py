@@ -1,5 +1,7 @@
 import unittest
 
+import colander
+
 from cornice_swagger.swagger import ResponseHandler, CorniceSwaggerException
 from cornice_swagger.converters import convert_schema
 from .support import BodySchema, HeaderSchema, ResponseSchema, response_schemas
@@ -55,3 +57,27 @@ class RefResponseTest(unittest.TestCase):
                              convert_schema(BodySchema(title='BodySchema')))
         self.assertDictEqual(ref['headers'],
                              convert_schema(HeaderSchema())['properties'])
+
+    def test_declarative_response_schemas(self):
+        class ResponseSchema(colander.MappingSchema):
+            @colander.instantiate()
+            class body(colander.MappingSchema):
+                timestamp = colander.SchemaNode(colander.Int())
+
+        class AnotherResponseSchema(colander.MappingSchema):
+            @colander.instantiate()
+            class body(colander.MappingSchema):
+                timestamp = colander.SchemaNode(colander.Int())
+
+        self.handler.from_schema_mapping({
+            '200': ResponseSchema(description='response schema')
+        })
+
+        self.handler.from_schema_mapping({
+            '200': AnotherResponseSchema(description='response schema')
+        })
+
+        ref = self.handler.response_registry['ResponseSchema']
+        another_ref = self.handler.response_registry['AnotherResponseSchema']
+
+        self.assertNotEqual(ref['schema']['title'], another_ref['schema']['title'])
