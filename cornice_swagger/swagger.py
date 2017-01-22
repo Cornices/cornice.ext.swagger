@@ -133,8 +133,9 @@ class CorniceSwagger(object):
                 # If tag not defined and a default tag is provided
                 if 'tags' not in op and default_tags:
                     if callable(default_tags):
-                        default_tags = default_tags(service)
-                    op['tags'] = default_tags
+                        op['tags'] = default_tags(service)
+                    else:
+                        op['tags'] = default_tags
 
                 # Check if tags was correctly defined as a list
                 if not isinstance(op.get('tags', []), list):
