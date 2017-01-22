@@ -6,7 +6,11 @@ import colander
 import six
 
 import cornice_swagger.util
+from cornice_swagger.converters import TypeConversionDispatcher
 from cornice_swagger.converters import convert_schema, convert_parameter
+
+
+_default = object()
 
 
 class CorniceSwaggerException(Exception):
@@ -16,7 +20,8 @@ class CorniceSwaggerException(Exception):
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
 
-    def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False):
+    def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False,
+                 typ_dispatcher=_default):
         """
         :param services:
             List of cornice services to document. You may use
@@ -36,8 +41,10 @@ class CorniceSwagger(object):
         """
 
         self.services = services
-
-        self.definitions = DefinitionHandler(ref=def_ref_depth)
+        def_handler_args = {'ref': def_ref_depth}
+        if typ_dispatcher is not _default:
+            def_handler_args['typ_dispatcher'] = typ_dispatcher
+        self.definitions = DefinitionHandler(**def_handler_args)
         self.parameters = ParameterHandler(self.definitions,
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
@@ -276,7 +283,7 @@ class DefinitionHandler(object):
 
     json_pointer = '#/definitions/'
 
-    def __init__(self, ref=0):
+    def __init__(self, ref=0, typ_dispatcher=TypeConversionDispatcher()):
         """
         :param ref:
             The depth that should be used by self.ref when calling self.from_schema.
@@ -284,6 +291,10 @@ class DefinitionHandler(object):
 
         self.definition_registry = {}
         self.ref = ref
+        self.typ_dispatcher = typ_dispatcher
+
+    def convert_schema(self, schema_node):
+        return convert_schema(schema_node, self.typ_dispatcher)
 
     def from_schema(self, schema_node, base_name=None):
         """
@@ -297,7 +308,7 @@ class DefinitionHandler(object):
         :rtype: dict
             Swagger schema.
         """
-        return self._ref_recursive(convert_schema(schema_node), self.ref, base_name)
+        return self._ref_recursive(self.convert_schema(schema_node), self.ref, base_name)
 
     def _ref_recursive(self, schema, depth, base_name=None):
         """
@@ -481,7 +492,7 @@ class ResponseHandler(object):
 
                     response['schema'] = self.definitions.from_schema(field_schema)
                 elif location == 'header':
-                    headers = convert_schema(field_schema)
+                    headers = self.definitions.convert_schema(field_schema)
                     if 'properties' in headers:
                         response['headers'] = headers['properties']
 

@@ -7,11 +7,8 @@ from cornice_swagger.converters.schema import TypeConversionDispatcher
 from cornice_swagger.converters.parameters import ParameterConversionDispatcher
 
 
-def convert_schema(schema_node):
-
-    dispatcher = TypeConversionDispatcher()
+def convert_schema(schema_node, dispatcher=TypeConversionDispatcher()):
     converted = dispatcher(schema_node)
-
     return converted
 
 
