@@ -117,9 +117,8 @@ class CorniceSwagger(object):
 
                 op = self._extract_operation_from_view(view, args, **kwargs)
 
-                if ignore_ctypes and 'consumes' in op:
-                    if set(op.get('consumes')).issubset(set(ignore_ctypes)):
-                        continue
+                if any(ctype in op.get('consumes', []) for ctype in ignore_ctypes):
+                    continue
 
                 # XXX: Swagger doesn't support different schemas for for a same method
                 # with different ctypes as cornice. If this happens, you may ignore one
