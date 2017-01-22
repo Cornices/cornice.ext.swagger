@@ -137,7 +137,7 @@ class TestExtractContentTypes(unittest.TestCase):
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
                           ['application/json', 'text/xml'])
 
-    def test_multiple_views_with_different_ctypes(self):
+    def test_ignore_multiple_views_by_ctype(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
 
@@ -161,9 +161,36 @@ class TestExtractContentTypes(unittest.TestCase):
         )
 
         swagger = CorniceSwagger([service])
-        spec = swagger('IceCreamAPI', '4.2')
-        self.assertEquals(sorted(spec['paths']['/icecream/{flavour}']['put']['consumes']),
-                          ['application/json', 'text/xml'])
+        spec = swagger('IceCreamAPI', '4.2', ignore_ctypes=['text/xml'])
+        self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
+                          ['application/json'])
+
+    def test_multiple_views_with_different_ctypes_raises_exception(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            def view_put(self, request):
+                return "red"
+
+        service.add_view(
+            "put",
+            IceCream.view_put,
+            validators=(colander_validator, ),
+            schema=PutRequestSchema(),
+            content_type='application/json',
+        )
+        service.add_view(
+            "put",
+            IceCream.view_put,
+            validators=(colander_validator, ),
+            schema=PutRequestSchema(),
+            content_type='text/xml',
+        )
+
+        swagger = CorniceSwagger([service])
+        self.assertRaises(CorniceSwaggerException,
+                          swagger, 'IceCreamAPI', '4.2')
 
 
 class TestExtractTags(unittest.TestCase):
