@@ -280,6 +280,20 @@ class TestExtractTags(unittest.TestCase):
         tags = spec['paths']['/icecream/{flavour}']['get']['tags']
         self.assertEquals(tags, ['cold'])
 
+    def test_tags_sorting(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.get(tags=['cold', 'foo'])
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        spec = swagger('IceCreamAPI', '4.2', tags_order=['foo'])
+        validate(spec)
+        self.assertListEqual([{'name': 'foo'}, {'name': 'cold'}], spec['tags'])
+
     def test_invalid_tag_raises_exception(self):
 
         service = Service("IceCream", "/icecream/{flavour}")

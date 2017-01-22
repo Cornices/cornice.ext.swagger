@@ -1,6 +1,7 @@
 """Cornice Swagger 2.0 documentor"""
 import re
 from functools import partial
+from operator import itemgetter
 
 import colander
 import six
@@ -45,7 +46,7 @@ class CorniceSwagger(object):
         self.schema_transformers = [cornice_swagger.util.body_schema_transformer]
 
     def __call__(self, title, version, base_path='/', info={}, swagger={},
-                 schema_transformers=[], **kwargs):
+                 schema_transformers=[], tags_order=[], **kwargs):
         """
         Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
@@ -70,7 +71,7 @@ class CorniceSwagger(object):
         if paths:
             swagger['paths'] = paths
         if tags:
-            swagger['tags'] = tags
+            swagger['tags'] = self._sort_tags(tags, tags_order)
 
         definitions = self.definitions.definition_registry
         if definitions:
@@ -269,6 +270,18 @@ class CorniceSwagger(object):
             op['tags'] = args['tags']
 
         return op
+
+    @staticmethod
+    def _sort_tags(tags, tags_order):
+        def get_idx(tag):
+            try:
+                idx = tags_order.index(tag['name'])
+            except ValueError:
+                idx = len(tags_order)
+            return idx
+
+        sortable = ((get_idx(tag), tag) for tag in tags)
+        return [tag for idx, tag in sorted(sortable, key=itemgetter(0))]
 
 
 class DefinitionHandler(object):
