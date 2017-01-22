@@ -54,3 +54,11 @@ class AnotherDeclarativeSchema(colander.MappingSchema):
     @colander.instantiate(description='my another body')
     class body(colander.MappingSchema):
         timestamp = colander.SchemaNode(colander.Int())
+
+
+class MyType(colander.String):
+    pass
+
+
+class CustomTypeQuerySchema(colander.MappingSchema):
+    foo = colander.SchemaNode(MyType(), missing=colander.drop)

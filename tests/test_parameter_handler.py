@@ -4,11 +4,13 @@ import colander
 
 from cornice.validators import colander_body_validator
 
+from cornice_swagger.converters import TypeConversionDispatcher
+from cornice_swagger.converters.schema import StringTypeConverter
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
 from cornice_swagger.util import body_schema_transformer
 from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema,\
-    DeclarativeSchema, AnotherDeclarativeSchema
+    DeclarativeSchema, AnotherDeclarativeSchema, CustomTypeQuerySchema, MyType
 
 
 class SchemaParamConversionTest(unittest.TestCase):
@@ -46,6 +48,31 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         node = RequestSchema()
         params = self.handler.from_schema(node)
+        self.assertEquals(len(params), 1)
+
+        expected = {
+            'name': 'foo',
+            'in': 'query',
+            'type': 'string',
+            'required': False
+        }
+        self.assertDictEqual(params[0], expected)
+
+    def test_covert_query_with_custom_colander_type(self):
+
+        class MyTypeDispatcher(TypeConversionDispatcher):
+            converters = {
+                MyType: StringTypeConverter
+            }
+
+        typ_dispatcher = MyTypeDispatcher()
+        definition_handler = DefinitionHandler(typ_dispatcher=typ_dispatcher)
+
+        class RequestSchema(colander.MappingSchema):
+            querystring = CustomTypeQuerySchema()
+
+        node = RequestSchema()
+        params = ParameterHandler(definition_handler).from_schema(node)
         self.assertEquals(len(params), 1)
 
         expected = {
