@@ -1,9 +1,9 @@
 """Cornice Swagger 2.0 documentor"""
 import re
-import six
+from functools import partial
 
 import colander
-from cornice.validators import colander_validator, colander_body_validator
+import six
 
 import cornice_swagger.util
 from cornice_swagger.converters import convert_schema, convert_parameter
@@ -42,8 +42,10 @@ class CorniceSwagger(object):
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
                                          ref=resp_ref)
+        self.schema_transformers = [cornice_swagger.util.body_schema_transformer]
 
-    def __call__(self, title, version, base_path='/', info={}, swagger={}, **kwargs):
+    def __call__(self, title, version, base_path='/', info={}, swagger={},
+                 schema_transformers=[], **kwargs):
         """
         Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
@@ -62,6 +64,7 @@ class CorniceSwagger(object):
 
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
+        self.schema_transformers.extend(schema_transformers)
 
         paths, tags = self._build_paths(**kwargs)
         if paths:
@@ -172,6 +175,26 @@ class CorniceSwagger(object):
 
         return path
 
+    def _extract_transform_schema(self, args):
+        """
+        Extract schema from view args and transform it using
+        the pipeline of schema transformers
+
+        :param args:
+            Arguments from the view decorator.
+
+        :rtype: colander.MappingSchema()
+            View schema cloned and transformed
+        """
+
+        schema = args.get('schema', colander.MappingSchema())
+        if not isinstance(schema, colander.Schema):
+            schema = schema()
+        schema = schema.clone()
+        for transformer in self.schema_transformers:
+            schema = transformer(schema, args)
+        return schema
+
     def _extract_operation_from_view(self, view, args={},
                                      summary_docstrings=False, **kwargs):
         """
@@ -220,11 +243,10 @@ class CorniceSwagger(object):
             op['consumes'] = list(consumes)
 
         # Get parameters from view schema
-        if 'schema' in args:
-            validators = args.get('validators')
-            parameters = self.parameters.from_schema(args['schema'], validators)
-            if parameters:
-                op['parameters'] = parameters
+        schema = self._extract_transform_schema(args)
+        parameters = self.parameters.from_schema(schema)
+        if parameters:
+            op['parameters'] = parameters
 
         # Get summary from docstring
         if isinstance(view, six.string_types):
@@ -332,7 +354,7 @@ class ParameterHandler(object):
         self.definitions = definition_handler
         self.ref = ref
 
-    def from_schema(self, schema_node, validators=[]):
+    def from_schema(self, schema_node):
         """
         Creates a list of Swagger params from a colander request schema.
 
@@ -346,38 +368,28 @@ class ParameterHandler(object):
 
         params = []
 
-        if not isinstance(schema_node, colander.Schema):
-            schema_node = schema_node()
+        for param_schema in schema_node.children:
+            location = param_schema.name
+            if location is 'body':
+                name = param_schema.__class__.__name__
+                if name == 'body':
+                    name = schema_node.__class__.__name__ + 'Body'
+                param = convert_parameter(location,
+                                          param_schema,
+                                          partial(self.definitions.from_schema, base_name=name))
+                param['name'] = name
+                if self.ref:
+                    param = self._ref(param)
+                params.append(param)
 
-        if colander_validator in validators:
-            for param_schema in schema_node.children:
-                location = param_schema.name
-                if location is 'body':
-                    name = param_schema.__class__.__name__
+            elif location in ('path', 'headers', 'querystring'):
+                for node_schema in param_schema.children:
                     param = convert_parameter(location,
-                                              param_schema,
+                                              node_schema,
                                               self.definitions.from_schema)
-                    param['name'] = name
                     if self.ref:
                         param = self._ref(param)
                     params.append(param)
-
-                elif location in ('path', 'headers', 'querystring'):
-                    for node_schema in param_schema.children:
-                        param = convert_parameter(location,
-                                                  node_schema,
-                                                  self.definitions.from_schema)
-                        if self.ref:
-                            param = self._ref(param)
-                        params.append(param)
-
-        elif colander_body_validator in validators:
-            name = schema_node.__class__.__name__
-            param = convert_parameter('body', schema_node)
-            param['name'] = name
-            if self.ref:
-                param = self._ref(param, schema_node.__class__.__name__)
-            params.append(param)
 
         return params
 
@@ -462,7 +474,11 @@ class ResponseHandler(object):
             for field_schema in response_schema.children:
                 location = field_schema.name
                 if location == 'body':
-                    field_schema.title = field_schema.__class__.__name__
+                    title = field_schema.__class__.__name__
+                    if title == 'body':
+                        title = response_schema.__class__.__name__ + 'Body'
+                    field_schema.title = title
+
                     response['schema'] = self.definitions.from_schema(field_schema)
                 elif location == 'header':
                     headers = convert_schema(field_schema)

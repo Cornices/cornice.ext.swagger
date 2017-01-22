@@ -2,7 +2,8 @@ import unittest
 
 from cornice_swagger.swagger import ResponseHandler, CorniceSwaggerException
 from cornice_swagger.converters import convert_schema
-from .support import BodySchema, HeaderSchema, ResponseSchema, response_schemas
+from .support import BodySchema, HeaderSchema, ResponseSchema, response_schemas,\
+    DeclarativeSchema, AnotherDeclarativeSchema
 
 
 class SchemaResponseConversionTest(unittest.TestCase):
@@ -55,3 +56,18 @@ class RefResponseTest(unittest.TestCase):
                              convert_schema(BodySchema(title='BodySchema')))
         self.assertDictEqual(ref['headers'],
                              convert_schema(HeaderSchema())['properties'])
+
+    def test_declarative_response_schemas(self):
+
+        self.handler.from_schema_mapping({
+            '200': DeclarativeSchema(description='response schema')
+        })
+
+        self.handler.from_schema_mapping({
+            '200': AnotherDeclarativeSchema(description='response schema')
+        })
+
+        ref = self.handler.response_registry['DeclarativeSchema']
+        another_ref = self.handler.response_registry['AnotherDeclarativeSchema']
+
+        self.assertNotEqual(ref['schema']['title'], another_ref['schema']['title'])
