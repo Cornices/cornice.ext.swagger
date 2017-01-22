@@ -2,16 +2,13 @@ import unittest
 
 import colander
 
-from cornice.validators import colander_validator, colander_body_validator
+from cornice.validators import colander_body_validator
 
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
-from .support import (BodySchema,
-                      PathSchema,
-                      QuerySchema,
-                      HeaderSchema,
-                      DeclarativeSchema,
-                      AnotherDeclarativeSchema)
+from cornice_swagger.util import body_schema_transformer
+from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema,\
+    DeclarativeSchema, AnotherDeclarativeSchema
 
 
 class SchemaParamConversionTest(unittest.TestCase):
@@ -24,29 +21,13 @@ class SchemaParamConversionTest(unittest.TestCase):
         params = self.handler.from_schema(node)
         self.assertEquals(params, [])
 
-    def test_covert_with_body_validator_schema(self):
-        node = BodySchema()
-        validators = [colander_body_validator]
-        params = self.handler.from_schema(node, validators)
-        self.assertEquals(len(params), 1)
-
-        expected = {
-            'name': 'BodySchema',
-            'in': 'body',
-            'required': True,
-            'schema': convert_schema(BodySchema(title='BodySchema'))
-        }
-
-        self.assertDictEqual(params[0], expected)
-
     def test_covert_body_with_request_validator_schema(self):
 
         class RequestSchema(colander.MappingSchema):
             body = BodySchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
         self.assertEquals(len(params), 1)
 
         expected = {
@@ -64,8 +45,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             querystring = QuerySchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
         self.assertEquals(len(params), 1)
 
         expected = {
@@ -82,8 +62,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             headers = HeaderSchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
         self.assertEquals(len(params), 1)
 
         expected = {
@@ -100,8 +79,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             path = PathSchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
         self.assertEquals(len(params), 1)
 
         expected = {
@@ -122,8 +100,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             headers = HeaderSchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
 
         names = [param['name'] for param in params]
         expected = ['BodySchema', 'foo', 'bar', 'meh']
@@ -134,8 +111,7 @@ class SchemaParamConversionTest(unittest.TestCase):
             body = BodySchema(description='my body')
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
 
         expected = {
             'name': 'BodySchema',
@@ -149,10 +125,9 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertDictEqual(params[0], expected)
 
     def test_declarative_schema_handling(self):
-        validators = [colander_validator]
         handler = ParameterHandler(DefinitionHandler(ref=-1))
-        params = handler.from_schema(DeclarativeSchema(), validators)
-        another_params = handler.from_schema(AnotherDeclarativeSchema(), validators)
+        params = handler.from_schema(DeclarativeSchema())
+        another_params = handler.from_schema(AnotherDeclarativeSchema())
 
         self.assertNotEqual(params[0]['schema'], another_params[0]['schema'])
 
@@ -192,7 +167,8 @@ class RefParamTest(unittest.TestCase):
     def test_ref_from_body_validator_schema(self):
         node = BodySchema()
         validators = [colander_body_validator]
-        params = self.handler.from_schema(node, validators)
+        node = body_schema_transformer(node, {'validators': validators})
+        params = self.handler.from_schema(node)
 
         expected = {
             'name': 'BodySchema',
@@ -204,11 +180,9 @@ class RefParamTest(unittest.TestCase):
         self.assertEquals(params, [{'$ref': '#/parameters/BodySchema'}])
         self.assertDictEqual(self.handler.parameter_registry, dict(BodySchema=expected))
 
-    def test_ref_from_declarative_body_validator_schema(self):
-        validators = [colander_body_validator]
-        params = self.handler.from_schema(DeclarativeSchema()['body'], validators)
-
-        self.assertEquals([{'$ref': '#/parameters/SchemaBody'}], params)
+    def test_ref_from_declarative_validator_schema(self):
+        params = self.handler.from_schema(DeclarativeSchema())
+        self.assertEquals([{'$ref': '#/parameters/DeclarativeSchemaBody'}], params)
 
     def test_ref_from_request_validator_schema(self):
 
@@ -216,8 +190,7 @@ class RefParamTest(unittest.TestCase):
             querystring = QuerySchema()
 
         node = RequestSchema()
-        validators = [colander_validator]
-        params = self.handler.from_schema(node, validators)
+        params = self.handler.from_schema(node)
 
         expected = {
             'name': 'foo',

@@ -1,11 +1,11 @@
 import unittest
 
-from cornice.validators import colander_validator
+from cornice.validators import colander_validator, colander_body_validator
 from cornice.service import Service
 from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
-from .support import GetRequestSchema, PutRequestSchema, response_schemas
+from .support import GetRequestSchema, PutRequestSchema, response_schemas, BodySchema, HeaderSchema
 
 
 class TestCorniceSwaggerGenerator(unittest.TestCase):
@@ -164,6 +164,41 @@ class TestExtractContentTypes(unittest.TestCase):
         spec = swagger('IceCreamAPI', '4.2')
         self.assertEquals(sorted(spec['paths']['/icecream/{flavour}']['put']['consumes']),
                           ['application/json', 'text/xml'])
+
+
+class TestExtractTransformSchema(unittest.TestCase):
+    def setUp(self):
+        self.service = Service("IceCream", "/icecream/{flavour}")
+
+    def test_colander_body_validator_to_full_schema(self):
+        swagger = CorniceSwagger([self.service])
+        service_args = dict(
+            schema=BodySchema(),
+            validators=(colander_body_validator,)
+        )
+        full_schema = swagger._extract_transform_schema(service_args)
+        # ensure schema is cloned
+        self.assertNotEqual(service_args['schema'], full_schema['body'])
+        # ensure schema is transformed
+        self.assertEqual(service_args['schema'].typ, full_schema['body'].typ)
+        self.assertEqual(len(service_args['schema'].children), len(full_schema['body'].children))
+
+    def test_schema_transform(self):
+        swagger = CorniceSwagger([self.service])
+        header_schema = HeaderSchema()
+        service_args = dict(
+            schema=GetRequestSchema()
+        )
+
+        def add_headers_transform(schema, args):
+            schema['header'] = header_schema
+            return schema
+
+        swagger.schema_transformers.append(add_headers_transform)
+        full_schema = swagger._extract_transform_schema(service_args)
+        self.assertEqual(header_schema, full_schema['header'])
+        # ensure service schema is left untouched
+        self.assertNotIn('header', service_args['schema'])
 
 
 class TestExtractTags(unittest.TestCase):

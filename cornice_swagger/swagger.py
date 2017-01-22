@@ -2,10 +2,8 @@
 import re
 from functools import partial
 
-import six
-
 import colander
-from cornice.validators import colander_body_validator
+import six
 
 import cornice_swagger.util
 from cornice_swagger.converters import convert_schema, convert_parameter
@@ -44,8 +42,10 @@ class CorniceSwagger(object):
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
                                          ref=resp_ref)
+        self.schema_transformers = [cornice_swagger.util.body_schema_transformer]
 
-    def __call__(self, title, version, base_path='/', info={}, swagger={}, **kwargs):
+    def __call__(self, title, version, base_path='/', info={}, swagger={},
+                 schema_transformers=[], **kwargs):
         """
         Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
@@ -64,6 +64,7 @@ class CorniceSwagger(object):
 
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
+        self.schema_transformers.extend(schema_transformers)
 
         paths, tags = self._build_paths(**kwargs)
         if paths:
@@ -169,6 +170,26 @@ class CorniceSwagger(object):
 
         return path
 
+    def _extract_transform_schema(self, args):
+        """
+        Extract schema from view args and transform it using
+        the pipeline of schema transformers
+
+        :param args:
+            Arguments from the view decorator.
+
+        :rtype: colander.MappingSchema()
+            View schema cloned and transformed
+        """
+
+        schema = args.get('schema', colander.MappingSchema())
+        if not isinstance(schema, colander.Schema):
+            schema = schema()
+        schema = schema.clone()
+        for transformer in self.schema_transformers:
+            schema = transformer(schema, args)
+        return schema
+
     def _extract_operation_from_view(self, view, args={},
                                      summary_docstrings=False, **kwargs):
         """
@@ -217,10 +238,8 @@ class CorniceSwagger(object):
             op['consumes'] = list(consumes)
 
         # Get parameters from view schema
-        schema = args.get('schema', colander.MappingSchema())
-        validators = args.get('validators', [])
-
-        parameters = self.parameters.from_schema(schema, validators)
+        schema = self._extract_transform_schema(args)
+        parameters = self.parameters.from_schema(schema)
         if parameters:
             op['parameters'] = parameters
 
@@ -330,7 +349,7 @@ class ParameterHandler(object):
         self.definitions = definition_handler
         self.ref = ref
 
-    def from_schema(self, schema_node, validators=[]):
+    def from_schema(self, schema_node):
         """
         Creates a list of Swagger params from a colander request schema.
 
@@ -343,14 +362,6 @@ class ParameterHandler(object):
         """
 
         params = []
-
-        if not isinstance(schema_node, colander.Schema):
-            schema_node = schema_node()
-
-        if colander_body_validator in validators:
-            body_schema = schema_node
-            schema_node = colander.MappingSchema()
-            schema_node['body'] = body_schema
 
         for param_schema in schema_node.children:
             location = param_schema.name
