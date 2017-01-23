@@ -80,8 +80,8 @@ class CorniceSwagger(object):
         # Update the provided tags with the extracted ones preserving order
         if tags:
             swagger.setdefault('tags', [])
+            tag_names = {t['name'] for t in swagger['tags']}
             for tag in tags:
-                tag_names = [t['name'] for t in swagger['tags']]
                 if tag['name'] not in tag_names:
                     swagger['tags'].append(tag)
 
