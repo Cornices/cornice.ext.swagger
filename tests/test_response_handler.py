@@ -26,7 +26,7 @@ class SchemaResponseConversionTest(unittest.TestCase):
         self.assertDictEqual(responses['200']['schema'],
                              convert_schema(BodySchema(title='BodySchema')))
         self.assertDictEqual(responses['200']['headers'],
-                             convert_schema(HeaderSchema())['properties'])
+                             {'bar': {'type': 'string'}})
 
     def test_raise_exception_without_description(self):
 
@@ -55,7 +55,7 @@ class RefResponseTest(unittest.TestCase):
         self.assertDictEqual(ref['schema'],
                              convert_schema(BodySchema(title='BodySchema')))
         self.assertDictEqual(ref['headers'],
-                             convert_schema(HeaderSchema())['properties'])
+                             {'bar': {'type': 'string'}})
 
     def test_declarative_response_schemas(self):
 
