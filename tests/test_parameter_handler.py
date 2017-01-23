@@ -7,8 +7,8 @@ from cornice.validators import colander_body_validator
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
 from cornice_swagger.util import body_schema_transformer
-from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema,\
-    DeclarativeSchema, AnotherDeclarativeSchema
+from .support import (BodySchema, PathSchema, QuerySchema, HeaderSchema,
+                      DeclarativeSchema, AnotherDeclarativeSchema)
 
 
 class SchemaParamConversionTest(unittest.TestCase):
