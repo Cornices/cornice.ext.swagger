@@ -35,6 +35,13 @@ class CorniceSwagger(object):
             Defines if swagger responses should be put inline on the operation
             or on the responses section and referenced by JSON pointers.
             Default is inline.
+        :param custom_type_converters:
+            A dictionary mapping user defined cornice types to callables
+            implementing cornice_swagger.converters.schema.TypeConverter iface
+        :param default_type_converter:
+            Default TypeConverter to use when there is no type registered for a
+            cornice type. If it's not given and the type is not registered,
+            cornice_swagger.converters.exceptions.NoSuchConverter is raised
         """
 
         self.services = services
