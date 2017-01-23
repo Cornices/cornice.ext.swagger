@@ -17,3 +17,4 @@ class CorniceSwaggerPredicate(object):
 def includeme(config):
     config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
+    config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
