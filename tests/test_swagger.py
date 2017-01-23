@@ -71,7 +71,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
     def test_swagger_field_updates_extracted_paths(self):
         swagger = CorniceSwagger([self.service])
         raw_swagger = {
-            'definitions': {'OtherDef':{'additionalProperties': {}}}
+            'definitions': {'OtherDef': {'additionalProperties': {}}}
         }
         spec = swagger('IceCreamAPI', '4.2', swagger=raw_swagger)
         validate(self.spec)
@@ -86,6 +86,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         validate(self.spec)
         expected = {'name': 'BodySchema', 'required': False}
         self.assertDictContainsSubset(expected, spec['parameters']['BodySchema'])
+
 
 class TestExtractContentTypes(unittest.TestCase):
 
