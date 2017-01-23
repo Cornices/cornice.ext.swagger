@@ -131,6 +131,19 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         self.assertNotEqual(params[0]['schema'], another_params[0]['schema'])
 
+    def test_cornice_location_synonyms(self):
+
+        class RequestSchema(colander.MappingSchema):
+            header = HeaderSchema()
+            GET = QuerySchema()
+
+        node = RequestSchema()
+        params = self.handler.from_schema(node)
+
+        names = [param['name'] for param in params]
+        expected = ['foo', 'bar']
+        self.assertEqual(sorted(names), sorted(expected))
+
 
 class PathParamConversionTest(unittest.TestCase):
 

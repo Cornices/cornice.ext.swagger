@@ -415,7 +415,7 @@ class ParameterHandler(object):
                     param = self._ref(param)
                 params.append(param)
 
-            elif location in ('path', 'headers', 'querystring'):
+            elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
                 for node_schema in param_schema.children:
                     param = convert_parameter(location,
                                               node_schema,
@@ -514,7 +514,7 @@ class ResponseHandler(object):
                     field_schema.title = title
                     response['schema'] = self.definitions.from_schema(field_schema)
 
-                elif location == 'header':
+                elif location in ('header', 'headers'):
                     header_schema = convert_schema(field_schema)
                     headers = header_schema.get('properties')
                     if headers:
