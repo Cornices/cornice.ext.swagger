@@ -1,8 +1,9 @@
 import unittest
+import colander
 
 from cornice_swagger.swagger import ResponseHandler, CorniceSwaggerException
 from cornice_swagger.converters import convert_schema
-from .support import (BodySchema, ResponseSchema, response_schemas,
+from .support import (BodySchema, HeaderSchema, ResponseSchema, response_schemas,
                       DeclarativeSchema, AnotherDeclarativeSchema)
 
 
@@ -25,6 +26,17 @@ class SchemaResponseConversionTest(unittest.TestCase):
         responses = self.handler.from_schema_mapping(response_schemas)
         self.assertDictEqual(responses['200']['schema'],
                              convert_schema(BodySchema(title='BodySchema')))
+        self.assertDictEqual(responses['200']['headers'],
+                             {'bar': {'type': 'string'}})
+
+    def test_cornice_location_synonyms(self):
+
+        class ReponseSchema(colander.MappingSchema):
+           header = HeaderSchema()
+
+        responses_schemas = {'200': ReponseSchema('Return gelatto')}
+        responses = self.handler.from_schema_mapping(response_schemas)
+
         self.assertDictEqual(responses['200']['headers'],
                              {'bar': {'type': 'string'}})
 

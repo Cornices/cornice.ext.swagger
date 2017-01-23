@@ -514,7 +514,7 @@ class ResponseHandler(object):
                     field_schema.title = title
                     response['schema'] = self.definitions.from_schema(field_schema)
 
-                elif location == 'header':
+                elif location in ('header', 'headers'):
                     header_schema = convert_schema(field_schema)
                     headers = header_schema.get('properties')
                     if headers:
