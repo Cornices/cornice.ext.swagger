@@ -8,7 +8,7 @@ from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
 from .support import GetRequestSchema, PutRequestSchema, response_schemas, BodySchema, HeaderSchema
 
 
-class TestCorniceSwaggerGenerator(unittest.TestCase):
+class CorniceSwaggerGeneratorTest(unittest.TestCase):
 
     def setUp(self):
         service = Service("IceCream", "/icecream/{flavour}")
@@ -66,7 +66,7 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         self.assertIn('responses', spec)
 
 
-class TestExtractContentTypes(unittest.TestCase):
+class ExtractContentTypesTest(unittest.TestCase):
 
     def test_json_renderer(self):
 
@@ -193,7 +193,7 @@ class TestExtractContentTypes(unittest.TestCase):
                           swagger, 'IceCreamAPI', '4.2')
 
 
-class TestExtractTransformSchema(unittest.TestCase):
+class ExtractTransformSchemaTest(unittest.TestCase):
     def setUp(self):
         self.service = Service("IceCream", "/icecream/{flavour}")
 
@@ -228,9 +228,9 @@ class TestExtractTransformSchema(unittest.TestCase):
         self.assertNotIn('header', service_args['schema'])
 
 
-class TestExtractTags(unittest.TestCase):
+class ExtractTagsTest(unittest.TestCase):
 
-    def test_user_defined_tags(self):
+    def test_view_defined_tags(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
 
@@ -270,7 +270,7 @@ class TestExtractTags(unittest.TestCase):
             def view_get(self, request):
                 return service
 
-        def default_tag_callable(service):
+        def default_tag_callable(service, method):
             return ['cold']
 
         swagger = CorniceSwagger([service])
@@ -292,6 +292,58 @@ class TestExtractTags(unittest.TestCase):
         swagger = CorniceSwagger([service])
         self.assertRaises(CorniceSwaggerException,
                           swagger, 'IceCreamAPI', '4.2')
+
+
+class ExtractOperationIdTest(unittest.TestCase):
+
+    def test_view_defined_operation_id(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get(operation_id='serve_icecream')
+        def view_get(self, request):
+            return service
+
+        swagger = CorniceSwagger([service])
+        spec = swagger('IceCreamAPI', '4.2')
+        validate(spec)
+        op_id = spec['paths']['/icecream/{flavour}']['get']['operationId']
+        self.assertEquals(op_id, 'serve_icecream')
+
+    def test_default_operation_ids(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get()
+        def view_get(self, request):
+            return service
+
+        @service.put()
+        def view_put(self, request):
+            return service
+
+        def op_id_generator(service, method):
+            return '%s_%s' % (method.lower(), service.path.split('/')[-2])
+
+        swagger = CorniceSwagger([service])
+        spec = swagger('IceCreamAPI', '4.2', default_op_ids=op_id_generator)
+        validate(spec)
+        op_id = spec['paths']['/icecream/{flavour}']['get']['operationId']
+        self.assertEquals(op_id, 'get_icecream')
+        op_id = spec['paths']['/icecream/{flavour}']['put']['operationId']
+        self.assertEquals(op_id, 'put_icecream')
+
+    def test_invalid_default_opid_raises_exception(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get()
+        def view_get(self, request):
+            return service
+
+        swagger = CorniceSwagger([service])
+        self.assertRaises(CorniceSwaggerException, swagger, 'IceCreamAPI', '4.2',
+                          default_op_ids="foo")
 
 
 class NotInstantiatedSchemaTest(unittest.TestCase):
