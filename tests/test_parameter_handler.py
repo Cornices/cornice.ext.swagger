@@ -9,8 +9,8 @@ from cornice_swagger.converters.schema import StringTypeConverter
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
 from cornice_swagger.util import body_schema_transformer
-from .support import BodySchema, PathSchema, QuerySchema, HeaderSchema,\
-    DeclarativeSchema, AnotherDeclarativeSchema, CustomTypeQuerySchema, MyType
+from .support import (BodySchema, PathSchema, QuerySchema, HeaderSchema, MyType,
+                      DeclarativeSchema, AnotherDeclarativeSchema, CustomTypeQuerySchema)
 
 
 class SchemaParamConversionTest(unittest.TestCase):
@@ -54,7 +54,8 @@ class SchemaParamConversionTest(unittest.TestCase):
             'name': 'foo',
             'in': 'query',
             'type': 'string',
-            'required': False
+            'required': False,
+            'minLength': 3
         }
         self.assertDictEqual(params[0], expected)
 
@@ -172,6 +173,19 @@ class SchemaParamConversionTest(unittest.TestCase):
 
         self.assertNotEqual(params[0]['schema'], another_params[0]['schema'])
 
+    def test_cornice_location_synonyms(self):
+
+        class RequestSchema(colander.MappingSchema):
+            header = HeaderSchema()
+            GET = QuerySchema()
+
+        node = RequestSchema()
+        params = self.handler.from_schema(node)
+
+        names = [param['name'] for param in params]
+        expected = ['foo', 'bar']
+        self.assertEqual(sorted(names), sorted(expected))
+
 
 class PathParamConversionTest(unittest.TestCase):
 
@@ -237,7 +251,8 @@ class RefParamTest(unittest.TestCase):
             'name': 'foo',
             'in': 'query',
             'type': 'string',
-            'required': False
+            'required': False,
+            'minLength': 3
         }
 
         self.assertEquals(params, [{'$ref': '#/parameters/foo'}])

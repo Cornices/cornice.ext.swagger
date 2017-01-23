@@ -1,6 +1,11 @@
+from cornice_swagger.swagger import CorniceSwagger
+
 __author__ = """Josip Delic"""
 __email__ = 'delicj@delijati.net'
 __version__ = '0.3.0'
+
+
+__all__ = ["CorniceSwagger"]
 
 
 class CorniceSwaggerPredicate(object):
@@ -17,3 +22,4 @@ class CorniceSwaggerPredicate(object):
 def includeme(config):
     config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
+    config.add_view_predicate('operation_id', CorniceSwaggerPredicate)

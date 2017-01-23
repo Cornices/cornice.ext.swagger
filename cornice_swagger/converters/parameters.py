@@ -23,7 +23,9 @@ class ParameterConverter(object):
             converted['default'] = schema_node.default
 
         schema = definition_handler(schema_node)
-        converted['type'] = schema['type']
+        # Parameters shouldn't have a title
+        schema.pop('title')
+        converted.update(schema)
 
         if schema.get('type') == 'array':
             converted['items'] = {'type': schema['items']['type']}
@@ -69,6 +71,8 @@ class ParameterConversionDispatcher(object):
         'body': BodyParameterConverter,
         'path': PathParameterConverter,
         'querystring': QueryParameterConverter,
+        'GET': QueryParameterConverter,
+        'header': HeaderParameterConverter,
         'headers': HeaderParameterConverter,
     }
 

@@ -5,7 +5,7 @@ from functools import partial
 import colander
 import six
 
-import cornice_swagger.util
+from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
 from cornice_swagger.converters import TypeConversionDispatcher
 from cornice_swagger.converters import convert_schema, convert_parameter
 
@@ -51,7 +51,7 @@ class CorniceSwagger(object):
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
                                          ref=resp_ref)
-        self.schema_transformers = [cornice_swagger.util.body_schema_transformer]
+        self.schema_transformers = [body_schema_transformer]
 
     def __call__(self, title, version, base_path='/', info={}, swagger={},
                  schema_transformers=[], **kwargs):
@@ -69,34 +69,55 @@ class CorniceSwagger(object):
             Swagger info field.
         :param swagger:
             Extra fields that should be provided on the swagger documentation.
+        :param schema_transformers:
+            List of schema transformers that take a colander schema and view arguments
+            and return a modified schema. The transformers are applied in a sequence.
+            You may add transformers to this pipeline when using custom schemas that
+            doesn't correspond to the schemas used with `colander_validator`.
+
+        :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
         """
 
+        info = info.copy()
+        swagger = swagger.copy()
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
         self.schema_transformers.extend(schema_transformers)
 
         paths, tags = self._build_paths(**kwargs)
-        if paths:
-            swagger['paths'] = paths
+
+        # Update the provided tags with the extracted ones preserving order
         if tags:
-            swagger['tags'] = tags
+            swagger.setdefault('tags', [])
+            tag_names = {t['name'] for t in swagger['tags']}
+            for tag in tags:
+                if tag['name'] not in tag_names:
+                    swagger['tags'].append(tag)
+
+        # Create/Update swagger sections with extracted values where not provided
+        if paths:
+            swagger.setdefault('paths', {})
+            merge_dicts(swagger['paths'], paths)
 
         definitions = self.definitions.definition_registry
         if definitions:
-            swagger['definitions'] = definitions
+            swagger.setdefault('definitions', {})
+            merge_dicts(swagger['definitions'], definitions)
 
         parameters = self.parameters.parameter_registry
         if parameters:
-            swagger['parameters'] = parameters
+            swagger.setdefault('parameters', {})
+            merge_dicts(swagger['parameters'], parameters)
 
         responses = self.responses.response_registry
         if responses:
-            swagger['responses'] = responses
+            swagger.setdefault('responses', {})
+            merge_dicts(swagger['responses'], responses)
 
         return swagger
 
     def _build_paths(self, ignore_methods=['head', 'options'], ignore_ctypes=[],
-                     default_tags=None, **kwargs):
+                     default_tags=None, default_op_ids=None, **kwargs):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
@@ -112,9 +133,11 @@ class CorniceSwagger(object):
             on Swagger.
         :param default_tags:
             Provide a default list of tags or a callable that takes a cornice
-            service and returns a list of Swagger tags to be used if a tag is
-            not provided by the view.
-        """
+            service and the method name (e.g GET) and returns a list of Swagger
+            tags to be used if not provided by the view.
+        :param default_op_ids:
+            Provide a callable that takes a cornice service and the method name
+            (e.g GET) and returns an operation Id that should be unique."""
 
         paths = {}
         tags = []
@@ -122,9 +145,9 @@ class CorniceSwagger(object):
         for service in self.services:
             path = self._extract_path_from_service(service, **kwargs)
 
-            for method_name, view, args in service.definitions:
+            for method, view, args in service.definitions:
 
-                if method_name.lower() in ignore_methods:
+                if method.lower() in ignore_methods:
                     continue
 
                 op = self._extract_operation_from_view(view, args, **kwargs)
@@ -136,7 +159,7 @@ class CorniceSwagger(object):
                 # with different ctypes as cornice. If this happens, you may ignore one
                 # content-type from the documentation otherwise we raise an Exception
                 # Related to https://github.com/OAI/OpenAPI-Specification/issues/146
-                previous_definition = path.get(method_name.lower())
+                previous_definition = path.get(method.lower())
                 if previous_definition:
                     raise CorniceSwaggerException(("Swagger doesn't support multiple "
                                                    "views for a same method. You may "
@@ -145,13 +168,13 @@ class CorniceSwagger(object):
                 # If tag not defined and a default tag is provided
                 if 'tags' not in op and default_tags:
                     if callable(default_tags):
-                        op['tags'] = default_tags(service)
+                        op['tags'] = default_tags(service, method)
                     else:
                         op['tags'] = default_tags
 
                 # Check if tags was correctly defined as a list
                 if not isinstance(op.get('tags', []), list):
-                    raise CorniceSwaggerException('Tags should be defined as a list.')
+                    raise CorniceSwaggerException('tags should be a list or callable')
 
                 # Add method tags to root tags
                 for tag in op.get('tags', []):
@@ -159,7 +182,13 @@ class CorniceSwagger(object):
                         root_tag = {'name': tag}
                         tags.append(root_tag)
 
-                path[method_name.lower()] = op
+                # If operation id is not defined and a default generator is provided
+                if 'operationId' not in op and default_op_ids:
+                    if not callable(default_op_ids):
+                        raise CorniceSwaggerException('default_op_id should be a callable.')
+                    op['operationId'] = default_op_ids(service, method)
+
+                path[method.lower()] = op
             paths[service.path] = path
 
         return paths, tags
@@ -183,26 +212,6 @@ class CorniceSwagger(object):
             path['parameters'] = parameters
 
         return path
-
-    def _extract_transform_schema(self, args):
-        """
-        Extract schema from view args and transform it using
-        the pipeline of schema transformers
-
-        :param args:
-            Arguments from the view decorator.
-
-        :rtype: colander.MappingSchema()
-            View schema cloned and transformed
-        """
-
-        schema = args.get('schema', colander.MappingSchema())
-        if not isinstance(schema, colander.Schema):
-            schema = schema()
-        schema = schema.clone()
-        for transformer in self.schema_transformers:
-            schema = transformer(schema, args)
-        return schema
 
     def _extract_operation_from_view(self, view, args={},
                                      summary_docstrings=False, **kwargs):
@@ -262,9 +271,9 @@ class CorniceSwagger(object):
             if 'klass' in args:
                 ob = args['klass']
                 view_ = getattr(ob, view.lower())
-                docstring = cornice_swagger.util.trim(view_.__doc__)
+                docstring = trim(view_.__doc__)
         else:
-            docstring = cornice_swagger.util.trim(view.__doc__)
+            docstring = trim(view.__doc__)
 
         if docstring and summary_docstrings:
             op['summary'] = docstring
@@ -277,7 +286,31 @@ class CorniceSwagger(object):
         if 'tags' in args:
             op['tags'] = args['tags']
 
+        # Get response operationId
+        if 'operation_id' in args:
+            op['operationId'] = args['operation_id']
+
         return op
+
+    def _extract_transform_schema(self, args):
+        """
+        Extract schema from view args and transform it using
+        the pipeline of schema transformers
+
+        :param args:
+            Arguments from the view decorator.
+
+        :rtype: colander.MappingSchema()
+            View schema cloned and transformed
+        """
+
+        schema = args.get('schema', colander.MappingSchema())
+        if not isinstance(schema, colander.Schema):
+            schema = schema()
+        schema = schema.clone()
+        for transformer in self.schema_transformers:
+            schema = transformer(schema, args)
+        return schema
 
 
 class DefinitionHandler(object):
@@ -395,7 +428,7 @@ class ParameterHandler(object):
                     param = self._ref(param)
                 params.append(param)
 
-            elif location in ('path', 'headers', 'querystring'):
+            elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
                 for node_schema in param_schema.children:
                     param = convert_parameter(location,
                                               node_schema,
@@ -486,17 +519,23 @@ class ResponseHandler(object):
 
             for field_schema in response_schema.children:
                 location = field_schema.name
+
                 if location == 'body':
                     title = field_schema.__class__.__name__
                     if title == 'body':
                         title = response_schema.__class__.__name__ + 'Body'
                     field_schema.title = title
-
                     response['schema'] = self.definitions.from_schema(field_schema)
-                elif location == 'header':
-                    headers = self.definitions.convert_schema(field_schema)
-                    if 'properties' in headers:
-                        response['headers'] = headers['properties']
+
+                elif location in ('header', 'headers'):
+                    header_schema = self.definitions.convert_schema(field_schema)
+                    headers = header_schema.get('properties')
+                    if headers:
+                        # Response headers doesn't accept titles
+                        for header in headers.values():
+                            header.pop('title')
+
+                        response['headers'] = headers
 
             pointer = response_schema.__class__.__name__
             if self.ref:
@@ -530,7 +569,7 @@ def generate_swagger_spec(services, title, version, **kwargs):
     """Utility to turn cornice web services into a Swagger-readable file.
     """
 
-    def get_tags_from_path(service):
+    def get_tags_from_path(service, method):
         return [service.path.split("/")[1]]
 
     swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)

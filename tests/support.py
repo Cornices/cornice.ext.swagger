@@ -12,7 +12,8 @@ class BodySchema(colander.MappingSchema):
 
 
 class QuerySchema(colander.MappingSchema):
-    foo = colander.SchemaNode(colander.String(), missing=colander.drop)
+    foo = colander.SchemaNode(colander.String(), validator=colander.Length(3),
+                              missing=colander.drop)
 
 
 class HeaderSchema(colander.MappingSchema):
