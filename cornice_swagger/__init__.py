@@ -1,6 +1,11 @@
+from cornice_swagger.swagger import CorniceSwagger
+
 __author__ = """Josip Delic"""
 __email__ = 'delicj@delijati.net'
 __version__ = '0.3.0'
+
+
+__all__ = [CorniceSwagger]
 
 
 class CorniceSwaggerPredicate(object):
