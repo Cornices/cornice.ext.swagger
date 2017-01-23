@@ -415,7 +415,7 @@ class ParameterHandler(object):
                     param = self._ref(param)
                 params.append(param)
 
-            elif location in ('path', 'headers', 'querystring'):
+            elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
                 for node_schema in param_schema.children:
                     param = convert_parameter(location,
                                               node_schema,

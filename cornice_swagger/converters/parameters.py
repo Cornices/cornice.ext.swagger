@@ -69,6 +69,8 @@ class ParameterConversionDispatcher(object):
         'body': BodyParameterConverter,
         'path': PathParameterConverter,
         'querystring': QueryParameterConverter,
+        'GET': QueryParameterConverter,
+        'header': HeaderParameterConverter,
         'headers': HeaderParameterConverter,
     }
 
