@@ -4,7 +4,7 @@ from cornice.service import get_services
 from cornice.validators import colander_body_validator
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
-from cornice_swagger.swagger import CorniceSwagger
+from cornice_swagger import CorniceSwagger
 
 
 _VALUES = {}

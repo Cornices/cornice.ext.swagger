@@ -25,7 +25,7 @@ Pyramid configurator after including cornice::
 You can than create your OpenAPI/Swagger JSON using::
 
 
-    from cornice_swagger.swagger import CorniceSwagger
+    from cornice_swagger import CorniceSwagger
     from cornice.service import get_services
 
     my_generator = CorniceSwagger(get_services())

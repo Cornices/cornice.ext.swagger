@@ -7,7 +7,7 @@ from cornice.validators import colander_validator
 from flex.core import validate
 
 from .support import GetRequestSchema, PutRequestSchema, response_schemas
-from cornice_swagger.swagger import CorniceSwagger
+from cornice_swagger import CorniceSwagger
 
 
 class AppTest(unittest.TestCase):
