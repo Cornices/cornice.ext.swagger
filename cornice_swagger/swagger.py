@@ -506,17 +506,23 @@ class ResponseHandler(object):
 
             for field_schema in response_schema.children:
                 location = field_schema.name
+
                 if location == 'body':
                     title = field_schema.__class__.__name__
                     if title == 'body':
                         title = response_schema.__class__.__name__ + 'Body'
                     field_schema.title = title
-
                     response['schema'] = self.definitions.from_schema(field_schema)
+
                 elif location == 'header':
-                    headers = convert_schema(field_schema)
-                    if 'properties' in headers:
-                        response['headers'] = headers['properties']
+                    header_schema = convert_schema(field_schema)
+                    headers = header_schema.get('properties')
+                    if headers:
+                        # Response headers doesn't accept titles
+                        for header in headers.values():
+                            header.pop('title')
+
+                        response['headers'] = headers
 
             pointer = response_schema.__class__.__name__
             if self.ref:
