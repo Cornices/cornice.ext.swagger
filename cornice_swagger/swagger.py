@@ -5,7 +5,7 @@ from functools import partial
 import colander
 import six
 
-import cornice_swagger.util
+from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
 from cornice_swagger.converters import convert_schema, convert_parameter
 
 
@@ -42,7 +42,7 @@ class CorniceSwagger(object):
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
                                          ref=resp_ref)
-        self.schema_transformers = [cornice_swagger.util.body_schema_transformer]
+        self.schema_transformers = [body_schema_transformer]
 
     def __call__(self, title, version, base_path='/', info={}, swagger={},
                  schema_transformers=[], **kwargs):
@@ -60,29 +60,50 @@ class CorniceSwagger(object):
             Swagger info field.
         :param swagger:
             Extra fields that should be provided on the swagger documentation.
+        :param schema_transformers:
+            List of schema transformers that take a colander schema and view arguments
+            and return a modified schema. The transformers are applied in a sequence.
+            You may add transformers to this pipeline when using custom schemas that
+            doesn't correspond to the schemas used with `colander_validator`.
+
+        :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
         """
 
+        info = info.copy()
+        swagger = swagger.copy()
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
         self.schema_transformers.extend(schema_transformers)
 
         paths, tags = self._build_paths(**kwargs)
-        if paths:
-            swagger['paths'] = paths
+
+        # Update the provided tags with the extracted ones preserving order
         if tags:
-            swagger['tags'] = tags
+            swagger.setdefault('tags', [])
+            tag_names = {t['name'] for t in swagger['tags']}
+            for tag in tags:
+                if tag['name'] not in tag_names:
+                    swagger['tags'].append(tag)
+
+        # Create/Update swagger sections with extracted values where not provided
+        if paths:
+            swagger.setdefault('paths', {})
+            merge_dicts(swagger['paths'], paths)
 
         definitions = self.definitions.definition_registry
         if definitions:
-            swagger['definitions'] = definitions
+            swagger.setdefault('definitions', {})
+            merge_dicts(swagger['definitions'], definitions)
 
         parameters = self.parameters.parameter_registry
         if parameters:
-            swagger['parameters'] = parameters
+            swagger.setdefault('parameters', {})
+            merge_dicts(swagger['parameters'], parameters)
 
         responses = self.responses.response_registry
         if responses:
-            swagger['responses'] = responses
+            swagger.setdefault('responses', {})
+            merge_dicts(swagger['responses'], responses)
 
         return swagger
 
@@ -253,9 +274,9 @@ class CorniceSwagger(object):
             if 'klass' in args:
                 ob = args['klass']
                 view_ = getattr(ob, view.lower())
-                docstring = cornice_swagger.util.trim(view_.__doc__)
+                docstring = trim(view_.__doc__)
         else:
-            docstring = cornice_swagger.util.trim(view.__doc__)
+            docstring = trim(view.__doc__)
 
         if docstring and summary_docstrings:
             op['summary'] = docstring
