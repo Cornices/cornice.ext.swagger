@@ -59,13 +59,27 @@ class SchemaParamConversionTest(unittest.TestCase):
         self.assertDictEqual(params[0], expected)
 
     def test_covert_query_with_custom_colander_type(self):
+        converters = {MyType: StringTypeConverter}
+        typ_dispatcher = TypeConversionDispatcher(custom_converters=converters)
+        definition_handler = DefinitionHandler(typ_dispatcher=typ_dispatcher)
 
-        class MyTypeDispatcher(TypeConversionDispatcher):
-            converters = {
-                MyType: StringTypeConverter
-            }
+        class RequestSchema(colander.MappingSchema):
+            querystring = CustomTypeQuerySchema()
 
-        typ_dispatcher = MyTypeDispatcher()
+        node = RequestSchema()
+        params = ParameterHandler(definition_handler).from_schema(node)
+        self.assertEquals(len(params), 1)
+
+        expected = {
+            'name': 'foo',
+            'in': 'query',
+            'type': 'string',
+            'required': False
+        }
+        self.assertDictEqual(params[0], expected)
+
+    def test_covert_query_with_default_colander_type(self):
+        typ_dispatcher = TypeConversionDispatcher(default_converter=StringTypeConverter)
         definition_handler = DefinitionHandler(typ_dispatcher=typ_dispatcher)
 
         class RequestSchema(colander.MappingSchema):

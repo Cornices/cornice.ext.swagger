@@ -65,13 +65,13 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
         spec = swagger('IceCreamAPI', '4.2')
         self.assertIn('responses', spec)
 
-    def test_using_provided_type_dispatcher(self):
+    def test_using_provided_dispatcher_params(self):
         # todo: improve testing by mocking definitions and ensure that .convert_schema is called
-        no_typ_dispatcher = object()
-        swagger = CorniceSwagger([], typ_dispatcher=no_typ_dispatcher)
-        self.assertEqual(no_typ_dispatcher, swagger.definitions.typ_dispatcher)
-        self.assertEqual(no_typ_dispatcher, swagger.parameters.definitions.typ_dispatcher)
-        self.assertEqual(no_typ_dispatcher, swagger.responses.definitions.typ_dispatcher)
+        default_typ = object()
+        swagger = CorniceSwagger([], custom_type_converters={default_typ: default_typ},
+                                 default_type_converter=default_typ)
+        self.assertIn(default_typ, swagger.definitions.typ_dispatcher.converters)
+        self.assertEqual(default_typ, swagger.definitions.typ_dispatcher.default_converter)
 
 
 class TestExtractContentTypes(unittest.TestCase):

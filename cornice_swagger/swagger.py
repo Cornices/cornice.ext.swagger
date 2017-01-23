@@ -10,9 +10,6 @@ from cornice_swagger.converters import TypeConversionDispatcher
 from cornice_swagger.converters import convert_schema, convert_parameter
 
 
-_default = object()
-
-
 class CorniceSwaggerException(Exception):
     """Raised when cornice services have structural problems to be converted."""
 
@@ -21,7 +18,7 @@ class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
 
     def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False,
-                 typ_dispatcher=_default):
+                 custom_type_converters=None, default_type_converter=None):
         """
         :param services:
             List of cornice services to document. You may use
@@ -41,10 +38,8 @@ class CorniceSwagger(object):
         """
 
         self.services = services
-        def_handler_args = {'ref': def_ref_depth}
-        if typ_dispatcher is not _default:
-            def_handler_args['typ_dispatcher'] = typ_dispatcher
-        self.definitions = DefinitionHandler(**def_handler_args)
+        typ_dispatcher = TypeConversionDispatcher(custom_type_converters, default_type_converter)
+        self.definitions = DefinitionHandler(ref=def_ref_depth, typ_dispatcher=typ_dispatcher)
         self.parameters = ParameterHandler(self.definitions,
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
