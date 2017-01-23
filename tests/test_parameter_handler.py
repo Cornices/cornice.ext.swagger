@@ -134,8 +134,8 @@ class SchemaParamConversionTest(unittest.TestCase):
     def test_cornice_location_synonyms(self):
 
         class RequestSchema(colander.MappingSchema):
-           header = HeaderSchema()
-           GET = QuerySchema()
+            header = HeaderSchema()
+            GET = QuerySchema()
 
         node = RequestSchema()
         params = self.handler.from_schema(node)
