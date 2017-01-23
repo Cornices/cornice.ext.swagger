@@ -53,18 +53,39 @@ class TestCorniceSwaggerGenerator(unittest.TestCase):
     def test_with_schema_ref(self):
         swagger = CorniceSwagger([self.service], def_ref_depth=1)
         spec = swagger('IceCreamAPI', '4.2')
+        validate(spec)
         self.assertIn('definitions', spec)
 
     def test_with_param_ref(self):
         swagger = CorniceSwagger([self.service], param_ref=True)
         spec = swagger('IceCreamAPI', '4.2')
+        validate(spec)
         self.assertIn('parameters', spec)
 
     def test_with_resp_ref(self):
         swagger = CorniceSwagger([self.service], resp_ref=True)
         spec = swagger('IceCreamAPI', '4.2')
+        validate(spec)
         self.assertIn('responses', spec)
 
+    def test_swagger_field_updates_extracted_paths(self):
+        swagger = CorniceSwagger([self.service])
+        raw_swagger = {
+            'definitions': {'OtherDef':{'additionalProperties': {}}}
+        }
+        spec = swagger('IceCreamAPI', '4.2', swagger=raw_swagger)
+        validate(self.spec)
+        self.assertEquals(spec['definitions'], raw_swagger['definitions'])
+
+    def test_swagger_field_overrides_extracted_paths(self):
+        swagger = CorniceSwagger([self.service], param_ref=True)
+        raw_swagger = {
+            'parameters': {'BodySchema': {'required': False}}
+        }
+        spec = swagger('IceCreamAPI', '4.2', swagger=raw_swagger)
+        validate(self.spec)
+        expected = {'name': 'BodySchema', 'required': False}
+        self.assertDictContainsSubset(expected, spec['parameters']['BodySchema'])
 
 class TestExtractContentTypes(unittest.TestCase):
 
@@ -280,7 +301,7 @@ class TestExtractTags(unittest.TestCase):
         tags = spec['paths']['/icecream/{flavour}']['get']['tags']
         self.assertEquals(tags, ['cold'])
 
-    def test_tags_sorting(self):
+    def test_provided_tags_override_sorting(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
 
@@ -290,9 +311,11 @@ class TestExtractTags(unittest.TestCase):
                 return service
 
         swagger = CorniceSwagger([service])
-        spec = swagger('IceCreamAPI', '4.2', tags_order=['foo'])
+        tags = [{'name': 'foo', 'description': 'bar'}]
+        spec = swagger('IceCreamAPI', '4.2', swagger={'tags': tags})
         validate(spec)
-        self.assertListEqual([{'name': 'foo'}, {'name': 'cold'}], spec['tags'])
+        self.assertListEqual([{'name': 'foo', 'description': 'bar'},
+                              {'name': 'cold'}], spec['tags'])
 
     def test_invalid_tag_raises_exception(self):
 
