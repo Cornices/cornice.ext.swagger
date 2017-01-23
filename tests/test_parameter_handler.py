@@ -52,7 +52,8 @@ class SchemaParamConversionTest(unittest.TestCase):
             'name': 'foo',
             'in': 'query',
             'type': 'string',
-            'required': False
+            'required': False,
+            'minLength': 3
         }
         self.assertDictEqual(params[0], expected)
 
@@ -209,7 +210,8 @@ class RefParamTest(unittest.TestCase):
             'name': 'foo',
             'in': 'query',
             'type': 'string',
-            'required': False
+            'required': False,
+            'minLength': 3
         }
 
         self.assertEquals(params, [{'$ref': '#/parameters/foo'}])
