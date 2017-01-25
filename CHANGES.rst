@@ -1,10 +1,40 @@
 CHANGES
 =======
 
-0.3.1 (unreleased)
+0.5.0 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+0.4.0 (2017-01-25)
+------------------
+
+**Api**
+
+- Summaries from docstrings are now not included by default. You can enable them by passing
+  ``summary_docstrings = True`` to the generator.
+- Trying to document multiple views on same method now raises an exception. You should
+  ignore the unwanted ones by content type.
+- Raw ``swagger`` items are now recursively merged (instead of replaced) with
+  the extracted fields.
+- Add support for documenting operation ids via an ``operation_id`` argument on the view
+  or by passing a ``default_op_ids`` callable to the generator.
+- Add a shortcut to the generator on ``cornice_swagger.CorniceSwagger``.
+- Support Cornice schema synonyms (headers and GET are the same as header and querystring).
+- Add support for documenting security properties via a ``api_security`` list on the view
+  or by passing a ``default_security`` list or callable to the generator.
+
+**OpenAPI compliance**
+
+- Remove invalid ``title`` field from response headers and request parameters.
+- Support conversion of parameter validators.
+
+**Internals**
+
+- Fix default tag generator.
+- Fix references when using declarative schemas.
+- Simplify parameter converter by properly isolating ``body``.
 
 
 0.3.0 (2017-01-17)
@@ -12,13 +42,13 @@ CHANGES
 
 **Api**
 
-- Use `cornice_swagger.swagger.CorniceSwagger` class to generate
-  the swagger document rather then `generate_swagger_spec`.
+- Use ``cornice_swagger.swagger.CorniceSwagger`` class to generate
+  the swagger document rather then ``generate_swagger_spec``.
 - Allow overriding extractors in the application.
 - Schemas are now broken into JSON pointers only if specified.
-- Allow documenting responses via `response_schemas` view attribute.
-- Allow documenting tags via `tags` view attribute or using a
-  `default_tags` parameter when calling the generator.
+- Allow documenting responses via ``response_schemas`` view attribute.
+- Allow documenting tags via ``tags`` view attribute or using a
+  ``default_tags`` parameter when calling the generator.
 
 **Internals**
 
