@@ -191,6 +191,9 @@ class CorniceSwagger(object):
                     else:
                         op['security'] = default_security
 
+                if not isinstance(op.get('security', []), list):
+                    raise CorniceSwaggerException('security should be a list or callable')
+
                 path[method.lower()] = op
             paths[service.path] = path
 

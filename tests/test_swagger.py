@@ -453,6 +453,19 @@ class ExtractSecurityTest(unittest.TestCase):
         security = spec['paths']['/icecream/{flavour}']['get']['security']
         self.assertEquals(security, [])
 
+    def test_invalid_security_raises_exception(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.get(api_security='basicAuth')
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        self.assertRaises(CorniceSwaggerException,
+                          swagger, 'IceCreamAPI', '4.2')
+
 
 class NotInstantiatedSchemaTest(unittest.TestCase):
 
