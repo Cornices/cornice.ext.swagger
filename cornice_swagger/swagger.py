@@ -108,7 +108,7 @@ class CorniceSwagger(object):
         return swagger
 
     def _build_paths(self, ignore_methods=['head', 'options'], ignore_ctypes=[],
-                     default_tags=None, default_op_ids=None, **kwargs):
+                     default_tags=None, default_op_ids=None, default_security=None, **kwargs):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
@@ -128,7 +128,12 @@ class CorniceSwagger(object):
             tags to be used if not provided by the view.
         :param default_op_ids:
             Provide a callable that takes a cornice service and the method name
-            (e.g GET) and returns an operation Id that should be unique."""
+            (e.g GET) and returns an operation Id that should be unique.
+        :param default_security:
+            Provide a default list or a callable that takes a cornice
+            service and the method name (e.g GET) and returns a list of Swagger
+            security policies.
+        """
 
         paths = {}
         tags = []
@@ -178,6 +183,13 @@ class CorniceSwagger(object):
                     if not callable(default_op_ids):
                         raise CorniceSwaggerException('default_op_id should be a callable.')
                     op['operationId'] = default_op_ids(service, method)
+
+                # If security options not defined and default is provided
+                if 'security' not in op and default_security:
+                    if callable(default_security):
+                        op['security'] = default_security(service, method)
+                    else:
+                        op['security'] = default_security
 
                 path[method.lower()] = op
             paths[service.path] = path
@@ -280,6 +292,10 @@ class CorniceSwagger(object):
         # Get response operationId
         if 'operation_id' in args:
             op['operationId'] = args['operation_id']
+
+        # Get security policies
+        if 'api_security' in args:
+            op['security'] = args['api_security']
 
         return op
 

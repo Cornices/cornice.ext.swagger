@@ -9,6 +9,8 @@ __all__ = ["CorniceSwagger"]
 
 
 class CorniceSwaggerPredicate(object):
+    """Predicate to add simple information to Cornice Swagger."""
+
     def __init__(self, schema, config):
         self.schema = schema
 
@@ -20,6 +22,9 @@ class CorniceSwaggerPredicate(object):
 
 
 def includeme(config):
+
+    # Custom view parameters
     config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
     config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
+    config.add_view_predicate('api_security', CorniceSwaggerPredicate)
