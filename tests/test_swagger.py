@@ -385,6 +385,88 @@ class ExtractOperationIdTest(unittest.TestCase):
                           default_op_ids="foo")
 
 
+class ExtractSecurityTest(unittest.TestCase):
+
+    def test_view_defined_security(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get(api_security=[{'basicAuth': []}])
+        def view_get(self, request):
+            return service
+
+        swagger = CorniceSwagger([service])
+        base_spec = {'securityDefinitions': {'basicAuth': {'type': 'basic'}}}
+        spec = swagger('IceCreamAPI', '4.2', swagger=base_spec)
+        validate(spec)
+        security = spec['paths']['/icecream/{flavour}']['get']['security']
+        self.assertEquals(security, [{'basicAuth': []}])
+
+    def test_listed_default_security(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get()
+        def view_get(self, request):
+            return service
+
+        swagger = CorniceSwagger([service])
+        base_spec = {'securityDefinitions': {'basicAuth': {'type': 'basic'}}}
+        security = [{'basicAuth': []}]
+        spec = swagger('IceCreamAPI', '4.2', swagger=base_spec, default_security=security)
+        validate(spec)
+        security = spec['paths']['/icecream/{flavour}']['get']['security']
+        self.assertEquals(security, [{'basicAuth': []}])
+
+    def test_callable_default_security(self):
+
+        def get_security(service, method):
+            definitions = service.definitions
+            for definition in definitions:
+                met, view, args = definition
+                if met == method:
+                    break
+
+            if 'security' in args:
+                return [{'basicAuth': []}]
+            else:
+                return []
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        @service.get()
+        def view_get(self, request):
+            return service
+
+        @service.post(security='foo')
+        def view_post(self, request):
+            return service
+
+        swagger = CorniceSwagger([service])
+        base_spec = {'securityDefinitions': {'basicAuth': {'type': 'basic'}}}
+        security = [{'basicAuth': []}]
+        spec = swagger('IceCreamAPI', '4.2', swagger=base_spec,
+                       default_security=get_security)
+        validate(spec)
+        security = spec['paths']['/icecream/{flavour}']['post']['security']
+        self.assertEquals(security, [{'basicAuth': []}])
+        security = spec['paths']['/icecream/{flavour}']['get']['security']
+        self.assertEquals(security, [])
+
+    def test_invalid_security_raises_exception(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.get(api_security='basicAuth')
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        self.assertRaises(CorniceSwaggerException,
+                          swagger, 'IceCreamAPI', '4.2')
+
+
 class NotInstantiatedSchemaTest(unittest.TestCase):
 
     def test_not_instantiated(self):
