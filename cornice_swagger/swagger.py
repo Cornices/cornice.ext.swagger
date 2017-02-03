@@ -14,6 +14,254 @@ class CorniceSwaggerException(Exception):
     """Raised when cornice services have structural problems to be converted."""
 
 
+class DefinitionHandler(object):
+    """Handles Swagger object definitions provided by cornice as colander schemas."""
+
+    json_pointer = '#/definitions/'
+
+    def __init__(self, ref=0):
+        """
+        :param ref:
+            The depth that should be used by self.ref when calling self.from_schema.
+        """
+
+        self.definition_registry = {}
+        self.ref = ref
+
+    def from_schema(self, schema_node, base_name=None):
+        """
+        Creates a Swagger definition from a colander schema.
+
+        :param schema_node:
+            Colander schema to be transformed into a Swagger definition.
+        :param base_name:
+            Schema alternative title.
+
+        :rtype: dict
+            Swagger schema.
+        """
+        return self._ref_recursive(convert_schema(schema_node), self.ref, base_name)
+
+    def _ref_recursive(self, schema, depth, base_name=None):
+        """
+        Dismantle nested swagger schemas into several definitions using JSON pointers.
+        Note: This can be dangerous since definition titles must be unique.
+
+        :param schema:
+            Base swagger schema.
+        :param depth:
+            How many levels of the swagger object schemas should be split into
+            swaggger definitions with JSON pointers. Default (0) is no split.
+            You may use negative values to split everything.
+        :param base_name:
+            If schema doesn't have a name, the caller may provide it to be
+            used as reference.
+
+        :rtype: dict
+            JSON pointer to the root definition schema,
+            or the original definition if depth is zero.
+        """
+
+        if depth == 0:
+            return schema
+
+        if schema['type'] != 'object':
+            return schema
+
+        name = base_name or schema['title']
+
+        pointer = self.json_pointer + name
+        for child_name, child in schema.get('properties', {}).items():
+            schema['properties'][child_name] = self._ref_recursive(child, depth-1)
+
+        self.definition_registry[name] = schema
+
+        return {'$ref': pointer}
+
+
+class ParameterHandler(object):
+    """Handles swagger parameter definitions."""
+
+    json_pointer = '#/parameters/'
+
+    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
+        """
+        :param definition_handler:
+            Callable that handles swagger definition schemas.
+        :param ref:
+            Specifies the ref value when calling from_xxx methods.
+        """
+
+        self.parameter_registry = {}
+
+        self.definitions = definition_handler
+        self.ref = ref
+
+    def from_schema(self, schema_node):
+        """
+        Creates a list of Swagger params from a colander request schema.
+
+        :param schema_node:
+            Request schema to be transformed into Swagger.
+        :param validators:
+            Validators used in colander with the schema.
+        :rtype: list
+            List of Swagger parameters.
+        """
+
+        params = []
+
+        for param_schema in schema_node.children:
+            location = param_schema.name
+            if location is 'body':
+                name = param_schema.__class__.__name__
+                if name == 'body':
+                    name = schema_node.__class__.__name__ + 'Body'
+                param = convert_parameter(location,
+                                          param_schema,
+                                          partial(self.definitions.from_schema, base_name=name))
+                param['name'] = name
+                if self.ref:
+                    param = self._ref(param)
+                params.append(param)
+
+            elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
+                for node_schema in param_schema.children:
+                    param = convert_parameter(location,
+                                              node_schema,
+                                              self.definitions.from_schema)
+                    if self.ref:
+                        param = self._ref(param)
+                    params.append(param)
+
+        return params
+
+    def from_path(self, path):
+        """
+        Create a list of Swagger path params from a cornice service path.
+
+        :type path: string
+        :rtype: list
+        """
+
+        param_names = re.findall('\{(.*?)\}', path)
+        params = []
+        for name in param_names:
+            param_schema = colander.SchemaNode(colander.String(), name=name)
+            param = convert_parameter('path', param_schema)
+            if self.ref:
+                param = self._ref(param)
+            params.append(param)
+
+        return params
+
+    def _ref(self, param, base_name=None):
+        """
+        Store a parameter schema and return a reference to it.
+
+        :param schema:
+            Swagger parameter definition.
+        :param base_name:
+            Name that should be used for the reference.
+
+        :rtype: dict
+            JSON pointer to the original parameter definition.
+        """
+
+        name = base_name or param.get('title', '') or param.get('name', '')
+
+        pointer = self.json_pointer + name
+        self.parameter_registry[name] = param
+
+        return {'$ref': pointer}
+
+
+class ResponseHandler(object):
+    """Handles swagger response definitions."""
+
+    json_pointer = '#/responses/'
+
+    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
+        """
+        :param definition_handler:
+            Callable that handles swagger definition schemas.
+        :param ref:
+            Specifies the ref value when calling from_xxx methods.
+        """
+
+        self.response_registry = {}
+
+        self.definitions = definition_handler
+        self.ref = ref
+
+    def from_schema_mapping(self, schema_mapping):
+        """
+        Creates a Swagger response object from a dict of response schemas.
+
+        :param schema_mapping:
+            Dict with entries matching ``{status_code: response_schema}``.
+        :rtype: dict
+            Response schema.
+        """
+
+        responses = {}
+
+        for status, response_schema in schema_mapping.items():
+
+            response = {}
+            if response_schema.description:
+                response['description'] = response_schema.description
+            else:
+                raise CorniceSwaggerException('Responses must have a description.')
+
+            for field_schema in response_schema.children:
+                location = field_schema.name
+
+                if location == 'body':
+                    title = field_schema.__class__.__name__
+                    if title == 'body':
+                        title = response_schema.__class__.__name__ + 'Body'
+                    field_schema.title = title
+                    response['schema'] = self.definitions.from_schema(field_schema)
+
+                elif location in ('header', 'headers'):
+                    header_schema = convert_schema(field_schema)
+                    headers = header_schema.get('properties')
+                    if headers:
+                        # Response headers doesn't accept titles
+                        for header in headers.values():
+                            header.pop('title')
+
+                        response['headers'] = headers
+
+            pointer = response_schema.__class__.__name__
+            if self.ref:
+                response = self._ref(response, pointer)
+            responses[status] = response
+
+        return responses
+
+    def _ref(self, resp, base_name=None):
+        """
+        Store a response schema and return a reference to it.
+
+        :param schema:
+            Swagger response definition.
+        :param base_name:
+            Name that should be used for the reference.
+
+        :rtype: dict
+            JSON pointer to the original response definition.
+        """
+
+        name = base_name or resp.get('title', '') or resp.get('name', '')
+
+        pointer = self.json_pointer + name
+        self.response_registry[name] = resp
+
+        return {'$ref': pointer}
+
+
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
 
@@ -382,254 +630,6 @@ class CorniceSwagger(object):
         for transformer in self.schema_transformers:
             schema = transformer(schema, args)
         return schema
-
-
-class DefinitionHandler(object):
-    """Handles Swagger object definitions provided by cornice as colander schemas."""
-
-    json_pointer = '#/definitions/'
-
-    def __init__(self, ref=0):
-        """
-        :param ref:
-            The depth that should be used by self.ref when calling self.from_schema.
-        """
-
-        self.definition_registry = {}
-        self.ref = ref
-
-    def from_schema(self, schema_node, base_name=None):
-        """
-        Creates a Swagger definition from a colander schema.
-
-        :param schema_node:
-            Colander schema to be transformed into a Swagger definition.
-        :param base_name:
-            Schema alternative title.
-
-        :rtype: dict
-            Swagger schema.
-        """
-        return self._ref_recursive(convert_schema(schema_node), self.ref, base_name)
-
-    def _ref_recursive(self, schema, depth, base_name=None):
-        """
-        Dismantle nested swagger schemas into several definitions using JSON pointers.
-        Note: This can be dangerous since definition titles must be unique.
-
-        :param schema:
-            Base swagger schema.
-        :param depth:
-            How many levels of the swagger object schemas should be split into
-            swaggger definitions with JSON pointers. Default (0) is no split.
-            You may use negative values to split everything.
-        :param base_name:
-            If schema doesn't have a name, the caller may provide it to be
-            used as reference.
-
-        :rtype: dict
-            JSON pointer to the root definition schema,
-            or the original definition if depth is zero.
-        """
-
-        if depth == 0:
-            return schema
-
-        if schema['type'] != 'object':
-            return schema
-
-        name = base_name or schema['title']
-
-        pointer = self.json_pointer + name
-        for child_name, child in schema.get('properties', {}).items():
-            schema['properties'][child_name] = self._ref_recursive(child, depth-1)
-
-        self.definition_registry[name] = schema
-
-        return {'$ref': pointer}
-
-
-class ParameterHandler(object):
-    """Handles swagger parameter definitions."""
-
-    json_pointer = '#/parameters/'
-
-    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
-        """
-        :param definition_handler:
-            Callable that handles swagger definition schemas.
-        :param ref:
-            Specifies the ref value when calling from_xxx methods.
-        """
-
-        self.parameter_registry = {}
-
-        self.definitions = definition_handler
-        self.ref = ref
-
-    def from_schema(self, schema_node):
-        """
-        Creates a list of Swagger params from a colander request schema.
-
-        :param schema_node:
-            Request schema to be transformed into Swagger.
-        :param validators:
-            Validators used in colander with the schema.
-        :rtype: list
-            List of Swagger parameters.
-        """
-
-        params = []
-
-        for param_schema in schema_node.children:
-            location = param_schema.name
-            if location is 'body':
-                name = param_schema.__class__.__name__
-                if name == 'body':
-                    name = schema_node.__class__.__name__ + 'Body'
-                param = convert_parameter(location,
-                                          param_schema,
-                                          partial(self.definitions.from_schema, base_name=name))
-                param['name'] = name
-                if self.ref:
-                    param = self._ref(param)
-                params.append(param)
-
-            elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
-                for node_schema in param_schema.children:
-                    param = convert_parameter(location,
-                                              node_schema,
-                                              self.definitions.from_schema)
-                    if self.ref:
-                        param = self._ref(param)
-                    params.append(param)
-
-        return params
-
-    def from_path(self, path):
-        """
-        Create a list of Swagger path params from a cornice service path.
-
-        :type path: string
-        :rtype: list
-        """
-
-        param_names = re.findall('\{(.*?)\}', path)
-        params = []
-        for name in param_names:
-            param_schema = colander.SchemaNode(colander.String(), name=name)
-            param = convert_parameter('path', param_schema)
-            if self.ref:
-                param = self._ref(param)
-            params.append(param)
-
-        return params
-
-    def _ref(self, param, base_name=None):
-        """
-        Store a parameter schema and return a reference to it.
-
-        :param schema:
-            Swagger parameter definition.
-        :param base_name:
-            Name that should be used for the reference.
-
-        :rtype: dict
-            JSON pointer to the original parameter definition.
-        """
-
-        name = base_name or param.get('title', '') or param.get('name', '')
-
-        pointer = self.json_pointer + name
-        self.parameter_registry[name] = param
-
-        return {'$ref': pointer}
-
-
-class ResponseHandler(object):
-    """Handles swagger response definitions."""
-
-    json_pointer = '#/responses/'
-
-    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
-        """
-        :param definition_handler:
-            Callable that handles swagger definition schemas.
-        :param ref:
-            Specifies the ref value when calling from_xxx methods.
-        """
-
-        self.response_registry = {}
-
-        self.definitions = definition_handler
-        self.ref = ref
-
-    def from_schema_mapping(self, schema_mapping):
-        """
-        Creates a Swagger response object from a dict of response schemas.
-
-        :param schema_mapping:
-            Dict with entries matching ``{status_code: response_schema}``.
-        :rtype: dict
-            Response schema.
-        """
-
-        responses = {}
-
-        for status, response_schema in schema_mapping.items():
-
-            response = {}
-            if response_schema.description:
-                response['description'] = response_schema.description
-            else:
-                raise CorniceSwaggerException('Responses must have a description.')
-
-            for field_schema in response_schema.children:
-                location = field_schema.name
-
-                if location == 'body':
-                    title = field_schema.__class__.__name__
-                    if title == 'body':
-                        title = response_schema.__class__.__name__ + 'Body'
-                    field_schema.title = title
-                    response['schema'] = self.definitions.from_schema(field_schema)
-
-                elif location in ('header', 'headers'):
-                    header_schema = convert_schema(field_schema)
-                    headers = header_schema.get('properties')
-                    if headers:
-                        # Response headers doesn't accept titles
-                        for header in headers.values():
-                            header.pop('title')
-
-                        response['headers'] = headers
-
-            pointer = response_schema.__class__.__name__
-            if self.ref:
-                response = self._ref(response, pointer)
-            responses[status] = response
-
-        return responses
-
-    def _ref(self, resp, base_name=None):
-        """
-        Store a response schema and return a reference to it.
-
-        :param schema:
-            Swagger response definition.
-        :param base_name:
-            Name that should be used for the reference.
-
-        :rtype: dict
-            JSON pointer to the original response definition.
-        """
-
-        name = base_name or resp.get('title', '') or resp.get('name', '')
-
-        pointer = self.json_pointer + name
-        self.response_registry[name] = resp
-
-        return {'$ref': pointer}
 
 
 def generate_swagger_spec(services, title, version, **kwargs):
