@@ -2,6 +2,7 @@
 import re
 from functools import partial
 
+
 import colander
 import six
 
@@ -15,6 +16,63 @@ class CorniceSwaggerException(Exception):
 
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
+
+    definitions = DefinitionHandler
+    """Default :class:`cornice_swagger.swagger.DefinitionHandler` class to use when
+    handling OpenAPI schema definitions from cornice payload schemas."""
+
+    parameters = ParameterHandler
+    """Default :class:`cornice_swagger.swagger.ParameterHandler` class to use when
+    handling OpenAPI operation parameters from cornice request schemas."""
+
+    responses = ResponseHandler
+    """Default :class:`cornice_swagger.swagger.ResponseHandler` class to use when
+    handling OpenAPI responses from cornice_swagger defined responses."""
+
+    schema_transformers = [body_schema_transformer]
+    """List of request schema transformers that should be applied to a request
+    schema to make it comply with a cornice default request schema."""
+
+    default_tags = None
+    """Provide a default list of tags or a callable that takes a cornice
+    service and the method name (e.g GET) and returns a list of Swagger
+    tags to be used if not provided by the view."""
+
+    default_op_ids = None
+    """Provide a callable that takes a cornice service and the method name
+    (e.g GET) and returns an operation Id that is used if an operation Id is
+    not provided. Each operation Id should be unique."""
+
+    default_security = None
+    """Provide a default list or a callable that takes a cornice service and
+    the method name (e.g GET) and returns a list of OpenAPI security policies."""
+
+    summary_docstrings = False
+    """Enable extracting operation summaries from view docstrings."""
+
+    ignore_methods = ['HEAD', 'OPTIONS']
+    """List of service methods that should NOT be presented on the
+    documentation. You may use this to remove methods that are not
+    essential on the API documentation. Default ignores HEAD and OPTIONS."""
+
+    ignore_ctypes = []
+    """List of service content-types that should NOT be presented on the
+    documentation. You may use this when a Cornice service definition has
+    multiple view definitions for a same method, which is not supported on
+    OpenAPI 2.0."""
+
+    api_title = ''
+    """Title of the OpenAPI document."""
+
+    api_version = ''
+    """Version of the OpenAPI document."""
+
+    base_path = '/'
+    """Base path of the documented API. Default is "/"."""
+
+    swagger = {'info': {}}
+    """Base OpenAPI specification that should be merged with the extracted info
+    from the generate call."""
 
     def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False):
         """
@@ -37,17 +95,15 @@ class CorniceSwagger(object):
 
         self.services = services
 
-        self.definitions = DefinitionHandler(ref=def_ref_depth)
-        self.parameters = ParameterHandler(self.definitions,
-                                           ref=param_ref)
-        self.responses = ResponseHandler(self.definitions,
-                                         ref=resp_ref)
-        self.schema_transformers = [body_schema_transformer]
+        # Instantiate handlers
+        self.definitions = self.definitions(ref=def_ref_depth)
+        self.parameters = self.parameters(self.definitions, ref=param_ref)
+        self.responses = self.responses(self.definitions, ref=resp_ref)
 
-    def __call__(self, title, version, base_path='/', info={}, swagger={},
-                 schema_transformers=[], **kwargs):
-        """
-        Generate a Swagger 2.0 documentation. Keyword arguments may be used
+    def generate(self, title=api_title, version=api_version,
+                 base_path=base_path, info=swagger['info'], swagger=swagger,
+                 schema_transformers=schema_transformers, **kwargs):
+        """Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
 
         :param title:
@@ -73,7 +129,7 @@ class CorniceSwagger(object):
         swagger = swagger.copy()
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
-        self.schema_transformers.extend(schema_transformers)
+        self.schema_transformers = schema_transformers
 
         paths, tags = self._build_paths(**kwargs)
 
@@ -107,8 +163,13 @@ class CorniceSwagger(object):
 
         return swagger
 
-    def _build_paths(self, ignore_methods=['head', 'options'], ignore_ctypes=[],
-                     default_tags=None, default_op_ids=None, default_security=None, **kwargs):
+    def __call__(self, *args, **kwargs):
+        """Deprecated alias of `generate`."""
+        return self.generate(*args, **kwargs)
+
+    def _build_paths(self, ignore_methods=ignore_methods, ignore_ctypes=ignore_ctypes,
+                     default_tags=default_tags, default_op_ids=default_op_ids,
+                     default_security=default_security, **kwargs):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
@@ -220,7 +281,7 @@ class CorniceSwagger(object):
         return path
 
     def _extract_operation_from_view(self, view, args={},
-                                     summary_docstrings=False, **kwargs):
+                                     summary_docstrings=summary_docstrings, **kwargs):
         """
         Extract swagger operation details from colander view definitions.
 
