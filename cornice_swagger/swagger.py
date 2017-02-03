@@ -1,7 +1,7 @@
 """Cornice Swagger 2.0 documentor"""
 import re
 from functools import partial
-
+import warnings
 
 import colander
 import six
@@ -265,6 +265,10 @@ class ResponseHandler(object):
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
 
+    services = []
+    """List of cornice services to document. You may use
+    `cornice.service.get_services()` to get it."""
+
     definitions = DefinitionHandler
     """Default :class:`cornice_swagger.swagger.DefinitionHandler` class to use when
     handling OpenAPI schema definitions from cornice payload schemas."""
@@ -319,10 +323,10 @@ class CorniceSwagger(object):
     """Base path of the documented API. Default is "/"."""
 
     swagger = {'info': {}}
-    """Base OpenAPI specification that should be merged with the extracted info
+    """Base OpenAPI document that should be merged with the extracted info
     from the generate call."""
 
-    def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False):
+    def __init__(self, services=services, def_ref_depth=0, param_ref=False, resp_ref=False):
         """
         :param services:
             List of cornice services to document. You may use
@@ -348,9 +352,8 @@ class CorniceSwagger(object):
         self.parameters = self.parameters(self.definitions, ref=param_ref)
         self.responses = self.responses(self.definitions, ref=resp_ref)
 
-    def generate(self, title=api_title, version=api_version,
-                 base_path=base_path, info=swagger['info'], swagger=swagger,
-                 schema_transformers=schema_transformers, **kwargs):
+    def generate(self, title=api_title, version=api_version, base_path=base_path,
+                 info=swagger['info'], swagger=swagger, **kwargs):
         """Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
 
@@ -364,11 +367,6 @@ class CorniceSwagger(object):
             Swagger info field.
         :param swagger:
             Extra fields that should be provided on the swagger documentation.
-        :param schema_transformers:
-            List of schema transformers that take a colander schema and view arguments
-            and return a modified schema. The transformers are applied in a sequence.
-            You may add transformers to this pipeline when using custom schemas that
-            doesn't correspond to the schemas used with `colander_validator`.
 
         :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
         """
@@ -377,7 +375,11 @@ class CorniceSwagger(object):
         swagger = swagger.copy()
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
-        self.schema_transformers = schema_transformers
+
+        if kwargs:
+            message = ("Passing additional arguments to the `generate` call is "
+                       "deprecated, you should use the matching attributes instead.")
+            warnings.warn(message, DeprecationWarning)
 
         paths, tags = self._build_paths(**kwargs)
 
@@ -413,6 +415,8 @@ class CorniceSwagger(object):
 
     def __call__(self, *args, **kwargs):
         """Deprecated alias of `generate`."""
+        message = ("Calling `CorniceSwagger is deprecated, call `generate` instead")
+        warnings.warn(message, DeprecationWarning)
         return self.generate(*args, **kwargs)
 
     def _build_paths(self, ignore_methods=ignore_methods, ignore_ctypes=ignore_ctypes,
@@ -421,27 +425,6 @@ class CorniceSwagger(object):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
-
-        :param ignore_methods:
-            List of service methods that should NOT be presented on the
-            documentation. You may use this to remove methods that are not
-            essential on the API documentation. Default ignores HEAD ans OPTIONS.
-        :param ignore_ctypes:
-            List of service content-types that should NOT be presented on
-            the documentation. You may use this when a Cornice service definition
-            has multiple view definitions for a same method, which is not supported
-            on Swagger.
-        :param default_tags:
-            Provide a default list of tags or a callable that takes a cornice
-            service and the method name (e.g GET) and returns a list of Swagger
-            tags to be used if not provided by the view.
-        :param default_op_ids:
-            Provide a callable that takes a cornice service and the method name
-            (e.g GET) and returns an operation Id that should be unique.
-        :param default_security:
-            Provide a default list or a callable that takes a cornice
-            service and the method name (e.g GET) and returns a list of Swagger
-            security policies.
         """
 
         paths = {}
@@ -537,8 +520,6 @@ class CorniceSwagger(object):
             View to extract information from.
         :param args:
             Arguments from the view decorator.
-        :param summary_docstrings:
-            Enable extracting operation summaries from view docstrings.
 
         :rtype: dict
             Operation definition.
@@ -633,8 +614,10 @@ class CorniceSwagger(object):
 
 
 def generate_swagger_spec(services, title, version, **kwargs):
-    """Utility to turn cornice web services into a Swagger-readable file.
-    """
+    """Utility to turn cornice web services into a Swagger-readable file."""
+
+    message = ("`generate_swagger_spec` is deprecated, `CorniceSwagger` class instead")
+    warnings.warn(message, DeprecationWarning)
 
     def get_tags_from_path(service, method):
         return [service.path.split("/")[1]]
