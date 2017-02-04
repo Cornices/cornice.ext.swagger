@@ -326,7 +326,7 @@ class CorniceSwagger(object):
     """Base OpenAPI document that should be merged with the extracted info
     from the generate call."""
 
-    def __init__(self, services=services, def_ref_depth=0, param_ref=False, resp_ref=False):
+    def __init__(self, services=None, def_ref_depth=0, param_ref=False, resp_ref=False):
         """
         :param services:
             List of cornice services to document. You may use
@@ -344,16 +344,18 @@ class CorniceSwagger(object):
             or on the responses section and referenced by JSON pointers.
             Default is inline.
         """
+        super(CorniceSwagger, self).__init__()
 
-        self.services = services
+        if services is not None:
+            self.services = services
 
         # Instantiate handlers
         self.definitions = self.definitions(ref=def_ref_depth)
         self.parameters = self.parameters(self.definitions, ref=param_ref)
         self.responses = self.responses(self.definitions, ref=resp_ref)
 
-    def generate(self, title=api_title, version=api_version, base_path=base_path,
-                 info=swagger['info'], swagger=swagger, **kwargs):
+    def generate(self, title=None, version=None, base_path=None,
+                 info=None, swagger=None, **kwargs):
         """Generate a Swagger 2.0 documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
 
@@ -370,18 +372,20 @@ class CorniceSwagger(object):
 
         :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
         """
+        if title is None:
+            title = self.api_title
+        if version is None:
+            version = self.api_version
+        if info is None:
+            info = self.swagger.get('info', {})
+        if swagger is None:
+            swagger = self.swagger
 
-        info = info.copy()
         swagger = swagger.copy()
         info.update(title=title, version=version)
         swagger.update(swagger='2.0', info=info, basePath=base_path)
 
-        if kwargs:
-            message = ("Passing additional arguments to the `generate` call is "
-                       "deprecated, you should use the matching attributes instead.")
-            warnings.warn(message, DeprecationWarning)
-
-        paths, tags = self._build_paths(**kwargs)
+        paths, tags = self._build_paths()
 
         # Update the provided tags with the extracted ones preserving order
         if tags:
@@ -415,32 +419,33 @@ class CorniceSwagger(object):
 
     def __call__(self, *args, **kwargs):
         """Deprecated alias of `generate`."""
+
+        if kwargs:
+            self.__dict__.update(**kwargs)
+
         message = ("Calling `CorniceSwagger is deprecated, call `generate` instead")
         warnings.warn(message, DeprecationWarning)
         return self.generate(*args, **kwargs)
 
-    def _build_paths(self, ignore_methods=ignore_methods, ignore_ctypes=ignore_ctypes,
-                     default_tags=default_tags, default_op_ids=default_op_ids,
-                     default_security=default_security, **kwargs):
+    def _build_paths(self):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
         definitions.
         """
-
         paths = {}
         tags = []
 
         for service in self.services:
-            path = self._extract_path_from_service(service, **kwargs)
+            path = self._extract_path_from_service(service)
 
             for method, view, args in service.definitions:
 
-                if method.lower() in ignore_methods:
+                if method.lower() in map(str.lower, self.ignore_methods):
                     continue
 
-                op = self._extract_operation_from_view(view, args, **kwargs)
+                op = self._extract_operation_from_view(view, args)
 
-                if any(ctype in op.get('consumes', []) for ctype in ignore_ctypes):
+                if any(ctype in op.get('consumes', []) for ctype in self.ignore_ctypes):
                     continue
 
                 # XXX: Swagger doesn't support different schemas for for a same method
@@ -454,11 +459,11 @@ class CorniceSwagger(object):
                                                    "ignore one."))
 
                 # If tag not defined and a default tag is provided
-                if 'tags' not in op and default_tags:
-                    if callable(default_tags):
-                        op['tags'] = default_tags(service, method)
+                if 'tags' not in op and self.default_tags:
+                    if callable(self.default_tags):
+                        op['tags'] = self.default_tags(service, method)
                     else:
-                        op['tags'] = default_tags
+                        op['tags'] = self.default_tags
 
                 # Check if tags was correctly defined as a list
                 if not isinstance(op.get('tags', []), list):
@@ -471,17 +476,17 @@ class CorniceSwagger(object):
                         tags.append(root_tag)
 
                 # If operation id is not defined and a default generator is provided
-                if 'operationId' not in op and default_op_ids:
-                    if not callable(default_op_ids):
+                if 'operationId' not in op and self.default_op_ids:
+                    if not callable(self.default_op_ids):
                         raise CorniceSwaggerException('default_op_id should be a callable.')
-                    op['operationId'] = default_op_ids(service, method)
+                    op['operationId'] = self.default_op_ids(service, method)
 
                 # If security options not defined and default is provided
-                if 'security' not in op and default_security:
-                    if callable(default_security):
-                        op['security'] = default_security(service, method)
+                if 'security' not in op and self.default_security:
+                    if callable(self.default_security):
+                        op['security'] = self.default_security(service, method)
                     else:
-                        op['security'] = default_security
+                        op['security'] = self.default_security
 
                 if not isinstance(op.get('security', []), list):
                     raise CorniceSwaggerException('security should be a list or callable')
@@ -491,7 +496,7 @@ class CorniceSwagger(object):
 
         return paths, tags
 
-    def _extract_path_from_service(self, service, **kwargs):
+    def _extract_path_from_service(self, service):
         """
         Extract path object and its parameters from service definitions.
 
@@ -511,8 +516,7 @@ class CorniceSwagger(object):
 
         return path
 
-    def _extract_operation_from_view(self, view, args={},
-                                     summary_docstrings=summary_docstrings, **kwargs):
+    def _extract_operation_from_view(self, view, args):
         """
         Extract swagger operation details from colander view definitions.
 
@@ -571,7 +575,7 @@ class CorniceSwagger(object):
         else:
             docstring = trim(view.__doc__)
 
-        if docstring and summary_docstrings:
+        if docstring and self.summary_docstrings:
             op['summary'] = docstring
 
         # Get response definitions
