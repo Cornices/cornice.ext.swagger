@@ -69,6 +69,14 @@ class CorniceSwaggerGeneratorTest(unittest.TestCase):
         validate(spec)
         self.assertIn('responses', spec)
 
+    def test_using_provided_dispatcher_params(self):
+        # todo: improve testing by mocking definitions and ensure that .convert_schema is called
+        default_typ = object()
+        swagger = CorniceSwagger([], custom_type_converters={default_typ: default_typ},
+                                 default_type_converter=default_typ)
+        self.assertIn(default_typ, swagger.definitions.typ_dispatcher.converters)
+        self.assertEqual(default_typ, swagger.definitions.typ_dispatcher.default_converter)
+
     def test_swagger_field_updates_extracted_paths(self):
         swagger = CorniceSwagger([self.service])
         raw_swagger = {

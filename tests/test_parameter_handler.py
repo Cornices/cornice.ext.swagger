@@ -4,11 +4,13 @@ import colander
 
 from cornice.validators import colander_body_validator
 
+from cornice_swagger.converters import TypeConversionDispatcher
+from cornice_swagger.converters.schema import StringTypeConverter
 from cornice_swagger.swagger import ParameterHandler, DefinitionHandler
 from cornice_swagger.converters import convert_schema
 from cornice_swagger.util import body_schema_transformer
-from .support import (BodySchema, PathSchema, QuerySchema, HeaderSchema,
-                      DeclarativeSchema, AnotherDeclarativeSchema)
+from .support import (BodySchema, PathSchema, QuerySchema, HeaderSchema, MyType,
+                      DeclarativeSchema, AnotherDeclarativeSchema, CustomTypeQuerySchema)
 
 
 class SchemaParamConversionTest(unittest.TestCase):
@@ -54,6 +56,45 @@ class SchemaParamConversionTest(unittest.TestCase):
             'type': 'string',
             'required': False,
             'minLength': 3
+        }
+        self.assertDictEqual(params[0], expected)
+
+    def test_covert_query_with_custom_colander_type(self):
+        converters = {MyType: StringTypeConverter}
+        typ_dispatcher = TypeConversionDispatcher(custom_converters=converters)
+        definition_handler = DefinitionHandler(typ_dispatcher=typ_dispatcher)
+
+        class RequestSchema(colander.MappingSchema):
+            querystring = CustomTypeQuerySchema()
+
+        node = RequestSchema()
+        params = ParameterHandler(definition_handler).from_schema(node)
+        self.assertEquals(len(params), 1)
+
+        expected = {
+            'name': 'foo',
+            'in': 'query',
+            'type': 'string',
+            'required': False
+        }
+        self.assertDictEqual(params[0], expected)
+
+    def test_covert_query_with_default_colander_type(self):
+        typ_dispatcher = TypeConversionDispatcher(default_converter=StringTypeConverter)
+        definition_handler = DefinitionHandler(typ_dispatcher=typ_dispatcher)
+
+        class RequestSchema(colander.MappingSchema):
+            querystring = CustomTypeQuerySchema()
+
+        node = RequestSchema()
+        params = ParameterHandler(definition_handler).from_schema(node)
+        self.assertEquals(len(params), 1)
+
+        expected = {
+            'name': 'foo',
+            'in': 'query',
+            'type': 'string',
+            'required': False
         }
         self.assertDictEqual(params[0], expected)
 

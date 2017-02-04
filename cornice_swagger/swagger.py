@@ -6,6 +6,7 @@ import colander
 import six
 
 from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
+from cornice_swagger.converters import TypeConversionDispatcher
 from cornice_swagger.converters import convert_schema, convert_parameter
 
 
@@ -16,7 +17,8 @@ class CorniceSwaggerException(Exception):
 class CorniceSwagger(object):
     """Handles the creation of a swagger document from a cornice application."""
 
-    def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False):
+    def __init__(self, services, def_ref_depth=0, param_ref=False, resp_ref=False,
+                 custom_type_converters=None, default_type_converter=None):
         """
         :param services:
             List of cornice services to document. You may use
@@ -33,11 +35,18 @@ class CorniceSwagger(object):
             Defines if swagger responses should be put inline on the operation
             or on the responses section and referenced by JSON pointers.
             Default is inline.
+        :param custom_type_converters:
+            A dictionary mapping user defined cornice types to callables
+            implementing cornice_swagger.converters.schema.TypeConverter iface
+        :param default_type_converter:
+            Default TypeConverter to use when there is no type registered for a
+            cornice type. If it's not given and the type is not registered,
+            cornice_swagger.converters.exceptions.NoSuchConverter is raised
         """
 
         self.services = services
-
-        self.definitions = DefinitionHandler(ref=def_ref_depth)
+        typ_dispatcher = TypeConversionDispatcher(custom_type_converters, default_type_converter)
+        self.definitions = DefinitionHandler(ref=def_ref_depth, typ_dispatcher=typ_dispatcher)
         self.parameters = ParameterHandler(self.definitions,
                                            ref=param_ref)
         self.responses = ResponseHandler(self.definitions,
@@ -328,7 +337,7 @@ class DefinitionHandler(object):
 
     json_pointer = '#/definitions/'
 
-    def __init__(self, ref=0):
+    def __init__(self, ref=0, typ_dispatcher=TypeConversionDispatcher()):
         """
         :param ref:
             The depth that should be used by self.ref when calling self.from_schema.
@@ -336,6 +345,10 @@ class DefinitionHandler(object):
 
         self.definition_registry = {}
         self.ref = ref
+        self.typ_dispatcher = typ_dispatcher
+
+    def convert_schema(self, schema_node):
+        return convert_schema(schema_node, self.typ_dispatcher)
 
     def from_schema(self, schema_node, base_name=None):
         """
@@ -349,7 +362,7 @@ class DefinitionHandler(object):
         :rtype: dict
             Swagger schema.
         """
-        return self._ref_recursive(convert_schema(schema_node), self.ref, base_name)
+        return self._ref_recursive(self.convert_schema(schema_node), self.ref, base_name)
 
     def _ref_recursive(self, schema, depth, base_name=None):
         """
@@ -534,7 +547,7 @@ class ResponseHandler(object):
                     response['schema'] = self.definitions.from_schema(field_schema)
 
                 elif location in ('header', 'headers'):
-                    header_schema = convert_schema(field_schema)
+                    header_schema = self.definitions.convert_schema(field_schema)
                     headers = header_schema.get('properties')
                     if headers:
                         # Response headers doesn't accept titles
