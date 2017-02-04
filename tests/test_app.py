@@ -32,7 +32,7 @@ class AppTest(unittest.TestCase):
         @api_service.get()
         def api_get(request):
             swagger = CorniceSwagger([service, api_service])
-            return swagger('IceCreamAPI', '4.2')
+            return swagger.generate('IceCreamAPI', '4.2')
 
         self.config = testing.setUp()
         self.config.include('cornice')
