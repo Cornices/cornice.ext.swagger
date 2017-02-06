@@ -372,14 +372,10 @@ class CorniceSwagger(object):
 
         :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
         """
-        if title is None:
-            title = self.api_title
-        if version is None:
-            version = self.api_version
-        if info is None:
-            info = self.swagger.get('info', {})
-        if swagger is None:
-            swagger = self.swagger
+        title = title or self.api_title
+        version = version or self.api_version
+        info = info or self.swagger.get('info', {})
+        swagger = swagger or self.swagger
 
         swagger = swagger.copy()
         info.update(title=title, version=version)
