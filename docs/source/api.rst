@@ -10,8 +10,8 @@ Basic Generator
 .. py:module:: cornice_swagger
 
 .. autoclass:: cornice_swagger.swagger.CorniceSwagger
-.. automethod:: cornice_swagger.swagger.CorniceSwagger.__init__
-.. automethod:: cornice_swagger.swagger.CorniceSwagger.__call__
+    :members:
+    :member-order: bysource
 
 Generator Internals
 ===================

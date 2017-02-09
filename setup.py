@@ -19,6 +19,7 @@ REQUIREMENTS_DEV = [
     'coveralls',
     'flake8',
     'flex',
+    'mock',
     'pyramid',
     'pytest',
     'pytest-cache',

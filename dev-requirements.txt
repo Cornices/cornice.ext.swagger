@@ -10,6 +10,7 @@ flex==6.0.1
 iso8601==0.1.11
 jsonpointer==1.10
 mccabe==0.5.3
+mock==2.0.0
 PasteDeploy==1.5.2
 pluggy==0.4.0
 py==1.4.32

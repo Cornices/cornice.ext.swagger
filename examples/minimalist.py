@@ -61,8 +61,8 @@ swagger = Service(name='OpenAPI',
 
 @swagger.get()
 def openAPI_spec(request):
-    my_generator = CorniceSwagger(get_services())
-    my_spec = my_generator('MyAPI', '1.0.0')
+    doc = CorniceSwagger(get_services())
+    my_spec = doc.generate('MyAPI', '1.0.0')
     return my_spec
 
 

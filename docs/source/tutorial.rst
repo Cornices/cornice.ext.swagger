@@ -359,14 +359,14 @@ of tags or a callable that takes a cornice service and returns a list of tags.
         return [service.path.split('/')[1]]
 
     swagger = CorniceSwagger(get_services())
-    spec = swagger('IceCreamAPI', '4.2',
-                   default_tags=default_tag_callable)
+    swagger.default_tags = default_tag_callable
+    spec = swagger.generate('IceCreamAPI', '4.2')
 
 .. code-block:: python
 
     swagger = CorniceSwagger(get_services())
-    spec = swagger('IceCreamAPI', '4.2',
-                   default_tags=['MyAPI'])
+    swagger.default_tags = ['IceCream']
+    spec = swagger.generate('IceCreamAPI', '4.2')
 
 
 Generating summaries with view docstrings
@@ -387,7 +387,8 @@ the following swagger summary:
         """Returns the value."""
 
     swagger = CorniceSwagger(get_services())
-    spec = swagger('IceCreamAPI', '4.2', summary_docstrings=True)
+    swagger.summary_docstrings = True
+    spec = swagger.generate('IceCreamAPI', '4.2')
 
 
 .. code-block:: json
