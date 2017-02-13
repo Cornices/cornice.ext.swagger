@@ -6,6 +6,7 @@ from cornice.service import Service
 from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
+
 from .support import (GetRequestSchema, PutRequestSchema, response_schemas,
                       BodySchema, HeaderSchema)
 

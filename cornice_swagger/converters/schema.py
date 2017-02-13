@@ -237,26 +237,33 @@ class ArrayTypeConverter(TypeConverter):
 
 class TypeConversionDispatcher(object):
 
-    converters = {
-        colander.Boolean: BooleanTypeConverter,
-        colander.Date: DateTypeConverter,
-        colander.DateTime: DateTimeTypeConverter,
-        colander.Float: NumberTypeConverter,
-        colander.Integer: IntegerTypeConverter,
-        colander.Mapping: ObjectTypeConverter,
-        colander.Sequence: ArrayTypeConverter,
-        colander.String: StringTypeConverter,
-        colander.Time: TimeTypeConverter,
-    }
+    def __init__(self, custom_converters={}, default_converter=None):
+
+        self.converters = {
+            colander.Boolean: BooleanTypeConverter,
+            colander.Date: DateTypeConverter,
+            colander.DateTime: DateTimeTypeConverter,
+            colander.Float: NumberTypeConverter,
+            colander.Integer: IntegerTypeConverter,
+            colander.Mapping: ObjectTypeConverter,
+            colander.Sequence: ArrayTypeConverter,
+            colander.String: StringTypeConverter,
+            colander.Time: TimeTypeConverter,
+        }
+
+        self.converters.update(custom_converters)
+        self.default_converter = default_converter
 
     def __call__(self, schema_node):
-
         schema_type = schema_node.typ
         schema_type = type(schema_type)
 
         converter_class = self.converters.get(schema_type)
         if converter_class is None:
-            raise NoSuchConverter
+            if self.default_converter:
+                converter_class = self.default_converter
+            else:
+                raise NoSuchConverter
 
         converter = converter_class(self)
         converted = converter(schema_node)
