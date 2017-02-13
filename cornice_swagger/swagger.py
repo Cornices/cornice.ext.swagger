@@ -612,21 +612,3 @@ class CorniceSwagger(object):
         for transformer in self.schema_transformers:
             schema = transformer(schema, args)
         return schema
-
-
-def generate_swagger_spec(services, title, version, **kwargs):
-    """Utility to turn cornice web services into a Swagger-readable file."""
-
-    message = ("`generate_swagger_spec` is deprecated, `CorniceSwagger` class instead")
-    warnings.warn(message, DeprecationWarning)
-
-    def get_tags_from_path(service, method):
-        return [service.path.split("/")[1]]
-
-    swag = CorniceSwagger(services, def_ref_depth=-1, param_ref=0)
-    doc = swag(title, version, ignores=('head'),
-               default_tags=get_tags_from_path,
-               summary_docstrings=True, **kwargs)
-    doc.update(**kwargs)
-
-    return doc
