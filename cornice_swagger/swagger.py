@@ -416,9 +416,7 @@ class CorniceSwagger(object):
 
     def __call__(self, *args, **kwargs):
         """Deprecated alias of `generate`."""
-
-        if kwargs:
-            self.__dict__.update(**kwargs)
+        self.__dict__.update(**kwargs)
 
         message = ("Calling `CorniceSwagger is deprecated, call `generate` instead")
         warnings.warn(message, DeprecationWarning)
