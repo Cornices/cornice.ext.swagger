@@ -376,6 +376,7 @@ class CorniceSwagger(object):
         version = version or self.api_version
         info = info or self.swagger.get('info', {})
         swagger = swagger or self.swagger
+        base_path = base_path or self.base_path
 
         swagger = swagger.copy()
         info.update(title=title, version=version)
