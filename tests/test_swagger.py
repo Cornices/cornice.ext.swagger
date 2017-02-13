@@ -56,6 +56,20 @@ class CorniceSwaggerGeneratorTest(unittest.TestCase):
         summary = self.spec['paths']['/icecream/{flavour}']['get']['summary']
         self.assertEquals(summary, 'Serve ice cream')
 
+    def test_summary_docstrings_with_klass(self):
+        class TemperatureCooler(object):
+            def put_view(self):
+                """Put it."""
+                pass
+
+        service = Service(
+            "TemperatureCooler", "/freshair", klass=TemperatureCooler)
+        service.add_view("put", "put_view")
+        CorniceSwagger.services = [service]
+        self.swagger = CorniceSwagger()
+        self.spec = self.swagger.generate()
+        validate(self.spec)
+
     def test_with_schema_ref(self):
         swagger = CorniceSwagger([self.service], def_ref_depth=1)
         spec = swagger.generate()

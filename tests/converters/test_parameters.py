@@ -82,6 +82,17 @@ class ParameterConversionTest(unittest.TestCase):
             'schema': convert_schema(MyBody(title='MyBody')),
         })
 
+    def test_supports_description(self):
+        node = colander.SchemaNode(colander.String(), name='bar', description='tyred')
+        ret = convert_parameter('querystring', node)
+        self.assertDictEqual(ret, {
+            'in': 'query',
+            'name': 'bar',
+            'type': 'string',
+            'required': True,
+            'description': 'tyred',
+        })
+
     def test_raise_no_such_converter_on_invalid_location(self):
         node = colander.SchemaNode(colander.String(), name='foo')
         self.assertRaises(NoSuchConverter, convert_parameter, 'aaa', node)
