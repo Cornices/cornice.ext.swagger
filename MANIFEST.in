@@ -1,6 +1,6 @@
+include .coveragerc
 include *.rst
 include *.txt
-include .coveragerc
 include LICENSE
 include Makefile
 include tox.ini
