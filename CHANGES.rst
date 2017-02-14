@@ -1,11 +1,20 @@
 CHANGES
 =======
 
-0.5.0 (unreleased)
+0.5.0 (2017-02-14)
 ------------------
 
-- Nothing changed yet.
+**Api**
 
+- Allow implementing a custom generator by subclassing the ``CorniceSwagger`` class (#63).
+- Introduced a new method ``CorniceSwagger.generate`` to generate the spec (#63).
+- Deprecated ``CorniceSwagger`` call method. You should now use ``generate`` (#63).
+- Removed deprecated ``generate_swagger_spec`` call. (#64).
+- Allow defining custom type converters on the ``CorniceSwagger`` class. (#65)
+
+**Internals**
+
+- Fixed coveralls repeated messages on PRs. (#62).
 
 0.4.0 (2017-01-25)
 ------------------
