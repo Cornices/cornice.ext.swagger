@@ -1,8 +1,12 @@
 import unittest
 import colander
 
+
 from cornice_swagger.converters import convert_schema as convert
+from cornice_swagger.converters import TypeConversionDispatcher
 from cornice_swagger.converters.exceptions import NoSuchConverter
+
+from ..support import AnyType, AnyTypeConverter
 
 
 class ConversionTest(unittest.TestCase):
@@ -20,6 +24,19 @@ class ConversionTest(unittest.TestCase):
             'maxLength': 42,
             'minLength': 12,
         })
+
+    def test_support_custom_converters(self):
+        node = colander.SchemaNode(AnyType())
+        custom_converters = {AnyType: AnyTypeConverter}
+        converter = TypeConversionDispatcher(custom_converters)
+        ret = converter(node)
+        self.assertEquals(ret, {})
+
+    def test_support_default_converter(self):
+        node = colander.SchemaNode(AnyType())
+        converter = TypeConversionDispatcher(default_converter=AnyTypeConverter)
+        ret = converter(node)
+        self.assertEquals(ret, {})
 
     def test_raise_no_such_converter_on_invalid_type(self):
         node = colander.SchemaNode(dict)

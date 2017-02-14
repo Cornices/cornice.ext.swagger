@@ -1,5 +1,7 @@
 import colander
 
+from cornice_swagger.converters.schema import TypeConverter
+
 
 class MyNestedSchema(colander.MappingSchema):
     my_precious = colander.SchemaNode(colander.Boolean())
@@ -55,3 +57,14 @@ class AnotherDeclarativeSchema(colander.MappingSchema):
     @colander.instantiate(description='my another body')
     class body(colander.MappingSchema):
         timestamp = colander.SchemaNode(colander.Int())
+
+
+class AnyType(colander.SchemaType):
+    """A simple custom colander type."""
+    def deserialize(self, cstruct=colander.null):
+        return cstruct
+
+
+class AnyTypeConverter(TypeConverter):
+    def __call__(self, schema_node):
+        return {}

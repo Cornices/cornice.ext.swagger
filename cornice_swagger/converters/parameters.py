@@ -24,7 +24,7 @@ class ParameterConverter(object):
 
         schema = definition_handler(schema_node)
         # Parameters shouldn't have a title
-        schema.pop('title')
+        schema.pop('title', None)
         converted.update(schema)
 
         if schema.get('type') == 'array':

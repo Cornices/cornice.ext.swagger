@@ -1,13 +1,13 @@
 """Cornice Swagger 2.0 documentor"""
 import re
-from functools import partial
 import warnings
 
 import colander
 import six
 
 from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
-from cornice_swagger.converters import convert_schema, convert_parameter
+from cornice_swagger.converters import (TypeConversionDispatcher as TypeConverter,
+                                        ParameterConversionDispatcher as ParameterConverter)
 
 
 class CorniceSwaggerException(Exception):
@@ -19,7 +19,7 @@ class DefinitionHandler(object):
 
     json_pointer = '#/definitions/'
 
-    def __init__(self, ref=0):
+    def __init__(self, ref=0, type_converter=TypeConverter()):
         """
         :param ref:
             The depth that should be used by self.ref when calling self.from_schema.
@@ -27,6 +27,7 @@ class DefinitionHandler(object):
 
         self.definition_registry = {}
         self.ref = ref
+        self.type_converter = type_converter
 
     def from_schema(self, schema_node, base_name=None):
         """
@@ -40,7 +41,7 @@ class DefinitionHandler(object):
         :rtype: dict
             Swagger schema.
         """
-        return self._ref_recursive(convert_schema(schema_node), self.ref, base_name)
+        return self._ref_recursive(self.type_converter(schema_node), self.ref, base_name)
 
     def _ref_recursive(self, schema, depth, base_name=None):
         """
@@ -84,7 +85,9 @@ class ParameterHandler(object):
 
     json_pointer = '#/parameters/'
 
-    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
+    def __init__(self, definition_handler=DefinitionHandler(), ref=False,
+                 type_converter=TypeConverter(),
+                 parameter_converter=ParameterConverter(TypeConverter())):
         """
         :param definition_handler:
             Callable that handles swagger definition schemas.
@@ -94,6 +97,8 @@ class ParameterHandler(object):
 
         self.parameter_registry = {}
 
+        self.type_converter = type_converter
+        self.parameter_converter = parameter_converter
         self.definitions = definition_handler
         self.ref = ref
 
@@ -117,9 +122,8 @@ class ParameterHandler(object):
                 name = param_schema.__class__.__name__
                 if name == 'body':
                     name = schema_node.__class__.__name__ + 'Body'
-                param = convert_parameter(location,
-                                          param_schema,
-                                          partial(self.definitions.from_schema, base_name=name))
+                param = self.parameter_converter(location,
+                                                 param_schema)
                 param['name'] = name
                 if self.ref:
                     param = self._ref(param)
@@ -127,9 +131,7 @@ class ParameterHandler(object):
 
             elif location in (('path', 'header', 'headers', 'querystring', 'GET')):
                 for node_schema in param_schema.children:
-                    param = convert_parameter(location,
-                                              node_schema,
-                                              self.definitions.from_schema)
+                    param = self.parameter_converter(location, node_schema)
                     if self.ref:
                         param = self._ref(param)
                     params.append(param)
@@ -148,7 +150,7 @@ class ParameterHandler(object):
         params = []
         for name in param_names:
             param_schema = colander.SchemaNode(colander.String(), name=name)
-            param = convert_parameter('path', param_schema)
+            param = self.parameter_converter('path', param_schema)
             if self.ref:
                 param = self._ref(param)
             params.append(param)
@@ -181,7 +183,8 @@ class ResponseHandler(object):
 
     json_pointer = '#/responses/'
 
-    def __init__(self, definition_handler=DefinitionHandler(), ref=False):
+    def __init__(self, definition_handler=DefinitionHandler(),
+                 type_converter=TypeConverter(), ref=False):
         """
         :param definition_handler:
             Callable that handles swagger definition schemas.
@@ -191,6 +194,7 @@ class ResponseHandler(object):
 
         self.response_registry = {}
 
+        self.type_converter = type_converter
         self.definitions = definition_handler
         self.ref = ref
 
@@ -225,7 +229,7 @@ class ResponseHandler(object):
                     response['schema'] = self.definitions.from_schema(field_schema)
 
                 elif location in ('header', 'headers'):
-                    header_schema = convert_schema(field_schema)
+                    header_schema = self.type_converter(field_schema)
                     headers = header_schema.get('properties')
                     if headers:
                         # Response headers doesn't accept titles
@@ -285,6 +289,23 @@ class CorniceSwagger(object):
     """List of request schema transformers that should be applied to a request
     schema to make it comply with a cornice default request schema."""
 
+    type_converter = TypeConverter
+    """Default :class:`cornice_swagger.converters.schema.TypeConversionDispatcher`
+    class used for converting colander schema Types to Swagger Types."""
+
+    parameter_converter = ParameterConverter
+    """Default :class:`cornice_swagger.converters.parameters.ParameterConversionDispatcher`
+    class used for converting colander/cornice request schemas to Swagger Parameters."""
+
+    custom_type_converters = {}
+    """Mapping for supporting custom types conversion on the default TypeConverter.
+    Should map `colander.TypeSchema` to `cornice_swagger.converters.schema.TypeConverter`
+    callables."""
+
+    default_type_converter = None
+    """Supplies a default type converter matching the interface of
+    `cornice_swagger.converters.schema.TypeConverter` to be used with unknown types."""
+
     default_tags = None
     """Provide a default list of tags or a callable that takes a cornice
     service and the method name (e.g GET) and returns a list of Swagger
@@ -292,12 +313,12 @@ class CorniceSwagger(object):
 
     default_op_ids = None
     """Provide a callable that takes a cornice service and the method name
-    (e.g GET) and returns an operation Id that is used if an operation Id is
+    (e.g. GET) and returns an operation Id that is used if an operation Id is
     not provided. Each operation Id should be unique."""
 
     default_security = None
     """Provide a default list or a callable that takes a cornice service and
-    the method name (e.g GET) and returns a list of OpenAPI security policies."""
+    the method name (e.g. GET) and returns a list of OpenAPI security policies."""
 
     summary_docstrings = False
     """Enable extracting operation summaries from view docstrings."""
@@ -346,13 +367,21 @@ class CorniceSwagger(object):
         """
         super(CorniceSwagger, self).__init__()
 
+        type_converter = self.type_converter(self.custom_type_converters,
+                                             self.default_type_converter)
+        parameter_converter = self.parameter_converter(type_converter)
+
         if services is not None:
             self.services = services
 
         # Instantiate handlers
-        self.definitions = self.definitions(ref=def_ref_depth)
-        self.parameters = self.parameters(self.definitions, ref=param_ref)
-        self.responses = self.responses(self.definitions, ref=resp_ref)
+        self.definitions = self.definitions(ref=def_ref_depth,
+                                            type_converter=type_converter)
+        self.parameters = self.parameters(self.definitions, ref=param_ref,
+                                          type_converter=type_converter,
+                                          parameter_converter=parameter_converter)
+        self.responses = self.responses(self.definitions, ref=resp_ref,
+                                        type_converter=type_converter)
 
     def generate(self, title=None, version=None, base_path=None,
                  info=None, swagger=None, **kwargs):
