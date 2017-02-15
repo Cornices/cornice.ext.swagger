@@ -17,15 +17,13 @@
         VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Cornice Swagger 0.3.0 documentation" href="index.html" />
     <link rel="next" title="Cornice Swagger API" href="api.html" />
     <link rel="prev" title="Quickstart" href="quickstart.html" /> 
   </head>
@@ -375,13 +373,13 @@ of tags or a callable that takes a cornice service and returns a list of tags.</
     <span class="k">return</span> <span class="p">[</span><span class="n">service</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
 
 <span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span>
-               <span class="n">default_tags</span><span class="o">=</span><span class="n">default_tag_callable</span><span class="p">)</span>
+<span class="n">swagger</span><span class="o">.</span><span class="n">default_tags</span> <span class="o">=</span> <span class="n">default_tag_callable</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span>
-               <span class="n">default_tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">])</span>
+<span class="n">swagger</span><span class="o">.</span><span class="n">default_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IceCream&#39;</span><span class="p">]</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -399,7 +397,8 @@ the following swagger summary:</p>
     <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
 
 <span class="n">swagger</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">,</span> <span class="n">summary_docstrings</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">swagger</span><span class="o">.</span><span class="n">summary_docstrings</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">swagger</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="s1">&#39;IceCreamAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;4.2&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -426,7 +425,7 @@ the following swagger summary:</p>
  
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016-2017, Josip Delic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div> <script src="//www.mozilla.org/tabzilla/media/js/tabzilla.js"></script> 
   </body>
 </html>

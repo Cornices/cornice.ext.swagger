@@ -17,15 +17,13 @@
         VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Cornice Swagger 0.3.0 documentation" href="index.html" />
     <link rel="next" title="Full Tutorial" href="tutorial.html" />
     <link rel="prev" title="Cornice Swagger" href="index.html" /> 
   </head>
@@ -87,7 +85,7 @@ Pyramid configurator after including cornice:</p>
 </pre></div>
 </div>
 <p>You can than create your OpenAPI/Swagger JSON using:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cornice_swagger.swagger</span> <span class="k">import</span> <span class="n">CorniceSwagger</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cornice_swagger</span> <span class="k">import</span> <span class="n">CorniceSwagger</span>
 <span class="kn">from</span> <span class="nn">cornice.service</span> <span class="k">import</span> <span class="n">get_services</span>
 
 <span class="n">my_generator</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
@@ -114,7 +112,7 @@ $ bower install
 <span class="kn">from</span> <span class="nn">cornice.validators</span> <span class="kn">import</span> <span class="n">colander_body_validator</span>
 <span class="kn">from</span> <span class="nn">wsgiref.simple_server</span> <span class="kn">import</span> <span class="n">make_server</span>
 <span class="kn">from</span> <span class="nn">pyramid.config</span> <span class="kn">import</span> <span class="n">Configurator</span>
-<span class="kn">from</span> <span class="nn">cornice_swagger.swagger</span> <span class="kn">import</span> <span class="n">CorniceSwagger</span>
+<span class="kn">from</span> <span class="nn">cornice_swagger</span> <span class="kn">import</span> <span class="n">CorniceSwagger</span>
 
 
 <span class="n">_VALUES</span> <span class="o">=</span> <span class="p">{}</span>
@@ -122,7 +120,7 @@ $ bower install
 
 <span class="c1"># Create a simple service that will store and retrieve values</span>
 <span class="n">values</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span>
-                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{value}&#39;</span><span class="p">,</span>
+                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/values/{key}&#39;</span><span class="p">,</span>
                  <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Cornice Demo&quot;</span><span class="p">)</span>
 
 
@@ -150,17 +148,17 @@ $ bower install
     <span class="nd">@values.get</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the value.&quot;&quot;&quot;</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">_VALUES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)}</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_VALUES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
     <span class="nd">@values.put</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">validators</span><span class="o">=</span><span class="p">(</span><span class="n">colander_body_validator</span><span class="p">,</span> <span class="p">),</span>
                 <span class="n">schema</span><span class="o">=</span><span class="n">BodySchema</span><span class="p">(),</span> <span class="n">response_schemas</span><span class="o">=</span><span class="n">response_schemas</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the value and returns *True* or *False*.&quot;&quot;&quot;</span>
 
-        <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>
         <span class="n">_VALUES</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">json_body</span>
-        <span class="k">return</span> <span class="n">_VALUES</span><span class="o">.</span><span class="n">get</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_VALUES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
 
 <span class="c1"># Create a service to serve our OpenAPI spec</span>
@@ -171,8 +169,8 @@ $ bower install
 
 <span class="nd">@swagger.get</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">openAPI_spec</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    <span class="n">my_generator</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
-    <span class="n">my_spec</span> <span class="o">=</span> <span class="n">my_generator</span><span class="p">(</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">CorniceSwagger</span><span class="p">(</span><span class="n">get_services</span><span class="p">())</span>
+    <span class="n">my_spec</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="s1">&#39;MyAPI&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">my_spec</span>
 
 
@@ -186,7 +184,7 @@ $ bower install
     <span class="k">return</span> <span class="n">app</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">setup</span><span class="p">()</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">make_server</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">8000</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
     <span class="n">server</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
@@ -206,7 +204,7 @@ $ bower install
         <span class="p">}</span>
     <span class="p">]</span>
     <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;/values/{value}&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;/values/{key}&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">{</span>
                     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span>
@@ -321,7 +319,7 @@ $ bower install
  
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016-2017, Josip Delic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div> <script src="//www.mozilla.org/tabzilla/media/js/tabzilla.js"></script> 
   </body>
 </html>
