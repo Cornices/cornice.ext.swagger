@@ -159,6 +159,16 @@ class PathParamConversionTest(unittest.TestCase):
         for param in params:
             self.assertEquals(param['in'], 'path')
 
+    def test_handles_path_regex(self):
+        params = self.handler.from_path('/my/{param:\\d+}/path/{id:[a-z]{8,42}}')
+        names = [param['name'] for param in params]
+        expected = ['param', 'id']
+        self.assertEqual(sorted(names), sorted(expected))
+
+    def test_handles_subpaths(self):
+        params = self.handler.from_path('/{**subpath}/path')
+        self.assertEqual(params[0]['name'], 'subpath')
+
 
 class RefParamTest(unittest.TestCase):
 

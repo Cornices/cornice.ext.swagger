@@ -36,6 +36,30 @@ class ParameterConverter(object):
 class PathParameterConverter(ParameterConverter):
     _in = 'path'
 
+    def convert(self, schema_node, definition_handler):
+        converted = super(PathParameterConverter, self).convert(schema_node,
+                                                                definition_handler)
+        name = converted['name']
+        pattern = None
+
+        # Extract regex pattern from name
+        template = name.split(':', 1)
+        name = template[0]
+        if len(template) == 2:
+            pattern = template[1]
+
+        # handle traverse and subpath
+        # docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html
+        for subpath_marker in ('*subpath', '*traverse'):
+            if name.find(subpath_marker) > 0:
+                name = subpath_marker[1:]
+
+        converted['name'] = name
+        if pattern:
+            converted['pattern'] = pattern
+
+        return converted
+
 
 class QueryParameterConverter(ParameterConverter):
     _in = 'query'

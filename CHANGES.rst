@@ -4,7 +4,9 @@ CHANGES
 0.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Pyramid compliance**
+
+- Support subpaths and regex when parsing paths (#68).
 
 
 0.5.0 (2017-02-14)

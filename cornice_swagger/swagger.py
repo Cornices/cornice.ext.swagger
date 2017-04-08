@@ -1,5 +1,4 @@
 """Cornice Swagger 2.0 documentor"""
-import re
 import warnings
 
 import colander
@@ -145,8 +144,10 @@ class ParameterHandler(object):
         :type path: string
         :rtype: list
         """
+        path_components = path.split('/')
+        param_names = [comp[1:-1] for comp in path_components
+                       if comp.startswith('{') and comp.endswith('}')]
 
-        param_names = re.findall('\{(.*?)\}', path)
         params = []
         for name in param_names:
             param_schema = colander.SchemaNode(colander.String(), name=name)
