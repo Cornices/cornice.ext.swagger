@@ -148,6 +148,12 @@ class ParameterHandler(object):
         param_names = [comp[1:-1] for comp in path_components
                        if comp.startswith('{') and comp.endswith('}')]
 
+        # handle traverse and subpath
+        # docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html
+        for subpath_marker in ('*subpath', '*traverse'):
+            if subpath_marker in path:
+                param_names.append(subpath_marker[1:])
+
         params = []
         for name in param_names:
             param_schema = colander.SchemaNode(colander.String(), name=name)
