@@ -167,10 +167,6 @@ class PathParamConversionTest(unittest.TestCase):
         self.assertEqual(named_params['param']['pattern'], '\\d+')
         self.assertEqual(named_params['id']['pattern'], '[a-z]{8,42}')
 
-    def test_handles_subpaths(self):
-        params = self.handler.from_path('/path/**subpath')
-        self.assertEqual(params[0]['name'], 'subpath')
-
 
 class RefParamTest(unittest.TestCase):
 

@@ -148,12 +148,6 @@ class ParameterHandler(object):
         param_names = [comp[1:-1] for comp in path_components
                        if comp.startswith('{') and comp.endswith('}')]
 
-        # handle traverse and subpath
-        # docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html
-        for subpath_marker in ('*subpath', '*traverse'):
-            if subpath_marker in path:
-                param_names.append(subpath_marker[1:])
-
         params = []
         for name in param_names:
             param_schema = colander.SchemaNode(colander.String(), name=name)
@@ -467,7 +461,7 @@ class CorniceSwagger(object):
         tags = []
 
         for service in self.services:
-            path = self._extract_path_from_service(service)
+            path, path_obj = self._extract_path_from_service(service)
 
             for method, view, args in service.definitions:
 
@@ -483,7 +477,7 @@ class CorniceSwagger(object):
                 # with different ctypes as cornice. If this happens, you may ignore one
                 # content-type from the documentation otherwise we raise an Exception
                 # Related to https://github.com/OAI/OpenAPI-Specification/issues/146
-                previous_definition = path.get(method.lower())
+                previous_definition = path_obj.get(method.lower())
                 if previous_definition:
                     raise CorniceSwaggerException(("Swagger doesn't support multiple "
                                                    "views for a same method. You may "
@@ -522,8 +516,8 @@ class CorniceSwagger(object):
                 if not isinstance(op.get('security', []), list):
                     raise CorniceSwaggerException('security should be a list or callable')
 
-                path[method.lower()] = op
-            paths[service.path] = path
+                path_obj[method.lower()] = op
+            paths[path] = path_obj
 
         return paths, tags
 
@@ -538,14 +532,20 @@ class CorniceSwagger(object):
             Path definition.
         """
 
-        path = {}
+        path_obj = {}
+        path = service.path
+
+        # handle traverse and subpath as regular parameters
+        # docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html
+        for subpath_marker in ('*subpath', '*traverse'):
+            path = path.replace(subpath_marker, '{subpath}')
 
         # Extract path parameters
-        parameters = self.parameters.from_path(service.path)
+        parameters = self.parameters.from_path(path)
         if parameters:
-            path['parameters'] = parameters
+            path_obj['parameters'] = parameters
 
-        return path
+        return path, path_obj
 
     def _extract_operation_from_view(self, view, args):
         """

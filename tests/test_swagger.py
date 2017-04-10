@@ -241,6 +241,27 @@ class ExtractContentTypesTest(unittest.TestCase):
         self.assertRaises(CorniceSwaggerException, swagger.generate)
 
 
+class ExtractPathTest(unittest.TestCase):
+
+    def test_handles_subpaths_as_parameters(self):
+        service = Service("IceCream", "/icecream/*subpath")
+
+        class IceCream(object):
+            @service.get()
+            def view_get(self, request):
+                return self.request
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        expected = {
+            'name': 'subpath',
+            'required': True,
+            'type': 'string',
+            'in': 'path'
+        }
+        self.assertDictEqual(spec['paths']['/icecream/{subpath}']['parameters'][0], expected)
+
+
 class ExtractTransformSchemaTest(unittest.TestCase):
     def setUp(self):
         self.service = Service("IceCream", "/icecream/{flavour}")
