@@ -4,7 +4,14 @@ CHANGES
 0.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Pyramid compliance**
+
+- Support subpaths and regex when parsing paths (#68).
+
+**Api**
+
+- ``_extract_path_from_service``, now returns the path name along with the path
+  swagger object (#68).
 
 
 0.5.0 (2017-02-14)

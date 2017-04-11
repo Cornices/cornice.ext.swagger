@@ -36,6 +36,17 @@ class ParameterConverter(object):
 class PathParameterConverter(ParameterConverter):
     _in = 'path'
 
+    def convert(self, schema_node, definition_handler):
+        converted = super(PathParameterConverter, self).convert(schema_node,
+                                                                definition_handler)
+        # Extract regex pattern from name
+        template = converted['name'].split(':', 1)
+        if len(template) == 2:
+            converted['name'] = template[0]
+            converted['pattern'] = template[1]
+
+        return converted
+
 
 class QueryParameterConverter(ParameterConverter):
     _in = 'query'
