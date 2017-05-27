@@ -152,6 +152,49 @@ the parameters locations as follows:
                 schema=PutRequestSchema())
     def set_value(request):
         """Set the value and returns *True* or *False*."""
+        pass
+
+
+When using custom validators, you can pass a method that transforms your custom schema
+into a regular Cornice schema that can be validated with ``colander_validator``, so
+Cornice Swagger knows how to convert it to swagger parameters.
+
+.. code-block:: python
+
+    from cornice.validators import colander_body_validator
+
+    MY_IDS = [1, 2, 42]
+
+    def my_custom_validator(request, **kwargs):
+
+        schema = kwargs.get('schema')
+
+        # Peforms random additional validation
+        if schema and schema['id'] not in MY_IDS:
+            request.errors.add("body", "id", "Invalid id.")
+
+        return colander_body_validator(request, **kwargs)
+
+    @values.put(validators=(my_custom_validator, ),
+                schema=PutRequestSchema())
+    def set_value(request):
+        pass
+
+
+.. code-block:: python
+
+    from cornice.service import get_services
+    from cornice_swagger import CorniceSwagger
+    from cornice_swagger.utils import body_schema_converter
+
+    def my_custom_schema_converter(schema, args):
+        validators = args.get('validators', [])
+        if my_custom_validator in validators:
+            return body_schema_converter(schema, args)
+
+    swagger = CorniceSwagger(get_services())
+    swagger.schema_transformers.append(my_custom_schema_converter)
+    print(swagger.generate())
 
 
 Extracting produced types from renderers
@@ -363,6 +406,9 @@ of tags or a callable that takes a cornice service and returns a list of tags.
     spec = swagger.generate('IceCreamAPI', '4.2')
 
 .. code-block:: python
+
+    from cornice.service import get_services
+    from cornice_swagger import CorniceSwagger
 
     swagger = CorniceSwagger(get_services())
     swagger.default_tags = ['IceCream']
