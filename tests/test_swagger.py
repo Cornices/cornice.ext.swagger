@@ -355,6 +355,21 @@ class ExtractTransformSchemaTest(unittest.TestCase):
 
 class ExtractTagsTest(unittest.TestCase):
 
+    def test_service_defined_tags(self):
+
+        service = Service("IceCream", "/icecream/{flavour}", tags=['yum'])
+
+        class IceCream(object):
+            @service.get()
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        validate(spec)
+        tags = spec['paths']['/icecream/{flavour}']['get']['tags']
+        self.assertEquals(tags, ['yum'])
+
     def test_view_defined_tags(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
@@ -369,6 +384,21 @@ class ExtractTagsTest(unittest.TestCase):
         validate(spec)
         tags = spec['paths']['/icecream/{flavour}']['get']['tags']
         self.assertEquals(tags, ['cold', 'foo'])
+
+    def test_both_defined_tags(self):
+
+        service = Service("IceCream", "/icecream/{flavour}", tags=['yum'])
+
+        class IceCream(object):
+            @service.get(tags=['cold', 'foo'])
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        validate(spec)
+        tags = spec['paths']['/icecream/{flavour}']['get']['tags']
+        self.assertEquals(tags, ['yum', 'cold', 'foo'])
 
     def test_listed_default_tags(self):
 

@@ -1,6 +1,7 @@
 """Cornice Swagger 2.0 documentor"""
 import inspect
 import warnings
+from collections import OrderedDict
 
 
 import colander
@@ -463,6 +464,20 @@ class CorniceSwagger(object):
         warnings.warn(message, DeprecationWarning)
         return self.generate(*args, **kwargs)
 
+    def _check_tags(self, tags):
+        """Check if tags was correctly defined as a list"""
+        if not isinstance(tags, list):
+            raise CorniceSwaggerException('tags should be a list or callable')
+
+    def _get_tags(self, current_tags, new_tags):
+        tags = list(current_tags)
+        tag_names = [t['name'] for t in tags]
+        for tag in new_tags:
+            if tag not in tag_names:
+                root_tag = {'name': tag}
+                tags.append(root_tag)
+        return tags
+
     def _build_paths(self):
         """
         Build the Swagger "paths" and "tags" attributes from cornice service
@@ -473,6 +488,10 @@ class CorniceSwagger(object):
 
         for service in self.services:
             path, path_obj = self._extract_path_from_service(service)
+
+            service_tags = getattr(service, 'tags', [])
+            self._check_tags(service_tags)
+            tags = self._get_tags(tags, service_tags)
 
             for method, view, args in service.definitions:
 
@@ -501,15 +520,15 @@ class CorniceSwagger(object):
                     else:
                         op['tags'] = self.default_tags
 
-                # Check if tags was correctly defined as a list
-                if not isinstance(op.get('tags', []), list):
-                    raise CorniceSwaggerException('tags should be a list or callable')
+                self._check_tags(op.get('tags', []))
+
+                # Add service tags
+                if service_tags:
+                    new_tags = service_tags + op.get('tags', [])
+                    op['tags'] = list(OrderedDict.fromkeys(new_tags))
 
                 # Add method tags to root tags
-                for tag in op.get('tags', []):
-                    if tag not in [t['name'] for t in tags]:
-                        root_tag = {'name': tag}
-                        tags.append(root_tag)
+                tags = self._get_tags(tags, op.get('tags', []))
 
                 # If operation id is not defined and a default generator is provided
                 if 'operationId' not in op and self.default_op_ids:
