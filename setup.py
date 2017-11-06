@@ -37,7 +37,6 @@ setup(
     long_description=README + "\n\n" + CHANGES,
     license="Apache License (2.0)",
     classifiers=[
-        "Programming Language :: Python",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
