@@ -1,10 +1,12 @@
 CHANGES
 =======
 
-0.5.2 (unreleased)
+0.5.2 (2017-11-07)
 ------------------
 
-- Nothing changed yet.
+**Internals**
+
+- Add classifiers to the Python package.
 
 
 0.5.1 (2017-04-10)
