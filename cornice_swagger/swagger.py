@@ -585,15 +585,14 @@ class CorniceSwagger(object):
         # Get explicit accepted content-types
         consumes = args.get('content_type')
 
-        # convert to a list, if it's not yet one
-        consumes = to_list(consumes)
+        if consumes is not None:
+            # convert to a list, if it's not yet one
+            consumes = to_list(consumes)
 
-        # It is possible to add callables for ``content_type``.
-        # We have to filter those out because these are evaluated at
-        # request time.
-
-        consumes = [x for x in consumes if not callable(x)]
-        op['consumes'] = consumes
+            # It is possible to add callables for content_type, so we have to
+            # to filter those out, since we cannot evaluate those here.
+            consumes = [x for x in consumes if not callable(x)]
+            op['consumes'] = consumes
 
         # Get parameters from view schema
         schema = self._extract_transform_schema(args)

@@ -171,6 +171,19 @@ class ExtractContentTypesTest(unittest.TestCase):
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
                           ['application/json'])
 
+    def test_no_ctype_no_list_with_none(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.put()
+            def view_put(self, request):
+                return self.request.validated
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        self.assertNotIn('consumes', spec['paths']['/icecream/{flavour}']['put'])
+
     def test_multiple_ctypes(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
