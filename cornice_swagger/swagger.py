@@ -2,6 +2,7 @@
 import warnings
 
 import colander
+from cornice.util import to_list
 import six
 
 from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
@@ -584,12 +585,15 @@ class CorniceSwagger(object):
         # Get explicit accepted content-types
         consumes = args.get('content_type')
 
-        # A single content-type is provided, so wrap it in a list
-        if isinstance(consumes, six.string_types):
-            consumes = [consumes]
+        # convert to a list, if it's not yet one
+        consumes = to_list(consumes)
 
-        if consumes:
-            op['consumes'] = list(consumes)
+        # It is possible to add callables for ``content_type``.
+        # We have to filter those out because these are evaluated at
+        # request time.
+
+        consumes = [x for x in consumes if not callable(x)]
+        op['consumes'] = consumes
 
         # Get parameters from view schema
         schema = self._extract_transform_schema(args)

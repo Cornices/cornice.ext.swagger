@@ -4,7 +4,10 @@ CHANGES
 0.5.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Pyramid compliance**
+
+- Handle callables for ``cornice.service.Service.content_type`` argument.
+  For more details, see: http://cornice.readthedocs.io/en/latest/api.html#cornice.service.Service.
 
 
 0.5.2 (2017-11-07)
