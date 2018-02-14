@@ -171,6 +171,19 @@ class ExtractContentTypesTest(unittest.TestCase):
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
                           ['application/json'])
 
+    def test_no_ctype_no_list_with_none(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.put()
+            def view_put(self, request):
+                return self.request.validated
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        self.assertNotIn('consumes', spec['paths']['/icecream/{flavour}']['put'])
+
     def test_multiple_ctypes(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
@@ -184,6 +197,49 @@ class ExtractContentTypesTest(unittest.TestCase):
         spec = swagger.generate()
         self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
                           ['application/json', 'text/xml'])
+
+    def test_single_ctype_callable(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        def my_ctype_callable(request):
+            return 'application/octet-stream'
+
+        class IceCream(object):
+            @service.put(content_type=my_ctype_callable)
+            def view_put(self, request):
+                return self.request.validated
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
+                          [])
+
+    def test_mixed_ctype_string_and_callable(self):
+
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        def my_ctype_callable(request):
+            return 'application/octet-stream'
+
+        def my_ctype_callable_2(request):
+            return 'image/png'
+
+        class IceCream(object):
+            @service.put(content_type=(
+                    my_ctype_callable,
+                    'application/json',
+                    my_ctype_callable_2,
+                    'image/jpeg'
+                    )
+            )
+            def view_put(self, request):
+                return self.request.validated
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        self.assertEquals(spec['paths']['/icecream/{flavour}']['put']['consumes'],
+                          ['application/json', 'image/jpeg'])
 
     def test_ignore_multiple_views_by_ctype(self):
 
