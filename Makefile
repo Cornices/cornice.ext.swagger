@@ -1,6 +1,8 @@
 # Makefile for Sphinx documentation
 #
-
+#
+VIRTUALENV = virtualenv --python=python3
+TEMPDIR := $(shell mktemp -du)
 SPHINXOPTS       =
 SPHINXBUILD      = sphinx-build
 SPHINXBUILDDIR   = docs/build
@@ -20,6 +22,12 @@ help:
 
 clean:
 	-rm -rf $(BUILDDIR)/*
+
+build-requirements:
+	$(VIRTUALENV) $(TEMPDIR)
+	$(TEMPDIR)/bin/pip install -U pip
+	$(TEMPDIR)/bin/pip install -Ue .
+	$(TEMPDIR)/bin/pip freeze | grep -v -- '-e' > requirements.txt
 
 docs:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/html
