@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.5.3 (unreleased)
+0.5.3 (2018-02-14)
 ------------------
 
 **Pyramid compliance**
