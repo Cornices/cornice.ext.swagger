@@ -66,7 +66,8 @@ class CorniceSwagger(object):
             You may add transformers to this pipeline when using custom schemas that
             doesn't correspond to the schemas used with `colander_validator`.
 
-        :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
+        :returns: Full OpenAPI/Swagger compliant specification for the application.
+        :rtype: dict
         """
 
         info = info.copy()
