@@ -401,7 +401,8 @@ class CorniceSwagger(object):
         :param swagger:
             Extra fields that should be provided on the swagger documentation.
 
-        :rtype: dict Full OpenAPI/Swagger compliant specification for the application.
+        :rtype: dict
+        :returns: Full OpenAPI/Swagger compliant specification for the application.
         """
         title = title or self.api_title
         version = version or self.api_version
