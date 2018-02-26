@@ -4,7 +4,9 @@ CHANGES
 0.6.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Internals**
+
+- Fix return types in docstrings (#77)
 
 
 0.5.3 (2018-02-14)

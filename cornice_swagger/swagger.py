@@ -39,7 +39,7 @@ class DefinitionHandler(object):
             Schema alternative title.
 
         :rtype: dict
-            Swagger schema.
+        :returns: Swagger schema.
         """
         return self._ref_recursive(self.type_converter(schema_node), self.ref, base_name)
 
@@ -59,6 +59,7 @@ class DefinitionHandler(object):
             used as reference.
 
         :rtype: dict
+        :returns:
             JSON pointer to the root definition schema,
             or the original definition if depth is zero.
         """
@@ -110,8 +111,9 @@ class ParameterHandler(object):
             Request schema to be transformed into Swagger.
         :param validators:
             Validators used in colander with the schema.
+
         :rtype: list
-            List of Swagger parameters.
+        :returns: List of Swagger parameters.
         """
 
         params = []
@@ -169,7 +171,7 @@ class ParameterHandler(object):
             Name that should be used for the reference.
 
         :rtype: dict
-            JSON pointer to the original parameter definition.
+        :returns: JSON pointer to the original parameter definition.
         """
 
         name = base_name or param.get('title', '') or param.get('name', '')
@@ -207,7 +209,7 @@ class ResponseHandler(object):
         :param schema_mapping:
             Dict with entries matching ``{status_code: response_schema}``.
         :rtype: dict
-            Response schema.
+        :returns: Response schema.
         """
 
         responses = {}
@@ -257,7 +259,7 @@ class ResponseHandler(object):
             Name that should be used for the reference.
 
         :rtype: dict
-            JSON pointer to the original response definition.
+        :returns: JSON pointer to the original response definition.
         """
 
         name = base_name or resp.get('title', '') or resp.get('name', '')
@@ -531,7 +533,7 @@ class CorniceSwagger(object):
             Cornice service to extract information from.
 
         :rtype: dict
-            Path definition.
+        :returns: Path definition.
         """
 
         path_obj = {}
@@ -559,7 +561,7 @@ class CorniceSwagger(object):
             Arguments from the view decorator.
 
         :rtype: dict
-            Operation definition.
+        :returns: Operation definition.
         """
 
         op = {
@@ -640,7 +642,7 @@ class CorniceSwagger(object):
             Arguments from the view decorator.
 
         :rtype: colander.MappingSchema()
-            View schema cloned and transformed
+        :returns: View schema cloned and transformed
         """
 
         schema = args.get('schema', colander.MappingSchema())
