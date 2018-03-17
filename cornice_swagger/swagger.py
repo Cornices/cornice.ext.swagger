@@ -1,5 +1,7 @@
 """Cornice Swagger 2.0 documentor"""
+import inspect
 import warnings
+
 
 import colander
 from cornice.util import to_list
@@ -598,8 +600,13 @@ class CorniceSwagger(object):
             op['consumes'] = consumes
 
         # Get parameters from view schema
-        schema = self._extract_transform_schema(args)
-        parameters = self.parameters.from_schema(schema)
+        is_colander = self._is_colander_schema(args)
+        if is_colander:
+            schema = self._extract_transform_colander_schema(args)
+            parameters = self.parameters.from_schema(schema)
+        else:
+            # Bail out for now
+            parameters = None
         if parameters:
             op['parameters'] = parameters
 
@@ -633,7 +640,13 @@ class CorniceSwagger(object):
 
         return op
 
-    def _extract_transform_schema(self, args):
+    def _is_colander_schema(self, args):
+        schema = args.get('schema')
+        return (isinstance(schema, colander.Schema) or
+                (inspect.isclass(schema)
+                and issubclass(schema, colander.MappingSchema)))
+
+    def _extract_transform_colander_schema(self, args):
         """
         Extract schema from view args and transform it using
         the pipeline of schema transformers
