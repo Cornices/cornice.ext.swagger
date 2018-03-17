@@ -328,7 +328,7 @@ class ExtractTransformSchemaTest(unittest.TestCase):
             schema=BodySchema(),
             validators=(colander_body_validator,)
         )
-        full_schema = swagger._extract_transform_schema(service_args)
+        full_schema = swagger._extract_transform_colander_schema(service_args)
         # ensure schema is cloned
         self.assertNotEqual(service_args['schema'], full_schema['body'])
         # ensure schema is transformed
@@ -347,7 +347,7 @@ class ExtractTransformSchemaTest(unittest.TestCase):
             return schema
 
         swagger.schema_transformers.append(add_headers_transform)
-        full_schema = swagger._extract_transform_schema(service_args)
+        full_schema = swagger._extract_transform_colander_schema(service_args)
         self.assertEqual(header_schema, full_schema['header'])
         # ensure service schema is left untouched
         self.assertNotIn('header', service_args['schema'])
