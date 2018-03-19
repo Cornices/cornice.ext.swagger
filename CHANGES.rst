@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.6.0 (unreleased)
+0.5.5 (2018-03-19)
 ------------------
 
 - Prevent failure with non-colander schemas (#78, thanks @ergo!)
