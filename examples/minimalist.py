@@ -1,10 +1,8 @@
 import colander
 from cornice import Service
-from cornice.service import get_services
 from cornice.validators import colander_body_validator
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
-from cornice_swagger import CorniceSwagger
 
 
 _VALUES = {}
@@ -53,24 +51,18 @@ class MyValueApi(object):
         return _VALUES.get(key)
 
 
-# Create a service to serve our OpenAPI spec
-swagger = Service(name='OpenAPI',
-                  path='/__api__',
-                  description="OpenAPI documentation")
-
-
-@swagger.get()
-def openAPI_spec(request):
-    doc = CorniceSwagger(get_services())
-    my_spec = doc.generate('MyAPI', '1.0.0')
-    return my_spec
-
-
 # Setup and run our app
 def setup():
     config = Configurator()
     config.include('cornice')
     config.include('cornice_swagger')
+    # Create a service to serve our OpenAPI spec and UI explorer
+    config.register_swagger_ui(
+        swagger_api_path='/__api__',
+        swagger_ui_path='/api-explorer',
+        title='MyAPI',
+        description="OpenAPI documentation",
+        version='1.0.0')
     config.scan()
     app = config.make_wsgi_app()
     return app

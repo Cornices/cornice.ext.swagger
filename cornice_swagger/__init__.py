@@ -1,4 +1,5 @@
 from cornice_swagger.swagger import CorniceSwagger
+from pyramid.security import NO_PERMISSION_REQUIRED
 
 __author__ = """Josip Delic"""
 __email__ = 'delicj@delijati.net'
@@ -28,3 +29,42 @@ def includeme(config):
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
     config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
     config.add_view_predicate('api_security', CorniceSwaggerPredicate)
+    config.add_directive('register_swagger_ui', register_swagger_ui)
+
+
+def register_swagger_ui(
+        config,
+        swagger_ui_path='/api-explorer',
+        swagger_api_path='/api-explorer/swagger.json',
+        permission=NO_PERMISSION_REQUIRED,
+        route_factory=None,
+        **kwargs):
+    """
+    :param config:
+        Pyramid configurator object
+    :param swagger_ui_path:
+        where to expose Swagger UI interface view
+    :param swagger_api_path:
+        where to expose swagger JSON definition view
+    :param permission:
+        pyramid permission for those views
+    :param route_factory:
+        factory for context object for those routes
+    :param kwargs:
+        kwargs that will be passed to CorniceSwagger's `generate()`
+
+    This registers and configures the views that serve api explorer and
+    api definitions
+    """
+
+    config.registry.settings['cornice_swagger.spec_kwargs'] = kwargs
+    config.add_route('cornice_swagger.swagger_ui_path', swagger_ui_path,
+                     factory=route_factory)
+    config.add_route('cornice_swagger.swagger_api_path', swagger_api_path,
+                     factory=route_factory)
+    config.add_view('cornice_swagger.views.swagger_ui_template_view',
+                    permission=permission,
+                    route_name='cornice_swagger.swagger_ui_path')
+    config.add_view('cornice_swagger.views.swagger_json_view',
+                    renderer='json', permission=permission,
+                    route_name='cornice_swagger.swagger_api_path')

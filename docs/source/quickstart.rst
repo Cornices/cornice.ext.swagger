@@ -32,6 +32,24 @@ You can than create your OpenAPI/Swagger JSON using::
     my_spec = my_generator('MyAPI', '1.0.0')
 
 
+Alternatively you can use a directive to set up OpenAPI/Swagger JSON and
+serve API explorer on your application::
+
+
+    config = Configurator()
+    config.include('cornice')
+    config.include('cornice_swagger')
+    config.register_swagger_ui(
+        swagger_api_path='/__api__',
+        swagger_ui_path='/api-explorer',
+        title='MyAPI',
+        description="OpenAPI documentation",
+        version='1.0.0')
+
+Then you will be able to access Swagger UI API explorer on url:
+
+http://localhost:8000/api-explorer (in case of example below)
+
 Using a scaffold
 ================
 

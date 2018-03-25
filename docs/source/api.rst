@@ -13,6 +13,14 @@ Basic Generator
     :members:
     :member-order: bysource
 
+register_swagger_ui directive
+=============================
+
+.. py:module:: cornice_swagger
+
+.. autofunction:: cornice_swagger.register_swagger_ui
+
+
 Generator Internals
 ===================
 

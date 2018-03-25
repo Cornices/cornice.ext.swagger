@@ -22,11 +22,18 @@ your Pyramid config. For that you may use:
         config = Configurator()
         config.include('cornice')
         config.include('cornice_swagger')
+        config.register_swagger_ui(
+            title='MyAPI',
+            description="OpenAPI documentation",
+            version='1.0.0')
 
 
 If you don't know what this is about or need more information, please check the
 `Pyramid documentation <http://docs.pylonsproject.org/projects/pyramid>`_
 
+By default API explorer will be served under `/api-explorer` path in your
+application. You can easily configure the paths, required pyramid view
+permissions or route factory.
 
 Extracting path parameters
 ==========================
@@ -448,3 +455,20 @@ the following swagger summary:
             }
         }
     }
+
+Custom Swagger UI <script> bootstrap
+====================================
+
+By default standard Swagger UI config is used, but you can customize the
+generated script tag by providing your own callable path in config.
+
+The default one is:
+
+`cornice_swagger.swagger_ui_script_generator = cornice_swagger.views:swagger_ui_script_template`
+
+It points to following callable that accepts request object:
+
+.. literalinclude:: ../../cornice_swagger/views.py
+    :pyobject: swagger_ui_script_template
+    :language: python
+
