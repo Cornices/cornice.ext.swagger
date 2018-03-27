@@ -6,6 +6,15 @@ import cornice
 import cornice_swagger
 from pyramid.response import Response
 
+# hardcode for now since that will work for vast majority of users
+# maybe later add minified resources for behind firewall support?
+ui_css_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
+             'swagger-ui/3.12.9/swagger-ui.css'
+ui_js_bundle_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
+                   'swagger-ui/3.12.9/swagger-ui-bundle.js'
+ui_js_standalone_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
+                       'swagger-ui/3.12.9/swagger-ui-standalone-preset.js'
+
 
 def swagger_ui_template_view(request):
     """
@@ -26,13 +35,6 @@ def swagger_ui_template_view(request):
     template = pkg_resources.resource_string(
         'cornice_swagger', 'templates/index.html').decode('utf8')
 
-    # hardcode for now since that will work for vast majority of users
-    # maybe later add minified resources for behind firewall support?
-    ui_css_url = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.12.9/swagger-ui.css'
-    ui_js_bundle_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
-                       'swagger-ui/3.12.9/swagger-ui-bundle.js'
-    ui_js_standalone_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
-                           'swagger-ui/3.12.9/swagger-ui-standalone-preset.js'
     html = Template(template).safe_substitute(
         ui_css_url=ui_css_url,
         ui_js_bundle_url=ui_js_bundle_url,
@@ -42,7 +44,7 @@ def swagger_ui_template_view(request):
     return Response(html)
 
 
-def swagger_json_view(request):
+def open_api_json_view(request):
     """
     :param request:
     :return:
@@ -63,7 +65,7 @@ def swagger_ui_script_template(request, **kwargs):
     Generates the <script> code that bootstraps Swagger UI, it will be injected
     into index template
     """
-    swagger_spec_url = request.route_url('cornice_swagger.swagger_api_path')
+    swagger_spec_url = request.route_url('cornice_swagger.open_api_path')
     template = pkg_resources.resource_string(
         'cornice_swagger',
         'templates/index_script_template.html'

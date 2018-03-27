@@ -56,10 +56,13 @@ def setup():
     config = Configurator()
     config.include('cornice')
     config.include('cornice_swagger')
-    # Create a service to serve our OpenAPI spec and UI explorer
-    config.register_swagger_ui(
-        swagger_api_path='/__api__',
-        swagger_ui_path='/api-explorer',
+    # Create views to serve our OpenAPI spec
+    config.cornice_enable_api_view(
+        api_path='/__api__'
+    )
+    # Create views to serve OpenAPI spec UI explorer
+    config.cornice_enable_explorer(
+        api_explorer_path='/api-explorer',
         title='MyAPI',
         description="OpenAPI documentation",
         version='1.0.0')
@@ -71,4 +74,7 @@ def setup():
 if __name__ == '__main__':
     app = setup()
     server = make_server('127.0.0.1', 8000, app)
+    print('Visit me on http://127.0.0.1:8000')
+    print('''You can see the API explorer here:
+    http://127.0.0.1:8000/api-explorer''')
     server.serve_forever()

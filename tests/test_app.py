@@ -69,7 +69,8 @@ class AppUITest(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include('cornice')
         self.config.include('cornice_swagger')
-        self.config.register_swagger_ui(
+        self.config.cornice_enable_api_view()
+        self.config.cornice_enable_explorer(
             title='IceCreamAPI',
             description="OpenAPI documentation",
             version='4.2'

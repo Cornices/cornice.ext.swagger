@@ -29,23 +29,46 @@ def includeme(config):
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
     config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
     config.add_view_predicate('api_security', CorniceSwaggerPredicate)
-    config.add_directive('register_swagger_ui', register_swagger_ui)
+    config.add_directive('cornice_enable_api_view', cornice_enable_api_view)
+    config.add_directive('cornice_enable_explorer', cornice_enable_explorer)
 
 
-def register_swagger_ui(
+def cornice_enable_api_view(
         config,
-        swagger_ui_path='/api-explorer',
-        swagger_api_path='/api-explorer/swagger.json',
+        api_path='/api-explorer/swagger.json',
+        permission=NO_PERMISSION_REQUIRED,
+        route_factory=None):
+    """
+    :param config:
+        Pyramid configurator object
+    :param api_path:
+        where to expose swagger JSON definition view
+    :param permission:
+        pyramid permission for those views
+    :param route_factory:
+        factory for context object for those routes
+
+    This registers and configures the view that serves api definitions
+    """
+
+    config.add_route('cornice_swagger.open_api_path', api_path,
+                     factory=route_factory)
+    config.add_view('cornice_swagger.views.open_api_json_view',
+                    renderer='json', permission=permission,
+                    route_name='cornice_swagger.open_api_path')
+
+
+def cornice_enable_explorer(
+        config,
+        api_explorer_path='/api-explorer',
         permission=NO_PERMISSION_REQUIRED,
         route_factory=None,
         **kwargs):
     """
     :param config:
         Pyramid configurator object
-    :param swagger_ui_path:
+    :param api_explorer_path:
         where to expose Swagger UI interface view
-    :param swagger_api_path:
-        where to expose swagger JSON definition view
     :param permission:
         pyramid permission for those views
     :param route_factory:
@@ -53,18 +76,12 @@ def register_swagger_ui(
     :param kwargs:
         kwargs that will be passed to CorniceSwagger's `generate()`
 
-    This registers and configures the views that serve api explorer and
-    api definitions
+    This registers and configures the view that serves api explorer
     """
 
     config.registry.settings['cornice_swagger.spec_kwargs'] = kwargs
-    config.add_route('cornice_swagger.swagger_ui_path', swagger_ui_path,
-                     factory=route_factory)
-    config.add_route('cornice_swagger.swagger_api_path', swagger_api_path,
+    config.add_route('cornice_swagger.api_explorer_path', api_explorer_path,
                      factory=route_factory)
     config.add_view('cornice_swagger.views.swagger_ui_template_view',
                     permission=permission,
-                    route_name='cornice_swagger.swagger_ui_path')
-    config.add_view('cornice_swagger.views.swagger_json_view',
-                    renderer='json', permission=permission,
-                    route_name='cornice_swagger.swagger_api_path')
+                    route_name='cornice_swagger.api_explorer_path')

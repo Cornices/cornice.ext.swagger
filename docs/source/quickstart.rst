@@ -39,9 +39,11 @@ serve API explorer on your application::
     config = Configurator()
     config.include('cornice')
     config.include('cornice_swagger')
-    config.register_swagger_ui(
-        swagger_api_path='/__api__',
-        swagger_ui_path='/api-explorer',
+    config.cornice_enable_api_view(
+        api_path='/api-explorer/swagger.json'
+    )
+    config.cornice_enable_explorer(
+        api_explorer_path='/api-explorer',
         title='MyAPI',
         description="OpenAPI documentation",
         version='1.0.0')
