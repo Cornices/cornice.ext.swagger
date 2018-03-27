@@ -39,10 +39,10 @@ serve API explorer on your application::
     config = Configurator()
     config.include('cornice')
     config.include('cornice_swagger')
-    config.cornice_enable_api_view(
+    config.cornice_enable_openapi_view(
         api_path='/api-explorer/swagger.json'
     )
-    config.cornice_enable_explorer(
+    config.cornice_enable_openapi_explorer(
         api_explorer_path='/api-explorer',
         title='MyAPI',
         description="OpenAPI documentation",
@@ -50,7 +50,7 @@ serve API explorer on your application::
 
 Then you will be able to access Swagger UI API explorer on url:
 
-http://localhost:8000/api-explorer (in case of example below)
+http://localhost:8000/api-explorer (in the example above)
 
 Using a scaffold
 ================

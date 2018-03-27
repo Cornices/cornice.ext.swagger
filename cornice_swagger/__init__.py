@@ -29,11 +29,13 @@ def includeme(config):
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
     config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
     config.add_view_predicate('api_security', CorniceSwaggerPredicate)
-    config.add_directive('cornice_enable_api_view', cornice_enable_api_view)
-    config.add_directive('cornice_enable_explorer', cornice_enable_explorer)
+    config.add_directive(
+        'cornice_enable_openapi_view', cornice_enable_openapi_view)
+    config.add_directive(
+        'cornice_enable_openapi_explorer', cornice_enable_openapi_explorer)
 
 
-def cornice_enable_api_view(
+def cornice_enable_openapi_view(
         config,
         api_path='/api-explorer/swagger.json',
         permission=NO_PERMISSION_REQUIRED,
@@ -58,7 +60,7 @@ def cornice_enable_api_view(
                     route_name='cornice_swagger.open_api_path')
 
 
-def cornice_enable_explorer(
+def cornice_enable_openapi_explorer(
         config,
         api_explorer_path='/api-explorer',
         permission=NO_PERMISSION_REQUIRED,
