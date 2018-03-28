@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.6.0 (unreleased)
+0.6.0 (2018-03-28)
 ------------------
 
 - Add ``cornice_enable_openapi_view()`` ``cornice_enable_openapi_explorer()``
