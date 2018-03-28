@@ -13,6 +13,22 @@ Basic Generator
     :members:
     :member-order: bysource
 
+cornice_enable_openapi_view directive
+=====================================
+
+.. py:module:: cornice_swagger
+
+.. autofunction:: cornice_swagger.cornice_enable_openapi_view
+
+
+cornice_enable_openapi_explorer directive
+=========================================
+
+.. py:module:: cornice_swagger
+
+.. autofunction:: cornice_swagger.cornice_enable_openapi_explorer
+
+
 Generator Internals
 ===================
 

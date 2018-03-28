@@ -52,3 +52,39 @@ class AppTest(unittest.TestCase):
     def test_validate_spec(self):
         spec = self.app.get('/api').json
         validate(spec)
+
+
+class AppUITest(unittest.TestCase):
+
+    def setUp(self):
+        service = Service('IceCream', '/icecream/{flavour}')
+
+        @service.get(validators=(colander_validator, ),
+                     schema=GetRequestSchema(),
+                     response_schemas=response_schemas)
+        def view_get(request):
+            """Serve icecream"""
+            return request.validated
+
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.cornice_enable_openapi_view()
+        self.config.cornice_enable_openapi_explorer(
+            title='IceCreamAPI',
+            description="OpenAPI documentation",
+            version='4.2'
+        )
+        self.config.add_cornice_service(service)
+        self.app = webtest.TestApp(self.config.make_wsgi_app())
+
+    def test_served_explorer(self):
+        result = self.app.get('/api-explorer')
+        'swagger-ui-bundle.js' in result.text
+        'swagger-ui-standalone-preset.js' in result.text
+        'swagger-ui.css' in result.text
+        'SwaggerUIBundle' in result.text
+
+    def test_validate_spec(self):
+        spec = self.app.get('/api-explorer/swagger.json').json
+        validate(spec)
