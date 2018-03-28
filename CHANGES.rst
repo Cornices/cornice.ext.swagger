@@ -4,7 +4,8 @@ CHANGES
 0.6.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add ``cornice_enable_openapi_view()`` ``cornice_enable_openapi_explorer()``
+  Pyramid directives to serve the API Explorer and the spec information.
 
 
 0.5.5 (2018-03-19)
