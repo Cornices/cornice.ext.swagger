@@ -5,6 +5,7 @@ import warnings
 
 import colander
 from cornice.util import to_list
+from pyramid.threadlocal import get_current_registry
 import six
 
 from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
@@ -353,7 +354,8 @@ class CorniceSwagger(object):
     """Base OpenAPI document that should be merged with the extracted info
     from the generate call."""
 
-    def __init__(self, services=None, def_ref_depth=0, param_ref=False, resp_ref=False):
+    def __init__(self, services=None, def_ref_depth=0, param_ref=False,
+                 resp_ref=False, pyramid_registry=None):
         """
         :param services:
             List of cornice services to document. You may use
@@ -370,13 +372,16 @@ class CorniceSwagger(object):
             Defines if swagger responses should be put inline on the operation
             or on the responses section and referenced by JSON pointers.
             Default is inline.
+        :param pyramid_registry:
+            Pyramid registry, should be passed if you use pyramid routes
+            instead of service level paths.
         """
         super(CorniceSwagger, self).__init__()
 
         type_converter = self.type_converter(self.custom_type_converters,
                                              self.default_type_converter)
         parameter_converter = self.parameter_converter(type_converter)
-
+        self.pyramid_registry = pyramid_registry
         if services is not None:
             self.services = services
 
@@ -540,6 +545,20 @@ class CorniceSwagger(object):
 
         path_obj = {}
         path = service.path
+        route_name = getattr(service, 'pyramid_route', None)
+        # handle services that don't create fresh routes,
+        # we still need the paths so we need to grab pyramid introspector to
+        # extract that information
+        if route_name:
+            # avoid failure if someone forgets to pass registry
+            registry = self.pyramid_registry or get_current_registry()
+            route_intr = registry.introspector.get('routes', route_name)
+            if route_intr:
+                path = route_intr['pattern']
+            else:
+                msg = 'Route `{}` is not found by ' \
+                      'pyramid introspector'.format(route_name)
+                raise ValueError(msg)
 
         # handle traverse and subpath as regular parameters
         # docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html
