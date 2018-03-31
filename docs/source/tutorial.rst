@@ -22,11 +22,12 @@ your Pyramid config. For that you may use:
         config = Configurator()
         config.include('cornice')
         config.include('cornice_swagger')
-        config.cornice_enable_openapi_view()
-        config.cornice_enable_openapi_explorer(
+        config.cornice_enable_openapi_view(
             title='MyAPI',
             description="OpenAPI documentation",
-            version='1.0.0')
+            version='1.0.0'
+        )
+        config.cornice_enable_openapi_explorer()
 
 
 If you don't know what this is about or need more information, please check the
