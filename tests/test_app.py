@@ -3,6 +3,7 @@ import webtest
 
 from pyramid import testing
 from cornice import Service
+from cornice.service import clear_services
 from cornice.validators import colander_validator
 from flex.core import validate
 
@@ -11,6 +12,10 @@ from cornice_swagger import CorniceSwagger
 
 
 class AppTest(unittest.TestCase):
+
+    def tearDown(self):
+        clear_services()
+        testing.tearDown()
 
     def setUp(self):
         service = Service('IceCream', '/icecream/{flavour}')
@@ -56,6 +61,10 @@ class AppTest(unittest.TestCase):
 
 class AppSpecViewTest(unittest.TestCase):
 
+    def tearDown(self):
+        clear_services()
+        testing.tearDown()
+
     def setUp(self):
         service = Service('IceCream', '/icecream/{flavour}')
 
@@ -83,6 +92,10 @@ class AppSpecViewTest(unittest.TestCase):
 
 
 class AppUIViewTest(unittest.TestCase):
+
+    def tearDown(self):
+        clear_services()
+        testing.tearDown()
 
     def setUp(self):
         service = Service('IceCream', '/icecream/{flavour}')
@@ -112,3 +125,58 @@ class AppUIViewTest(unittest.TestCase):
         'swagger-ui-standalone-preset.js' in result.text
         'swagger-ui.css' in result.text
         'SwaggerUIBundle' in result.text
+
+
+class AppGoodRoutesTest(unittest.TestCase):
+
+    def tearDown(self):
+        clear_services()
+        testing.tearDown()
+
+    def setUp(self):
+        service = Service('Ice Route', pyramid_route='ice_test')
+
+        @service.get()
+        def view_get(request):
+            """Serve icecream"""
+            return request.validated
+
+        self.config = testing.setUp()
+        self.config.add_route('ice_test', '/ice_test/{flavour}')
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.add_cornice_service(service)
+        self.services = [service]
+        self.app = webtest.TestApp(self.config.make_wsgi_app())
+
+    def test_route_explicit_registry(self):
+        swagger = CorniceSwagger(
+            self.services, pyramid_registry=self.config.registry)
+        spec = swagger.generate('IceCreamAPI', '4.2')
+        self.assertIn('/ice_test/{flavour}', spec['paths'])
+
+    def test_route_fallback_registry(self):
+        swagger = CorniceSwagger(self.services)
+        spec = swagger.generate('IceCreamAPI', '4.2')
+        self.assertIn('/ice_test/{flavour}', spec['paths'])
+
+
+class AppBadRoutesTest(unittest.TestCase):
+
+    def tearDown(self):
+        clear_services()
+        testing.tearDown()
+
+    def setUp(self):
+        service = Service('Ice Route', pyramid_route='ice_testXXX')
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.add_cornice_service(service)
+        self.services = [service]
+        self.app = webtest.TestApp(self.config.make_wsgi_app())
+
+    def test_route(self):
+        with self.assertRaises(ValueError):
+            swagger = CorniceSwagger(self.services)
+            swagger.generate('IceCreamAPI', '4.2')
