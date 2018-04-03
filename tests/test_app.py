@@ -54,7 +54,7 @@ class AppTest(unittest.TestCase):
         validate(spec)
 
 
-class AppUITest(unittest.TestCase):
+class AppSpecViewTest(unittest.TestCase):
 
     def setUp(self):
         service = Service('IceCream', '/icecream/{flavour}')
@@ -69,12 +69,40 @@ class AppUITest(unittest.TestCase):
         self.config = testing.setUp()
         self.config.include('cornice')
         self.config.include('cornice_swagger')
-        self.config.cornice_enable_openapi_view()
-        self.config.cornice_enable_openapi_explorer(
+        self.config.cornice_enable_openapi_view(
             title='IceCreamAPI',
             description="OpenAPI documentation",
             version='4.2'
         )
+        self.config.add_cornice_service(service)
+        self.app = webtest.TestApp(self.config.make_wsgi_app())
+
+    def test_validate_spec(self):
+        spec = self.app.get('/api-explorer/swagger.json').json
+        validate(spec)
+
+
+class AppUIViewTest(unittest.TestCase):
+
+    def setUp(self):
+        service = Service('IceCream', '/icecream/{flavour}')
+
+        @service.get(validators=(colander_validator, ),
+                     schema=GetRequestSchema(),
+                     response_schemas=response_schemas)
+        def view_get(request):
+            """Serve icecream"""
+            return request.validated
+
+        self.config = testing.setUp()
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.cornice_enable_openapi_view(
+            title='IceCreamAPI',
+            description="OpenAPI documentation",
+            version='4.2'
+        )
+        self.config.cornice_enable_openapi_explorer()
         self.config.add_cornice_service(service)
         self.app = webtest.TestApp(self.config.make_wsgi_app())
 
@@ -84,7 +112,3 @@ class AppUITest(unittest.TestCase):
         'swagger-ui-standalone-preset.js' in result.text
         'swagger-ui.css' in result.text
         'SwaggerUIBundle' in result.text
-
-    def test_validate_spec(self):
-        spec = self.app.get('/api-explorer/swagger.json').json
-        validate(spec)

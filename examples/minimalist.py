@@ -58,14 +58,13 @@ def setup():
     config.include('cornice_swagger')
     # Create views to serve our OpenAPI spec
     config.cornice_enable_openapi_view(
-        api_path='/__api__'
-    )
-    # Create views to serve OpenAPI spec UI explorer
-    config.cornice_enable_openapi_explorer(
-        api_explorer_path='/api-explorer',
+        api_path='/__api__',
         title='MyAPI',
         description="OpenAPI documentation",
-        version='1.0.0')
+        version='1.0.0'
+    )
+    # Create views to serve OpenAPI spec UI explorer
+    config.cornice_enable_openapi_explorer(api_explorer_path='/api-explorer')
     config.scan()
     app = config.make_wsgi_app()
     return app
