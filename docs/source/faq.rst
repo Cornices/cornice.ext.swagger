@@ -23,59 +23,49 @@ You can use ``Mapping.unknown`` attribute ::
 How do I integrate Swagger UI?
 ==============================
 
-TO integrate swagger-ui you can create a ``index.html`` and download the needed JS
-files with ``bower``. You can then serve it with a Cornice or a Simple Pyramid HTML service.
+The fastest way to enable Swagger UI is to use directives
+``cornice_enable_openapi_view`` together with
+``cornice_enable_openapi_explorer`` they will provide a special view in your
+application that will server the OpenAPI specification along with API explorer.
 
-An example HTML file is:
 
-.. code:: html
+How do I work with colander schemas that require bound properties?
+==================================================================
 
-   <!DOCTYPE html>
-   <html>
+A common scenario is to have schemas that have optional fields that
+substitute default values when fields are missing from request data.
+This is normally solved by calling `bind()` on colander schemas,
+one thing that is important to remember is that if the value
+needs to be updated per request (like a date or UUID), you need to bind the
+schema per request. At the same time for ``cornice_swagger`` to get proper
+values when inspecting schema you also need to bind it on decorator level.
+Here is an example how to solve this problem:
 
-   <head>
-       <!-- swagger -->
-       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/typography.css')}"
-       type='text/css' rel="stylesheet" />
-       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/reset.css')}"
-       type='text/css' rel="stylesheet" />
-       <link href="${request.static_url('foo:static/bower_components/swagger-ui/dist/css/screen.css')}"
-       type='text/css' rel="stylesheet" />
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/object-assign-pollyfill.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery-1.8.0.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.slideto.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.wiggle.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jquery.ba-bbq.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/handlebars-2.0.0.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/lodash.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/backbone-min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/dist/swagger-ui.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/highlight.9.1.0.pack.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/highlight.9.1.0.pack_extended.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/jsoneditor.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/js-yaml.min.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/marked.js')}"></script>
-       <script src="${request.static_url('foo:static/bower_components/swagger-ui/lib/swagger-oauth.js')}"></script>
-   </head>
+.. code:: python
 
-   <body>
-       <div class="swagger-section container">
-           <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
-       </div>
-       <script type="text/javascript">
-           $(function()
-           {
-               var swaggerUi = new SwaggerUi(
-               {
-                   url: "${request.route_url('swagger_json')}",
-                   dom_id: "swagger-ui-container",
-                   validatorUrl: null,
-                   docExpansion: "list"
-               });
-               swaggerUi.load();
-           });
-       </script>
-   </body>
+    @colander.deferred
+    def deferred_conn_id(node, kw):
+        return kw.get('conn_id') or str(uuid.uuid4())
 
-   </html>
 
+    class SomeSchema(colander.MappingSchema):
+        username = colander.SchemaNode(colander.String())
+        conn_id = colander.SchemaNode(
+            colander.String(), missing=deferred_conn_id)
+
+
+    def rebind_schema(schema):
+        """
+        Ensure we bind schema per request
+        """
+        def deferred_validator(request, **kwargs):
+            # we need to regenerate the schema here
+            kwargs['schema'] = schema().bind(request=request)
+            return colander_validator(request, **kwargs)
+        return deferred_validator
+
+
+    @legacy_connect_api.post(
+        schema=SomeSchema().bind(), validators=(rebind_schema(SomeSchema),))
+    def connect(request):
+        ...
