@@ -31,10 +31,10 @@ class SchemaResponseConversionTest(unittest.TestCase):
 
     def test_cornice_location_synonyms(self):
 
-        class ReponseSchema(colander.MappingSchema):
+        class ResponseSchema(colander.MappingSchema):
             header = HeaderSchema()
 
-        response_schemas = {'200': ReponseSchema(description='Return gelatto')}
+        response_schemas = {'200': ResponseSchema(description='Return gelatto')}
         responses = self.handler.from_schema_mapping(response_schemas)
 
         self.assertDictEqual(responses['200']['headers'],
