@@ -29,6 +29,17 @@ class SchemaResponseConversionTest(unittest.TestCase):
         self.assertDictEqual(responses['200']['headers'],
                              {'bar': {'type': 'string'}})
 
+    def test_response_schema_with_example(self):
+        class ResponseSchema(colander.MappingSchema):
+            body = BodySchema()
+
+        response_schemas = {'200': ResponseSchema(description='Return gelatto')}
+        responses = self.handler.from_schema_mapping(response_schemas)
+        self.assertTrue('ex' in responses['200']['schema']['properties'])
+        self.assertTrue('example' in responses['200']['schema']['properties']['ex'])
+        self.assertEquals(responses['200']['schema']['properties']['ex']['example'],
+                          'example string')
+
     def test_cornice_location_synonyms(self):
 
         class ResponseSchema(colander.MappingSchema):
