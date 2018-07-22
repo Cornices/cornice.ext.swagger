@@ -471,10 +471,9 @@ class CorniceSwagger(object):
 
     def _get_tags(self, current_tags, new_tags):
         tags = list(current_tags)
-        tag_names = [t['name'] for t in tags]
         for tag in new_tags:
-            if tag not in tag_names:
-                root_tag = {'name': tag}
+            root_tag = {'name': tag}
+            if root_tag not in tags:
                 tags.append(root_tag)
         return tags
 
