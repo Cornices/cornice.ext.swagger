@@ -520,15 +520,16 @@ class CorniceSwagger(object):
                     else:
                         op['tags'] = self.default_tags
 
-                self._check_tags(op.get('tags', []))
+                op_tags = op.get('tags', [])
+                self._check_tags(op_tags)
 
                 # Add service tags
                 if service_tags:
-                    new_tags = service_tags + op.get('tags', [])
+                    new_tags = service_tags + op_tags
                     op['tags'] = list(OrderedDict.fromkeys(new_tags))
 
                 # Add method tags to root tags
-                tags = self._get_tags(tags, op.get('tags', []))
+                tags = self._get_tags(tags, op_tags)
 
                 # If operation id is not defined and a default generator is provided
                 if 'operationId' not in op and self.default_op_ids:
