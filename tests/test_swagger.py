@@ -452,12 +452,24 @@ class ExtractTagsTest(unittest.TestCase):
         self.assertListEqual([{'name': 'foo', 'description': 'bar'},
                               {'name': 'cold'}], spec['tags'])
 
-    def test_invalid_tag_raises_exception(self):
+    def test_invalid_view_tag_raises_exception(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
 
         class IceCream(object):
             @service.get(tags='cold')
+            def view_get(self, request):
+                return service
+
+        swagger = CorniceSwagger([service])
+        self.assertRaises(CorniceSwaggerException, swagger.generate)
+
+    def test_invalid_service_tag_raises_exception(self):
+
+        service = Service("IceCream", "/icecream/{flavour}", tags='cold')
+
+        class IceCream(object):
+            @service.get()
             def view_get(self, request):
                 return service
 
