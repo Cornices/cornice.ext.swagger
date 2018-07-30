@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.6.1 (unreleased)
+0.7.0 (2018-07-29)
 ------------------
 
 - Support swagger ``example`` field on colander ``SchemaNode`` custom kwarg::
