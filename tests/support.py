@@ -11,6 +11,7 @@ class BodySchema(colander.MappingSchema):
     id = colander.SchemaNode(colander.String())
     timestamp = colander.SchemaNode(colander.Int())
     obj = MyNestedSchema()
+    ex = colander.SchemaNode(colander.String(), missing=colander.drop, example='example string')
 
 
 class QuerySchema(colander.MappingSchema):

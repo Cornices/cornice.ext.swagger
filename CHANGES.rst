@@ -4,7 +4,12 @@ CHANGES
 0.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Support swagger ``example`` field on colander ``SchemaNode`` custom kwarg::
+
+    def SomeSchema(colander.MappingSchema):
+        name = colander.SchemaNode(colander.String(), example='Mr. IceCream')
+
+  The ``example`` field is returned in the swagger spec accordingly.
 
 
 0.6.0 (2018-03-28)
