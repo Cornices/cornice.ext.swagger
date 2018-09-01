@@ -200,22 +200,28 @@ class ObjectTypeConverter(TypeConverter):
         converted = super(ObjectTypeConverter,
                           self).convert_type(schema_node)
 
-        properties = {}
-        required = []
+        if hasattr(converted, 'validator') and isinstance(
+                converted.validator, colander.OneOf):
+            converted = [self.dispatcher(sub_node)
+                         for sub_node in schema_node.children]
 
-        for sub_node in schema_node.children:
-            properties[sub_node.name] = self.dispatcher(sub_node)
-            if sub_node.required:
-                required.append(sub_node.name)
+        else:
+            properties = {}
+            required = []
 
-        if len(properties) > 0:
-            converted['properties'] = properties
+            for sub_node in schema_node.children:
+                properties[sub_node.name] = self.dispatcher(sub_node)
+                if sub_node.required:
+                    required.append(sub_node.name)
 
-        if len(required) > 0:
-            converted['required'] = required
+            if len(properties) > 0:
+                converted['properties'] = properties
 
-        if schema_node.typ.unknown == 'preserve':
-            converted['additionalProperties'] = {}
+            if len(required) > 0:
+                converted['required'] = required
+
+            if schema_node.typ.unknown == 'preserve':
+                converted['additionalProperties'] = {}
 
         return converted
 
