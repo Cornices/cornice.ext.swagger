@@ -264,6 +264,95 @@ class MappingConversionTest(unittest.TestCase):
             'additionalProperties': {}
         })
 
+    def test_oneOf_primitive_schema(self):
+        class Mapping(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        schema = Mapping(validator=colander.OneOf(['foo', 'bar']))
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'oneOf': [
+                {
+                    'type': 'string',
+                    'title': 'Foo'
+                },
+                {
+                    'type': 'integer',
+                    'title': 'Bar'
+                }
+            ]
+        })
+
+    def test_oneOf_object_schema(self):
+        class MappingStr(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+
+        class MappingInt(colander.MappingSchema):
+            bar = colander.SchemaNode(colander.Integer(),
+                                      missing=colander.drop)
+
+        class MappingTop(colander.MappingSchema):
+            str = MappingStr()
+            int = MappingInt()
+
+        schema = MappingTop(validator=colander.OneOf(['str', 'int']))
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'oneOf': [
+                {
+                    'type': 'object',
+                    'title': 'Str',
+                    'properties': {
+                        'foo': {
+                            'type': 'string',
+                            'title': 'Foo'
+                        }
+                    },
+                    'required': ['foo']
+                },
+                {
+                    'type': 'object',
+                    'title': 'Int',
+                    'properties': {
+                        'bar': {
+                            'type': 'integer',
+                            'title': 'Bar'
+                        }
+                    }
+                }
+            ]
+        })
+
+    def test_oneOf_nested_schema(self):
+        class Mapping(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        class MappingTop(colander.MappingSchema):
+            obj = Mapping(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = MappingTop()
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'type': 'object',
+            'properties': {
+                'obj': {
+                    'oneOf': [
+                        {
+                            'type': 'string',
+                            'title': 'Foo'
+                        },
+                        {
+                            'type': 'integer',
+                            'title': 'Bar'
+                        }
+                    ]
+                }
+            },
+            'required': ['obj']
+        })
+
 
 class SequenceConversionTest(unittest.TestCase):
 

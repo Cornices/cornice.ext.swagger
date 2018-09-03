@@ -45,7 +45,8 @@ class DefinitionHandler(object):
         :rtype: dict
         :returns: Swagger schema.
         """
-        return self._ref_recursive(self.type_converter(schema_node), self.ref, base_name)
+        name = self._get_schema_name(schema_node, base_name)
+        return self._ref_recursive(self.type_converter(schema_node), self.ref, name)
 
     def _ref_recursive(self, schema, depth, base_name=None):
         """
@@ -71,18 +72,43 @@ class DefinitionHandler(object):
         if depth == 0:
             return schema
 
+        for _of in ['oneOf', 'allOf', 'anyOf']:
+            _of_items = schema.get(_of)
+            if isinstance(_of_items, list):
+                pointer = self._schema_object_to_pointer(schema, depth, base_name)
+                self.definition_registry[base_name] = {
+                    _of: [self._ref_recursive(item, depth-1) for item in _of_items]
+                }
+                return {'$ref': pointer}
+
         if schema['type'] != 'object':
             return schema
 
-        name = base_name or schema['title']
+        pointer = self._schema_object_to_pointer(schema, depth, base_name)
+        return {'$ref': pointer}
+
+    @staticmethod
+    def _get_schema_name(schema, base_name):
+        if base_name:
+            return base_name
+        for key in ['title', 'name']:
+            name = schema.get(key)
+            if name:
+                return name
+            name = getattr(schema, key, None)
+            if name:
+                return name
+        return type(schema).__name__
+
+    def _schema_object_to_pointer(self, schema, depth, base_name):
+        name = self._get_schema_name(schema, base_name)
 
         pointer = self.json_pointer + name
         for child_name, child in schema.get('properties', {}).items():
             schema['properties'][child_name] = self._ref_recursive(child, depth-1)
 
         self.definition_registry[name] = schema
-
-        return {'$ref': pointer}
+        return pointer
 
 
 class ParameterHandler(object):

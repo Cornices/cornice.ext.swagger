@@ -63,3 +63,34 @@ class RefDefinitionTest(unittest.TestCase):
 
         self.assertDictContainsSubset(convert(AnxietySchema()),
                                       handler.definition_registry['Aaaa'])
+
+    def test_single_level_oneOf(self):
+        handler = DefinitionHandler(ref=1)
+        oneOf = colander.OneOf(['bleh', 'aaaa'])
+        feels = FeelingsSchema(title='Feelings', validator=oneOf)
+        ref = handler.from_schema(feels)
+
+        ref_feels = handler.definition_registry['Feelings']
+        self.assertEquals(ref, {'$ref': '#/definitions/Feelings'})
+        self.assertDictEqual(ref_feels, convert(feels))
+
+    def test_multi_level_oneOf(self):
+        handler = DefinitionHandler(ref=-1)
+        oneOf = colander.OneOf(['bleh', 'aaaa'])
+        feels = FeelingsSchema(title='Feelings', validator=oneOf)
+        ref1 = handler.from_schema(feels)
+        self.assertEquals(ref1, {'$ref': '#/definitions/Feelings'})
+
+        feelings_schema = {
+            'oneOf': [
+                {'$ref': '#/definitions/Aaaa'},
+                {'$ref': '#/definitions/Bleh'}
+            ]
+        }
+        feelings_refs = handler.definition_registry['Feelings']
+        self.assertIn('oneOf', feelings_refs)
+        self.assertIsInstance(feelings_refs['oneOf'], list)
+        self.assertItemsEqual(feelings_schema['oneOf'], feelings_refs['oneOf'])
+
+        self.assertDictContainsSubset(convert(AnxietySchema()),
+                                      handler.definition_registry['Aaaa'])

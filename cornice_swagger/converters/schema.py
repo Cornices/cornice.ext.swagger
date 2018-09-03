@@ -197,15 +197,20 @@ class ObjectTypeConverter(TypeConverter):
 
     def convert_type(self, schema_node):
 
-        converted = super(ObjectTypeConverter,
-                          self).convert_type(schema_node)
-
-        if hasattr(converted, 'validator') and isinstance(
-                converted.validator, colander.OneOf):
-            converted = [self.dispatcher(sub_node)
-                         for sub_node in schema_node.children]
+        if isinstance(schema_node.validator, (colander.OneOf, colander.Any)):
+            if isinstance(schema_node.validator, colander.OneOf):
+                of_type = 'oneOf'
+            else:
+                of_type = 'anyOf'
+            converted = {
+                of_type: [self.dispatcher(sub_node)
+                          for sub_node in schema_node.children]
+            }
 
         else:
+            converted = super(ObjectTypeConverter,
+                              self).convert_type(schema_node)
+
             properties = {}
             required = []
 
