@@ -73,19 +73,28 @@ class DefinitionHandler(object):
             return schema
 
         for _of in ['oneOf', 'allOf', 'anyOf']:
-            _of_items = schema.get(_of)
-            if isinstance(_of_items, list):
-                pointer = self._schema_object_to_pointer(schema, depth, base_name)
-                self.definition_registry[base_name] = {
-                    _of: [self._ref_recursive(item, depth-1) for item in _of_items]
-                }
-                return {'$ref': pointer}
+            items = schema.get(_of)
+            if isinstance(items, list):
+                return self._process_items(schema, _of, items, depth, base_name)
+
+        if schema['type'] == 'array' and isinstance(schema['items'], dict):
+            ref_pointer = self._schema_object_to_pointer(schema, depth, base_name)
+            item_name = schema['items'].get('title') or base_name + 'Item'
+            schema['items'] = self._ref_recursive(schema['items'], depth-1, item_name)
+            return ref_pointer
 
         if schema['type'] != 'object':
             return schema
 
-        pointer = self._schema_object_to_pointer(schema, depth, base_name)
-        return {'$ref': pointer}
+        return self._schema_object_to_pointer(schema, depth, base_name)
+
+    def _process_items(self, schema, list_type, item_list, depth, base_name):
+        ref_pointer = self._schema_object_to_pointer(schema, depth, base_name)
+        self.definition_registry[base_name] = {
+            list_type: [self._ref_recursive(item, depth-1)
+                        for item in item_list]
+        }
+        return ref_pointer
 
     @staticmethod
     def _get_schema_name(schema, base_name):
@@ -108,7 +117,7 @@ class DefinitionHandler(object):
             schema['properties'][child_name] = self._ref_recursive(child, depth-1)
 
         self.definition_registry[name] = schema
-        return pointer
+        return {'$ref': pointer}
 
 
 class ParameterHandler(object):

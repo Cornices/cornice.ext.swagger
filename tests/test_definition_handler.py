@@ -26,6 +26,18 @@ class FeelingsSchema(colander.MappingSchema):
     aaaa = AnxietySchema()
 
 
+class FeelingList(colander.SequenceSchema):
+    feel = FeelingsSchema(validator=colander.OneOf(['bleh', 'aaaa']))
+
+
+class ToDoStuff(colander.MappingSchema):
+    todo = colander.SchemaNode(colander.String())
+
+
+class CheckList(colander.SequenceSchema):
+    todo = ToDoStuff()
+
+
 class DefinitionTest(unittest.TestCase):
 
     def setUp(self):
@@ -64,7 +76,7 @@ class RefDefinitionTest(unittest.TestCase):
         self.assertDictContainsSubset(convert(AnxietySchema()),
                                       handler.definition_registry['Aaaa'])
 
-    def test_single_level_oneOf(self):
+    def test_single_level_oneOf_schema(self):
         handler = DefinitionHandler(ref=1)
         oneOf = colander.OneOf(['bleh', 'aaaa'])
         feels = FeelingsSchema(title='Feelings', validator=oneOf)
@@ -74,7 +86,7 @@ class RefDefinitionTest(unittest.TestCase):
         self.assertEquals(ref, {'$ref': '#/definitions/Feelings'})
         self.assertDictEqual(ref_feels, convert(feels))
 
-    def test_multi_level_oneOf(self):
+    def test_multi_level_oneOf_schema(self):
         handler = DefinitionHandler(ref=-1)
         oneOf = colander.OneOf(['bleh', 'aaaa'])
         feels = FeelingsSchema(title='Feelings', validator=oneOf)
@@ -94,3 +106,69 @@ class RefDefinitionTest(unittest.TestCase):
 
         self.assertDictContainsSubset(convert(AnxietySchema()),
                                       handler.definition_registry['Aaaa'])
+
+    def test_single_level_simple_array(self):
+        handler = DefinitionHandler(ref=1)
+        todo_list = CheckList()
+        ref = handler.from_schema(todo_list)
+
+        ref_todo = handler.definition_registry['CheckList']
+        self.assertEquals(ref, {'$ref': '#/definitions/CheckList'})
+        self.assertDictEqual(ref_todo, convert(todo_list))
+
+    def test_multi_level_simple_array(self):
+        handler = DefinitionHandler(ref=-1)
+        todo_list = CheckList()
+        ref = handler.from_schema(todo_list)
+
+        check_list = {
+            'type': 'array',
+            'items': {'$ref': '#/definitions/Todo'},
+            'title': 'CheckList'
+        }
+        ref_check_list = handler.definition_registry['CheckList']
+        self.assertEquals(ref, {'$ref': '#/definitions/CheckList'})
+        self.assertDictEqual(ref_check_list, check_list)
+        ref_todo = handler.definition_registry['Todo']
+        self.assertDictEqual(ref_todo, convert(ToDoStuff(title='Todo')))
+
+    def test_single_level_oneOf_array_no_title(self):
+        handler = DefinitionHandler(ref=1)
+        all_those_feels = FeelingList()
+        ref = handler.from_schema(all_those_feels)
+
+        ref_feels = handler.definition_registry['FeelingList']
+        self.assertEquals(ref, {'$ref': '#/definitions/FeelingList'})
+        self.assertDictEqual(ref_feels, convert(all_those_feels))
+
+    def test_single_level_oneOf_array_with_title(self):
+        handler = DefinitionHandler(ref=1)
+        all_those_feels = FeelingList(title='ThoseFeels')
+        ref = handler.from_schema(all_those_feels)
+
+        ref_feels = handler.definition_registry['ThoseFeels']
+        self.assertEquals(ref, {'$ref': '#/definitions/ThoseFeels'})
+        self.assertDictEqual(ref_feels, convert(all_those_feels))
+
+    def test_multi_level_oneOf_array(self):
+        handler = DefinitionHandler(ref=-1)
+        all_those_feels = FeelingList()
+        ref = handler.from_schema(all_those_feels)
+
+        feel_list_schema = {
+            'type': 'array',
+            'items': {
+                '$ref': '#/definitions/FeelingListItem'
+            },
+            'title': 'FeelingList'
+        }
+        feel_items = [
+            {'$ref': '#/definitions/Aaaa'},
+            {'$ref': '#/definitions/Bleh'}
+        ]
+        ref_feels = handler.definition_registry['FeelingList']
+        self.assertEquals(ref, {'$ref': '#/definitions/FeelingList'})
+        self.assertDictEqual(feel_list_schema, ref_feels)
+        ref_feels_item = handler.definition_registry['FeelingListItem']
+        self.assertIn('oneOf', ref_feels_item)
+        self.assertItemsEqual(ref_feels_item['oneOf'], feel_items)

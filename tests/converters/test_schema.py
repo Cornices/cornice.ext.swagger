@@ -356,7 +356,7 @@ class MappingConversionTest(unittest.TestCase):
 
 class SequenceConversionTest(unittest.TestCase):
 
-    def primitive_sequence_test(self):
+    def test_primitive_sequence(self):
 
         class Integers(colander.SequenceSchema):
             num = colander.SchemaNode(colander.Integer())
@@ -369,9 +369,10 @@ class SequenceConversionTest(unittest.TestCase):
                 'title': 'Num',
                 'type': 'integer',
             },
+            'title': 'Integers'
         })
 
-    def mapping_sequence_test(self):
+    def test_mapping_sequence(self):
 
         class BaseMapping(colander.MappingSchema):
             name = colander.SchemaNode(colander.String())
@@ -398,6 +399,81 @@ class SequenceConversionTest(unittest.TestCase):
                     }
                 },
                 'required': ['name', 'number'],
-                'title': 'Base Mapping',
+                'title': 'Base Mapping'
             },
+            'title': 'BaseMappings'
         })
+
+    def test_oneOf_primitive_sequence(self):
+        class MappingItem(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        class Sequence(colander.SequenceSchema):
+            item = MappingItem(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = Sequence()
+        ret = convert(schema)
+        self.maxDiff = None
+        self.assertDictEqual(ret, {
+            'type': 'array',
+            'items': {
+                'oneOf': [
+                    {
+                        'type': 'string',
+                        'title': 'Foo'
+                    },
+                    {
+                        'type': 'integer',
+                        'title': 'Bar'
+                    }
+                ]
+            },
+            'title': 'Sequence'
+        })
+
+    def test_oneOf_mapping_sequence(self):
+        class MappingStr(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+
+        class MappingInt(colander.MappingSchema):
+            bar = colander.SchemaNode(colander.Integer())
+
+        class MappingItem(colander.MappingSchema):
+            int = MappingInt()
+            str = MappingStr()
+
+        class Sequence(colander.SequenceSchema):
+            item = MappingItem(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = Sequence()
+        ret = convert(schema)
+        self.assertIn('type', ret)
+        self.assertEqual(ret['type'], 'array')
+        self.assertIn('items', ret)
+        self.assertIn('oneOf', ret['items'])
+        self.assertIsInstance(ret['items']['oneOf'], list)
+        self.assertItemsEqual(ret['items']['oneOf'], [
+            {
+                'type': 'object',
+                'title': 'Str',
+                'properties': {
+                    'foo': {
+                        'type': 'string',
+                        'title': 'Foo',
+                    }
+                },
+                'required': ['foo']
+            },
+            {
+                'type': 'object',
+                'title': 'Int',
+                'properties': {
+                    'bar': {
+                        'type': 'integer',
+                        'title': 'Bar',
+                    }
+                },
+                'required': ['bar']
+            }
+        ])

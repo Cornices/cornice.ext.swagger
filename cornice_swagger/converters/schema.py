@@ -244,7 +244,7 @@ class ArrayTypeConverter(TypeConverter):
                           self).convert_type(schema_node)
 
         converted['items'] = self.dispatcher(schema_node.children[0])
-
+        converted['title'] = converted.get('title') or type(schema_node).__name__
         return converted
 
 
