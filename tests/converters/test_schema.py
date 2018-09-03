@@ -272,10 +272,12 @@ class SequenceConversionTest(unittest.TestCase):
         class Integers(colander.SequenceSchema):
             num = colander.SchemaNode(colander.Integer())
 
-        ret = convert(Integers)
+        schema = Integers()
+        ret = convert(schema)
         self.assertDictEqual(ret, {
             'type': 'array',
             'items': {
+                'title': 'Num',
                 'type': 'integer',
             },
         })
