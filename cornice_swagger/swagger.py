@@ -79,7 +79,9 @@ class DefinitionHandler(object):
 
         if schema['type'] == 'array' and isinstance(schema['items'], dict):
             ref_pointer = self._schema_object_to_pointer(schema, depth, base_name)
-            item_name = schema['items'].get('title') or base_name + 'Item'
+            item_name = schema['items'].get('title')
+            if not item_name:
+                item_name = schema.get('title') + 'Item' or base_name + 'Item'
             schema['items'] = self._ref_recursive(schema['items'], depth-1, item_name)
             return ref_pointer
 
@@ -98,14 +100,18 @@ class DefinitionHandler(object):
 
     @staticmethod
     def _get_schema_name(schema, base_name):
+        """Returns the name or title of a schema node using
+        various getters if ``base_name`` is not defined."""
         if base_name:
             return base_name
+        # verify against valid strings to avoid retrieving a sub-schema
+        # named 'title' or 'name' within a mapping schema node.
         for key in ['title', 'name']:
-            name = schema.get(key)
-            if name:
-                return name
             name = getattr(schema, key, None)
-            if name:
+            if isinstance(name, six.string_types) and len(name):
+                return name
+            name = schema.get(key)
+            if isinstance(name, six.string_types) and len(name):
                 return name
         return type(schema).__name__
 
@@ -390,6 +396,9 @@ class CorniceSwagger(object):
     """Base OpenAPI document that should be merged with the extracted info
     from the generate call."""
 
+    openapi_spec = 3
+    """OpenAPI specification version that should be used for generation."""
+
     def __init__(self, services=None, def_ref_depth=0, param_ref=False,
                  resp_ref=False, pyramid_registry=None):
         """
@@ -431,8 +440,8 @@ class CorniceSwagger(object):
                                         type_converter=type_converter)
 
     def generate(self, title=None, version=None, base_path=None,
-                 info=None, swagger=None, **kwargs):
-        """Generate a Swagger 2.0 documentation. Keyword arguments may be used
+                 info=None, swagger=None, openapi_spec=2, **kwargs):
+        """Generate an OpenAPI documentation. Keyword arguments may be used
         to provide additional information to build methods as such ignores.
 
         :param title:
@@ -445,10 +454,16 @@ class CorniceSwagger(object):
             Swagger info field.
         :param swagger:
             Extra fields that should be provided on the swagger documentation.
+        :param openapi_spec:
+            The OpenAPI specification version to use for swagger documentation format.
 
         :rtype: dict
         :returns: Full OpenAPI/Swagger compliant specification for the application.
         """
+        if openapi_spec not in [2, 3]:
+            raise CorniceSwaggerException('invalid OpenAPI specification version')
+        self.openapi_spec = openapi_spec
+
         title = title or self.api_title
         version = version or self.api_version
         info = info or self.swagger.get('info', {})
@@ -457,7 +472,11 @@ class CorniceSwagger(object):
 
         swagger = swagger.copy()
         info.update(title=title, version=version)
-        swagger.update(swagger='2.0', info=info, basePath=base_path)
+        swagger.update(info=info, basePath=base_path)
+        if self.openapi_spec == 2:
+            swagger.update(swagger='2.0')
+        else:
+            swagger.update(openapi='3.0.0')
 
         paths, tags = self._build_paths()
 
