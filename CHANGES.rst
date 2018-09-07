@@ -4,7 +4,15 @@ CHANGES
 1.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Support oneOf, allOf, anyOf and not keywords for objects and arrays.
+  Requires ``openapi_spec=3`` when calling ``CorniceSwagger().generate()`` ::
+
+    def OneOfSchema(colander.MappingSchema):
+        name = colander.SchemaNode(colander.String())
+        id = colander.SchemaNode(colander.Integer())
+
+    def PetSchema(colander.MappingSchema):
+        pet = OneOfSchema(validator=colander.OneOf(['name', 'id']))
 
 
 1.0.0 (2020-03-31)
