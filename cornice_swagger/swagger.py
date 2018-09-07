@@ -2,7 +2,7 @@
 import inspect
 import warnings
 from collections import OrderedDict
-
+from distutils.version import LooseVersion
 
 import colander
 from cornice.util import to_list
@@ -460,6 +460,7 @@ class CorniceSwagger(object):
         :rtype: dict
         :returns: Full OpenAPI/Swagger compliant specification for the application.
         """
+        openapi_spec = LooseVersion(str(openapi_spec)).version[0]
         if openapi_spec not in [2, 3]:
             raise CorniceSwaggerException('invalid OpenAPI specification version')
         self.openapi_spec = openapi_spec

@@ -636,3 +636,72 @@ class NotInstantiatedSchemaTest(unittest.TestCase):
         self.swagger = CorniceSwagger([self.service])
         self.spec = self.swagger.generate()
         validate(self.spec)
+
+
+class CorniceSwaggerOpenAPISpec(unittest.TestCase):
+
+    def setUp(self):
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.get(validators=(colander_validator, ),
+                         schema=GetRequestSchema(),
+                         response_schemas=response_schemas)
+            def view_get(self, request):
+                """Serve ice cream"""
+                return self.request.validated
+
+            @service.put(validators=(colander_validator, ), schema=PutRequestSchema())
+            def view_put(self, request):
+                """Add flavour"""
+                return self.request.validated
+
+        self.service = service
+        CorniceSwagger.services = [self.service]
+        CorniceSwagger.api_title = 'IceCreamAPI'
+        CorniceSwagger.api_version = '4.2'
+        self.swagger = CorniceSwagger()
+
+    def test_invalid_spec_none(self):
+        swagger_generate = self.swagger.generate
+        self.assertRaises(CorniceSwaggerException, swagger_generate, openapi_spec=None)
+
+    def test_invalid_spec_version(self):
+        swagger_generate = self.swagger.generate
+        self.assertRaises(CorniceSwaggerException, swagger_generate, openapi_spec=9000)
+
+    def test_valid_spec_swagger_int(self):
+        swagger = self.swagger.generate(openapi_spec=2)
+        self.assertIn('swagger', swagger)
+        self.assertNotIn('openapi', swagger)
+        self.assertEquals(swagger['swagger'], '2.0')
+
+    def test_valid_spec_swagger_str_short(self):
+        swagger = self.swagger.generate(openapi_spec='2')
+        self.assertIn('swagger', swagger)
+        self.assertNotIn('openapi', swagger)
+        self.assertEquals(swagger['swagger'], '2.0')
+
+    def test_valid_spec_swagger_str_long(self):
+        swagger = self.swagger.generate(openapi_spec='2.0')
+        self.assertIn('swagger', swagger)
+        self.assertNotIn('openapi', swagger)
+        self.assertEquals(swagger['swagger'], '2.0')
+
+    def test_valid_spec_openapi_int(self):
+        swagger = self.swagger.generate(openapi_spec=3)
+        self.assertIn('openapi', swagger)
+        self.assertNotIn('swagger', swagger)
+        self.assertEquals(swagger['openapi'], '3.0.0')
+
+    def test_valid_spec_openapi_str_short(self):
+        swagger = self.swagger.generate(openapi_spec='3')
+        self.assertIn('openapi', swagger)
+        self.assertNotIn('swagger', swagger)
+        self.assertEquals(swagger['openapi'], '3.0.0')
+
+    def test_valid_spec_openapi_str_long(self):
+        swagger = self.swagger.generate(openapi_spec='3.0.0')
+        self.assertIn('openapi', swagger)
+        self.assertNotIn('swagger', swagger)
+        self.assertEquals(swagger['openapi'], '3.0.0')
