@@ -102,8 +102,8 @@ class RefDefinitionTest(unittest.TestCase):
         feelings_refs = handler.definition_registry['Feelings']
         self.assertIn('oneOf', feelings_refs)
         self.assertIsInstance(feelings_refs['oneOf'], list)
-        self.assertItemsEqual(feelings_schema['oneOf'], feelings_refs['oneOf'])
-
+        self.assertListEqual(sorted(feelings_schema['oneOf'], key=lambda x: x['$ref']),
+                             sorted(feelings_refs['oneOf'], key=lambda x: x['$ref']))
         self.assertDictContainsSubset(convert(AnxietySchema()),
                                       handler.definition_registry['Aaaa'])
 
@@ -171,4 +171,5 @@ class RefDefinitionTest(unittest.TestCase):
         self.assertDictEqual(feel_list_schema, ref_feels)
         ref_feels_item = handler.definition_registry['FeelingListItem']
         self.assertIn('oneOf', ref_feels_item)
-        self.assertItemsEqual(ref_feels_item['oneOf'], feel_items)
+        self.assertListEqual(sorted(ref_feels_item['oneOf'], key=lambda x: x['$ref']),
+                             sorted(feel_items, key=lambda x: x['$ref']))

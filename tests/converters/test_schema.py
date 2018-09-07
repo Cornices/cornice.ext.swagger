@@ -453,7 +453,8 @@ class SequenceConversionTest(unittest.TestCase):
         self.assertIn('items', ret)
         self.assertIn('oneOf', ret['items'])
         self.assertIsInstance(ret['items']['oneOf'], list)
-        self.assertItemsEqual(ret['items']['oneOf'], [
+
+        expected_oneof = [
             {
                 'type': 'object',
                 'title': 'Str',
@@ -476,4 +477,6 @@ class SequenceConversionTest(unittest.TestCase):
                 },
                 'required': ['bar']
             }
-        ])
+        ]
+        self.assertListEqual(sorted(ret['items']['oneOf'], key=lambda x: x['title']),
+                             sorted(expected_oneof, key=lambda x: x['title']))
