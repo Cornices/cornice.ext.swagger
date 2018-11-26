@@ -620,7 +620,7 @@ class CorniceSwagger(object):
         elif renderer == 'xml':
             produces = ['text/xml']
         else:
-            produces = None
+            produces = args.get('produces')
 
         if produces:
             op.setdefault('produces', produces)
