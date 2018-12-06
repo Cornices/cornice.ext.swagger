@@ -6,9 +6,9 @@ Here is a list of frequently asked questions related to Cornice Swagger.
 How to make a schema parameter not required?
 ============================================
 
-You may use ``colader.drop`` as it's missing field::
+You may use ``colander.drop`` as it's missing field::
 
-    field = colader.SchemaNode(colander.String(), missing=colader.drop)
+    field = colander.SchemaNode(colander.String(), missing=colander.drop)
 
 
 How to define a schema with additionalAttributes?
