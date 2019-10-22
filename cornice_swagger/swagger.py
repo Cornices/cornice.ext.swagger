@@ -124,7 +124,7 @@ class ParameterHandler(object):
 
         for param_schema in schema_node.children:
             location = param_schema.name
-            if location is 'body':
+            if location == 'body':
                 name = param_schema.__class__.__name__
                 if name == 'body':
                     name = schema_node.__class__.__name__ + 'Body'
