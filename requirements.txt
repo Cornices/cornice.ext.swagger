@@ -4,7 +4,7 @@ hupper==1.0
 iso8601==0.1.12
 PasteDeploy==1.5.2
 plaster==1.0
-plaster-pastedeploy==0.4.2
+plaster-pastedeploy==0.7
 pyramid==1.9.1
 repoze.lru==0.7
 simplejson==3.13.2
