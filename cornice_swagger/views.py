@@ -9,11 +9,11 @@ from pyramid.response import Response
 # hardcode for now since that will work for vast majority of users
 # maybe later add minified resources for behind firewall support?
 ui_css_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
-             'swagger-ui/3.12.9/swagger-ui.css'
+             'swagger-ui/3.23.11/swagger-ui.css'
 ui_js_bundle_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
-                   'swagger-ui/3.12.9/swagger-ui-bundle.js'
+                   'swagger-ui/3.23.11/swagger-ui-bundle.js'
 ui_js_standalone_url = 'https://cdnjs.cloudflare.com/ajax/libs/' \
-                       'swagger-ui/3.12.9/swagger-ui-standalone-preset.js'
+                       'swagger-ui/3.23.11/swagger-ui-standalone-preset.js'
 
 
 def swagger_ui_template_view(request):
