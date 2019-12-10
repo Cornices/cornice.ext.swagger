@@ -18,8 +18,18 @@ class CorniceSwaggerPredicate(object):
     def phash(self):
         return str(self.schema)
 
+    def text(self):
+        return self.phash()
+
     def __call__(self, context, request):
         return self.schema
+
+
+class SecurityPredicate(CorniceSwaggerPredicate):
+    def __call__(self, context, request):
+        # empty security schemas are allowed by the swagger v2 spec
+        # but view predicates that return falsey values break pyramid
+        return True
 
 
 def includeme(config):
@@ -28,7 +38,7 @@ def includeme(config):
     config.add_view_predicate('response_schemas', CorniceSwaggerPredicate)
     config.add_view_predicate('tags', CorniceSwaggerPredicate)
     config.add_view_predicate('operation_id', CorniceSwaggerPredicate)
-    config.add_view_predicate('api_security', CorniceSwaggerPredicate)
+    config.add_view_predicate('api_security', SecurityPredicate)
     config.add_directive(
         'cornice_enable_openapi_view', cornice_enable_openapi_view)
     config.add_directive(
