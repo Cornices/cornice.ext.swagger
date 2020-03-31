@@ -25,7 +25,6 @@ REQUIREMENTS_DEV = [
     'pytest-cache',
     'pytest-capturelog',
     'pytest-cover',
-    'pytest-sugar',
     'tox',
     'webtest'
 ]

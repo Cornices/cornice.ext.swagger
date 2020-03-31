@@ -18,7 +18,6 @@ pytest
 pytest-cache
 pytest-cov
 pytest-cover
-pytest-sugar
 PyYAML
 requests
 rfc3987
