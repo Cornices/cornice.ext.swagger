@@ -1,12 +1,16 @@
 CHANGES
 =======
 
-0.7.1 (unreleased)
+1.0.0 (2020-03-31)
 ------------------
 
 **Breaking Changes**
 
 - Drop Python 2 support
+
+**Internal changes**
+
+- bump swagger-ui files to 3.23.11
 
 
 0.7.0 (2018-07-29)
