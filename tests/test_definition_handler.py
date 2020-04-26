@@ -22,8 +22,8 @@ class AnxietySchema(colander.MappingSchema):
 
 
 class FeelingsSchema(colander.MappingSchema):
-    bleh = BoredoomSchema()
-    aaaa = AnxietySchema()
+    bleh = BoredoomSchema(missing=colander.drop)
+    aaaa = AnxietySchema(missing=colander.drop)
 
 
 class FeelingList(colander.SequenceSchema):

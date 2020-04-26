@@ -296,6 +296,18 @@ class MappingConversionTest(unittest.TestCase):
             str = MappingStr()
             int = MappingInt()
 
+        class MappingTop2(colander.MappingSchema):
+            str = MappingStr(missing=colander.drop)
+            int = MappingInt(missing=colander.drop)
+            validator = colander.OneOf(['str', 'int'])
+
+
+        schema2 = MappingTop2(validator=colander.Function(
+            lambda value: isinstance(value, dict) and
+            any([k in value for k in ['int', 'str']])
+        ))
+        schema2.deserialize({'int': {'bar': 1}})
+
         schema = MappingTop(validator=colander.OneOf(['str', 'int']))
         ret = convert(schema)
         self.assertDictEqual(ret, {
