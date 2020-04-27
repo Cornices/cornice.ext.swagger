@@ -4,7 +4,7 @@ CHANGES
 1.0.1 (unreleased)
 ------------------
 
-- Support oneOf, allOf, anyOf and not keywords for objects and arrays.
+- Support ``oneOf, allOf, anyOf, not`` keywords for objects and arrays.
   Requires ``openapi_spec=3`` when calling ``CorniceSwagger().generate()`` ::
 
     def OneOfSchema(colander.MappingSchema):

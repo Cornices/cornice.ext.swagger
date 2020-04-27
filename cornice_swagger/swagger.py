@@ -397,7 +397,16 @@ class CorniceSwagger(object):
     from the generate call."""
 
     openapi_spec = 3
-    """OpenAPI specification version that should be used for generation."""
+    """OpenAPI specification version that should be used for generation. 
+    OpenAPI 3 is required  to support 'oneOf', 'allOf', 'anyOf' and 'not' keywords
+    as well as other multiple views of same method for different content-type."""
+
+    default_content_type = 'application/json'
+    """Default Content-Type to use for request/response body schemas. This is a 
+    required field for OpenAPI 3 specification generation, and it will be used if 
+    the views did not specify some value in another manner such as using the 
+    accept, renderer or content_type keywords. 
+    """
 
     def __init__(self, services=None, def_ref_depth=0, param_ref=False,
                  resp_ref=False, pyramid_registry=None):
@@ -476,8 +485,10 @@ class CorniceSwagger(object):
         swagger.update(info=info, basePath=base_path)
         if self.openapi_spec == 2:
             swagger.update(swagger='2.0')
+            swagger.pop("openapi", None)
         else:
             swagger.update(openapi='3.0.0')
+            swagger.pop("swagger", None)
 
         paths, tags = self._build_paths()
 
@@ -548,8 +559,9 @@ class CorniceSwagger(object):
             tags = self._get_tags(tags, service_tags)
 
             for method, view, args in service.definitions:
+                method_key = method.lower()
 
-                if method.lower() in map(str.lower, self.ignore_methods):
+                if method_key in map(str.lower, self.ignore_methods):
                     continue
 
                 op = self._extract_operation_from_view(view, args)
@@ -557,15 +569,22 @@ class CorniceSwagger(object):
                 if any(ctype in op.get('consumes', []) for ctype in self.ignore_ctypes):
                     continue
 
-                # XXX: Swagger doesn't support different schemas for for a same method
+                # XXX: Swagger 2.0 doesn't support different schemas for for a same method
                 # with different ctypes as cornice. If this happens, you may ignore one
                 # content-type from the documentation otherwise we raise an Exception
                 # Related to https://github.com/OAI/OpenAPI-Specification/issues/146
-                previous_definition = path_obj.get(method.lower())
-                if previous_definition:
-                    raise CorniceSwaggerException(("Swagger doesn't support multiple "
-                                                   "views for a same method. You may "
-                                                   "ignore one."))
+                previous_definition = path_obj.get(method_key)
+                if self.openapi_spec < 3:
+                    if previous_definition:
+                        raise CorniceSwaggerException(("Swagger doesn't support multiple "
+                                                       "views for a same method. You may "
+                                                       "ignore one."))
+                # move 'consumes' and 'produces' under their OpenAPI 3 'equivalents'
+                else:
+                    # OpenAPI 3 supports multiple schemas, but they should have different content-type
+                    op = self._convert_to_oai3(op)
+                    if previous_definition:
+                        self._validate_diff_oai3(op, previous_definition, path)
 
                 # If tag not defined and a default tag is provided
                 if 'tags' not in op and self.default_tags:
@@ -601,10 +620,96 @@ class CorniceSwagger(object):
                 if not isinstance(op.get('security', []), list):
                     raise CorniceSwaggerException('security should be a list or callable')
 
-                path_obj[method.lower()] = op
+                if previous_definition:
+                    merge_dicts(path_obj[method_key], op)
+                else:
+                    path_obj[method_key] = op
             paths[path] = path_obj
 
         return paths, tags
+
+    def _convert_to_oai3(self, operations):
+        """
+        Extract 'consumes' and 'produces' objects from OpenAPI 2 (swagger)
+        definition and generates their equivalent for OpenAPI 3 format.
+
+        :param operations:
+            Pre-parsed specification of one operation.
+            (ie: route/method and optionally content-type combination)
+
+        :rtype: dict
+        :returns: Updated path definition.
+        """
+
+        consumes = operations.pop('consumes', [])
+        parameters = operations.get('parameters', {})
+        bodies = []
+        for param in parameters:
+            if param.get('in') == 'body':
+                body = param
+                parameters.remove(body)
+                bodies.append(body)
+        if bodies:
+            # use-cases:
+            # (1) single view specified content_type=(<multiple-types>,...) but
+            #     only 1 body schema exists, suppose that view knows how to
+            #     parse every content-types structured with corresponding schema
+            # (2) single view specified content_type argument or content-type is given
+            #     as 'content_type="<ctype>"' argument to 'body = MappingSchema()' definition
+            # (3) many views each define their specific content_type as in (2),
+            #     results will be merged at the end
+            required = False
+            operations['requestBody'] = {'content': {}}
+            for body in bodies:
+                body.pop('in')
+                if not len(consumes):
+                    consumes = [getattr(body, 'content_type', self.default_content_type)]
+                for ctype in consumes:
+                    required = required or body.pop('required', False)
+                    operations['requestBody']['content'].update({ctype: body.copy()})
+            operations['requestBody']['required'] = required
+
+        produces = operations.pop('produces', [])
+        if not len(produces):
+            produces = [self.default_content_type]
+        for code in operations.get('responses', []):
+            if code == 'default':
+                continue
+            body = operations['responses'][code].pop('schema', None)
+            if body:
+                for ctype in produces:
+                    operations['responses'][code]['content'] = {ctype: {'schema': body.copy()}}
+        return operations
+
+    def _validate_diff_oai3(self, operation, previous_definition, path):
+        """
+        Validates that two corresponding path operation definitions
+        (generated from two different views) each describe their respective
+        content-type without conflicts.
+        """
+        def _extract_info(op):
+
+            # TODO:
+            #  maybe keep/remove? to test
+            #  body can be duplicated because of different 'accept' views
+            #  response *should* not be duplicated because 1 view == 1 ctypes accept/renderer...
+            variations = []
+            #for ctype in op.get('requestBody', {}).get('content', []):
+            #    variations.append({"type": "requestBody", "ctype": ctype})
+            for code in op.get('responses', []):
+                contents = op['responses'][code].get('content', [])
+                for ctype in contents:
+                    variations.append({"type": "response", "ctype": ctype, "code": code})
+            return variations
+
+        var_oper = _extract_info(operation)
+        var_prev = _extract_info(previous_definition)
+        for vo in var_oper:
+            for vp in var_prev:
+                if vo == vp:
+                    raise CorniceSwaggerException(
+                        "Invalid path '{}' definitions specifies conflicting "
+                        "parameters {} at more than one place.".format(path, vo))
 
     def _extract_path_from_service(self, service):
         """
@@ -667,12 +772,15 @@ class CorniceSwagger(object):
             },
         }
 
-        # If 'produces' are not defined in the view, try get from renderers
-        renderer = args.get('renderer', '')
-
-        if "json" in renderer:  # allows for "json" or "simplejson"
+        # If 'produces' are not defined in the view, try get from accept/renderer arguments
+        renderer = args.get('accept', args.get('renderer', ''))
+        # if the input was literal content type, use it as is, otherwise infer from renderer method
+        # method should never have a '/' in it while content-type should always do
+        if '/' in renderer:
+            produces = [renderer]
+        elif "json" in renderer:  # allows for "json" or "simplejson"
             produces = ['application/json']
-        elif renderer == 'xml':
+        elif 'xml' in renderer:  # all variants of 'xml' content-types
             produces = ['text/xml']
         else:
             produces = None
@@ -704,16 +812,17 @@ class CorniceSwagger(object):
             op['parameters'] = parameters
 
         # Get summary from docstring
-        if isinstance(view, six.string_types):
-            if 'klass' in args:
-                ob = args['klass']
-                view_ = getattr(ob, view.lower())
-                docstring = trim(view_.__doc__)
-        else:
-            docstring = str(trim(view.__doc__))
-
-        if docstring and self.summary_docstrings:
-            op['summary'] = docstring
+        if self.summary_docstrings:
+            docstring = None
+            if isinstance(view, six.string_types):
+                if 'klass' in args:
+                    ob = args['klass']
+                    view_ = getattr(ob, view.lower())
+                    docstring = trim(view_.__doc__)
+            else:
+                docstring = str(trim(view.__doc__))
+            if docstring:
+                op['summary'] = docstring
 
         # Get response definitions
         if 'response_schemas' in args:
