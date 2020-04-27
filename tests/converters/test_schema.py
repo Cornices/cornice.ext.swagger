@@ -301,7 +301,6 @@ class MappingConversionTest(unittest.TestCase):
             int = MappingInt(missing=colander.drop)
             validator = colander.OneOf(['str', 'int'])
 
-
         schema2 = MappingTop2(validator=colander.Function(
             lambda value: isinstance(value, dict) and
             any([k in value for k in ['int', 'str']])
