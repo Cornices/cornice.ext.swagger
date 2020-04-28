@@ -4,7 +4,6 @@ object schemas by converting types and node validators.
 """
 
 import colander
-
 from cornice_swagger.converters.exceptions import NoSuchConverter
 
 
@@ -180,6 +179,78 @@ class IntegerTypeConverter(NumberTypeConverter):
 
 
 class StringTypeConverter(BaseStringTypeConverter):
+    """
+    Converts any type of string according to keyword arguments passed to the schema node.
+
+    For example, you can provide a format like follows::
+
+        class Obj(MappingSchema):
+            field = SchemaNode(String(), format='url')
+
+
+    # Dispatch shorthand 'format'/'pattern' arguments to the appropriate string type with
+        # validator if it was not explicitly defined with validator argument and can be recognized.
+        # Since, 'format' can be anything, this keyword must always be extracted from the node,
+        # but it adds a lot of code duplication to give both format/validator keywords.
+        # If you want a known 'format' keyword without the validator, set 'validator=colander.drop'.
+        #
+    """
+    def convert_type(self, schema_node):
+
+        # dispatch shorthand argument syntax (see docstring)
+        kwarg_format = getattr(schema_node, 'format', None)
+        kwarg_pattern = getattr(schema_node, 'pattern', None)
+        kwarg_validator = getattr(schema_node, 'validator', None)
+        if kwarg_format or kwarg_pattern:
+            known_formats = {
+                # officials
+                'email': {'converter': StringTypeConverter, 'validator': colander.Email},
+                'url': {'converter': StringTypeConverter, 'validator': colander.url},
+                'date': {'converter': DateTypeConverter, 'validator': None},
+                'date-time': {'converter': DateTimeTypeConverter, 'validator': None},
+                'password': {'converter': StringTypeConverter, 'validator': colander},
+                'binary': {'converter': StringTypeConverter, 'validator': colander.file_uri},
+                'byte': {'converter': StringTypeConverter, 'validator': colander.file_uri},
+                # common but unofficial
+                'time': {'converter': TimeTypeConverter, 'validator': None},
+                'hostname': {'converter': StringTypeConverter, 'validator': colander.url},
+                'uuid': {'converter': StringTypeConverter, 'validator': colander.uuid},
+                'file': {'converter': StringTypeConverter, 'validator': colander.file_uri},
+            }
+            # extended conversion/validation for known ones
+            if kwarg_format and kwarg_format.lower() in known_formats:
+                kwarg_format = kwarg_format.lower()
+                format_converter_class = known_formats[kwarg_format]['converter']
+                if kwarg_validator is None:
+                    format_validator = known_formats[kwarg_format]['validator']
+                    setattr(schema_node, 'validator', format_validator)
+            elif kwarg_format == 'pattern' and not isinstance(kwarg_pattern, colander.Regex):
+                raise NoSuchConverter(
+                    "String schema with 'pattern' format is missing 'pattern' definition")
+            elif kwarg_pattern is not None:
+                # validator accepts tuple of multiple strings, but not OpenAPI,
+                # instead use oneOf with multiple string SchemaNode each with their own pattern
+                if isinstance(kwarg_pattern, str):
+                    kwarg_pattern = colander.Regex(
+                        kwarg_pattern, msg=colander._('Must match pattern'))  # noqa
+                if not isinstance(kwarg_pattern, colander.Regex):
+                    raise NoSuchConverter(
+                        "Provided string pattern object unknown: {!s}".format(kwarg_pattern))
+                format_converter_class = StringTypeConverter
+                kwarg_format = None  # don't write 'pattern' as string format
+                if kwarg_validator is None:
+                    setattr(schema_node, 'validator', kwarg_pattern)
+            else:
+                # any value for 'format' is permitted and left as is for string definition
+                format_converter_class = StringTypeConverter
+
+            format_converter = format_converter_class(self.dispatcher)
+            format_converter.format = kwarg_format
+            converted = format_converter.convert_type(schema_node)
+        else:
+            # just a plain string
+            converted = super(StringTypeConverter, self).convert_type(schema_node)
+        return converted
 
     convert_validator = ValidatorConversionDispatcher(
         convert_length_validator_factory('maxLength', 'minLength'),
