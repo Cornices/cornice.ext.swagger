@@ -196,38 +196,25 @@ class ObjectTypeConverter(TypeConverter):
     type = 'object'
 
     def convert_type(self, schema_node):
+        converted = super(ObjectTypeConverter,
+                          self).convert_type(schema_node)
 
-        of_types = {colander.OneOf: 'oneOf',
-                    colander.Any: 'anyOf',
-                    colander.All: 'allOf',
-                    colander.NoneOf: 'not'}
-        if isinstance(schema_node.validator, tuple(of_types.keys())):
-            of_type = of_types[type(schema_node.validator)]
-            converted = {
-                of_type: [self.dispatcher(sub_node)
-                          for sub_node in schema_node.children]
-            }
+        properties = {}
+        required = []
 
-        else:
-            converted = super(ObjectTypeConverter,
-                              self).convert_type(schema_node)
+        for sub_node in schema_node.children:
+            properties[sub_node.name] = self.dispatcher(sub_node)
+            if sub_node.required:
+                required.append(sub_node.name)
 
-            properties = {}
-            required = []
+        if len(properties) > 0:
+            converted['properties'] = properties
 
-            for sub_node in schema_node.children:
-                properties[sub_node.name] = self.dispatcher(sub_node)
-                if sub_node.required:
-                    required.append(sub_node.name)
+        if len(required) > 0:
+            converted['required'] = required
 
-            if len(properties) > 0:
-                converted['properties'] = properties
-
-            if len(required) > 0:
-                converted['required'] = required
-
-            if schema_node.typ.unknown == 'preserve':
-                converted['additionalProperties'] = {}
+        if schema_node.typ.unknown == 'preserve':
+            converted['additionalProperties'] = {}
 
         return converted
 
@@ -250,6 +237,7 @@ class ArrayTypeConverter(TypeConverter):
 
 
 class TypeConversionDispatcher(object):
+    openapi_spec = 2
 
     def __init__(self, custom_converters={}, default_converter=None):
 
@@ -275,6 +263,7 @@ class TypeConversionDispatcher(object):
         converter_class = self.converters.get(schema_type)
         if converter_class is None:
             if self.default_converter:
+
                 converter_class = self.default_converter
             else:
                 raise NoSuchConverter

@@ -473,6 +473,8 @@ class CorniceSwagger(object):
         if openapi_spec not in [2, 3]:
             raise CorniceSwaggerException('invalid OpenAPI specification version')
         self.openapi_spec = openapi_spec
+        setattr(self.type_converter, "openapi_spec", self.openapi_spec)
+        setattr(self.parameter_converter, "openapi_spec", self.openapi_spec)
 
         title = title or self.api_title
         version = version or self.api_version
