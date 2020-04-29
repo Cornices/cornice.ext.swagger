@@ -122,7 +122,8 @@ class TypeConverter(object):
         if schema_node.title:
             converted['title'] = schema_node.title
         if schema_node.description:
-            converted['description'] = schema_node.description
+            # keep 'description' for back-compatibility
+            converted['summary'] = converted['description'] = schema_node.description
         if schema_node.default is not colander.null:
             converted['default'] = schema_node.default
         if 'example' in schema_node.__dict__:

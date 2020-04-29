@@ -263,7 +263,7 @@ class ResponseHandler(object):
 
             response = {}
             if response_schema.description:
-                response['description'] = response_schema.description
+                response['summary'] = response_schema.description
             else:
                 raise CorniceSwaggerException('Responses must have a description.')
 

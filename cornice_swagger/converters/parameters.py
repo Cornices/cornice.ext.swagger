@@ -17,7 +17,8 @@ class ParameterConverter(object):
             'required': schema_node.required
         }
         if schema_node.description:
-            converted['description'] = schema_node.description
+            # keep 'description' for back-compatibility
+            converted['summary'] = converted['description'] = schema_node.description
 
         if schema_node.default:
             converted['default'] = schema_node.default
@@ -67,7 +68,8 @@ class BodyParameterConverter(ParameterConverter):
             'required': schema_node.required
         }
         if schema_node.description:
-            converted['description'] = schema_node.description
+            # keep 'description' for back-compatibility
+            converted['summary'] = converted['description'] = schema_node.description
 
         schema_node.title = schema_node.__class__.__name__
         schema = definition_handler(schema_node)
