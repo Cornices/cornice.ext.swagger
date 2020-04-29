@@ -204,18 +204,18 @@ class StringTypeConverter(BaseStringTypeConverter):
         if kwarg_format or kwarg_pattern:
             known_formats = {
                 # officials
-                'email': {'converter': StringTypeConverter, 'validator': colander.Email},
-                'url': {'converter': StringTypeConverter, 'validator': colander.url},
+                'email': {'converter': BaseStringTypeConverter, 'validator': colander.Email},
+                'url': {'converter': BaseStringTypeConverter, 'validator': colander.url},
                 'date': {'converter': DateTypeConverter, 'validator': None},
                 'date-time': {'converter': DateTimeTypeConverter, 'validator': None},
-                'password': {'converter': StringTypeConverter, 'validator': colander},
-                'binary': {'converter': StringTypeConverter, 'validator': colander.file_uri},
-                'byte': {'converter': StringTypeConverter, 'validator': colander.file_uri},
+                'password': {'converter': BaseStringTypeConverter, 'validator': colander},
+                'binary': {'converter': BaseStringTypeConverter, 'validator': colander.file_uri},
+                'byte': {'converter': BaseStringTypeConverter, 'validator': colander.file_uri},
                 # common but unofficial
                 'time': {'converter': TimeTypeConverter, 'validator': None},
-                'hostname': {'converter': StringTypeConverter, 'validator': colander.url},
-                'uuid': {'converter': StringTypeConverter, 'validator': colander.uuid},
-                'file': {'converter': StringTypeConverter, 'validator': colander.file_uri},
+                'hostname': {'converter': BaseStringTypeConverter, 'validator': colander.url},
+                'uuid': {'converter': BaseStringTypeConverter, 'validator': colander.uuid},
+                'file': {'converter': BaseStringTypeConverter, 'validator': colander.file_uri},
             }
             # extended conversion/validation for known ones
             if kwarg_format and kwarg_format.lower() in known_formats:
@@ -236,13 +236,13 @@ class StringTypeConverter(BaseStringTypeConverter):
                 if not isinstance(kwarg_pattern, colander.Regex):
                     raise NoSuchConverter(
                         "Provided string pattern object unknown: {!s}".format(kwarg_pattern))
-                format_converter_class = StringTypeConverter
+                format_converter_class = BaseStringTypeConverter
                 kwarg_format = None  # don't write 'pattern' as string format
                 if kwarg_validator is None:
                     setattr(schema_node, 'validator', kwarg_pattern)
             else:
                 # any value for 'format' is permitted and left as is for string definition
-                format_converter_class = StringTypeConverter
+                format_converter_class = BaseStringTypeConverter
 
             format_converter = format_converter_class(self.dispatcher)
             format_converter.format = kwarg_format
