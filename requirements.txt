@@ -1,4 +1,4 @@
-colander==1.7.0
+colander==1.8.2
 cornice==4.0.1
 hupper==1.10.2
 iso8601==0.1.12
