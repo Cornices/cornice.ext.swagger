@@ -7,7 +7,7 @@ plaster==1.0
 plaster-pastedeploy==0.7
 pyramid==1.10.4
 repoze.lru==0.7
-simplejson==3.17.0
+simplejson==3.17.2
 six==1.15.0
 translationstring==1.4
 venusian==3.0.0
