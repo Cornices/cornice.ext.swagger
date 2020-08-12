@@ -116,6 +116,19 @@ class CorniceSwaggerGeneratorTest(unittest.TestCase):
 
 class ExtractContentTypesTest(unittest.TestCase):
 
+    def test_default_renderer(self):
+        service = Service("IceCream", "/icecream/{flavour}")
+
+        class IceCream(object):
+            @service.get()
+            def view_get(self, request):
+                return self.request.validated
+
+        swagger = CorniceSwagger([service])
+        spec = swagger.generate()
+        self.assertEquals(spec['paths']['/icecream/{flavour}']['get']['produces'],
+                          ['application/json'])
+
     def test_json_renderer(self):
 
         service = Service("IceCream", "/icecream/{flavour}")
