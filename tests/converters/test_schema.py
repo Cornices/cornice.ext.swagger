@@ -264,23 +264,126 @@ class MappingConversionTest(unittest.TestCase):
             'additionalProperties': {}
         })
 
+    def test_oneOf_primitive_schema(self):
+        class Mapping(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        schema = Mapping(validator=colander.OneOf(['foo', 'bar']))
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'oneOf': [
+                {
+                    'type': 'string',
+                    'title': 'Foo'
+                },
+                {
+                    'type': 'integer',
+                    'title': 'Bar'
+                }
+            ]
+        })
+
+    def test_oneOf_object_schema(self):
+        class MappingStr(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+
+        class MappingInt(colander.MappingSchema):
+            bar = colander.SchemaNode(colander.Integer(),
+                                      missing=colander.drop)
+
+        class MappingTop(colander.MappingSchema):
+            str = MappingStr()
+            int = MappingInt()
+
+        class MappingTop2(colander.MappingSchema):
+            str = MappingStr(missing=colander.drop)
+            int = MappingInt(missing=colander.drop)
+            validator = colander.OneOf(['str', 'int'])
+
+        schema2 = MappingTop2(validator=colander.Function(
+            lambda value: isinstance(value, dict) and
+            any([k in value for k in ['int', 'str']])
+        ))
+        schema2.deserialize({'int': {'bar': 1}})
+
+        schema = MappingTop(validator=colander.OneOf(['str', 'int']))
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'oneOf': [
+                {
+                    'type': 'object',
+                    'title': 'Str',
+                    'properties': {
+                        'foo': {
+                            'type': 'string',
+                            'title': 'Foo'
+                        }
+                    },
+                    'required': ['foo']
+                },
+                {
+                    'type': 'object',
+                    'title': 'Int',
+                    'properties': {
+                        'bar': {
+                            'type': 'integer',
+                            'title': 'Bar'
+                        }
+                    }
+                }
+            ]
+        })
+
+    def test_oneOf_nested_schema(self):
+        class Mapping(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        class MappingTop(colander.MappingSchema):
+            obj = Mapping(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = MappingTop()
+        ret = convert(schema)
+        self.assertDictEqual(ret, {
+            'type': 'object',
+            'properties': {
+                'obj': {
+                    'oneOf': [
+                        {
+                            'type': 'string',
+                            'title': 'Foo'
+                        },
+                        {
+                            'type': 'integer',
+                            'title': 'Bar'
+                        }
+                    ]
+                }
+            },
+            'required': ['obj']
+        })
+
 
 class SequenceConversionTest(unittest.TestCase):
 
-    def primitive_sequence_test(self):
+    def test_primitive_sequence(self):
 
         class Integers(colander.SequenceSchema):
             num = colander.SchemaNode(colander.Integer())
 
-        ret = convert(Integers)
+        schema = Integers()
+        ret = convert(schema)
         self.assertDictEqual(ret, {
             'type': 'array',
             'items': {
+                'title': 'Num',
                 'type': 'integer',
             },
+            'title': 'Integers'
         })
 
-    def mapping_sequence_test(self):
+    def test_mapping_sequence(self):
 
         class BaseMapping(colander.MappingSchema):
             name = colander.SchemaNode(colander.String())
@@ -307,6 +410,84 @@ class SequenceConversionTest(unittest.TestCase):
                     }
                 },
                 'required': ['name', 'number'],
-                'title': 'Base Mapping',
+                'title': 'Base Mapping'
             },
+            'title': 'BaseMappings'
         })
+
+    def test_oneOf_primitive_sequence(self):
+        class MappingItem(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+            bar = colander.SchemaNode(colander.Integer())
+
+        class Sequence(colander.SequenceSchema):
+            item = MappingItem(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = Sequence()
+        ret = convert(schema)
+        self.maxDiff = None
+        self.assertDictEqual(ret, {
+            'type': 'array',
+            'items': {
+                'oneOf': [
+                    {
+                        'type': 'string',
+                        'title': 'Foo'
+                    },
+                    {
+                        'type': 'integer',
+                        'title': 'Bar'
+                    }
+                ]
+            },
+            'title': 'Sequence'
+        })
+
+    def test_oneOf_mapping_sequence(self):
+        class MappingStr(colander.MappingSchema):
+            foo = colander.SchemaNode(colander.String())
+
+        class MappingInt(colander.MappingSchema):
+            bar = colander.SchemaNode(colander.Integer())
+
+        class MappingItem(colander.MappingSchema):
+            int = MappingInt()
+            str = MappingStr()
+
+        class Sequence(colander.SequenceSchema):
+            item = MappingItem(validator=colander.OneOf(['foo', 'bar']))
+
+        schema = Sequence()
+        ret = convert(schema)
+        self.assertIn('type', ret)
+        self.assertEqual(ret['type'], 'array')
+        self.assertIn('items', ret)
+        self.assertIn('oneOf', ret['items'])
+        self.assertIsInstance(ret['items']['oneOf'], list)
+
+        expected_oneof = [
+            {
+                'type': 'object',
+                'title': 'Str',
+                'properties': {
+                    'foo': {
+                        'type': 'string',
+                        'title': 'Foo',
+                    }
+                },
+                'required': ['foo']
+            },
+            {
+                'type': 'object',
+                'title': 'Int',
+                'properties': {
+                    'bar': {
+                        'type': 'integer',
+                        'title': 'Bar',
+                    }
+                },
+                'required': ['bar']
+            }
+        ]
+        self.assertListEqual(sorted(ret['items']['oneOf'], key=lambda x: x['title']),
+                             sorted(expected_oneof, key=lambda x: x['title']))
