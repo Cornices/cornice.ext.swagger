@@ -5,7 +5,7 @@ iso8601==0.1.12
 PasteDeploy==2.1.0
 plaster==1.0
 plaster-pastedeploy==0.7
-pyramid==1.10.4
+pyramid==1.10.5
 repoze.lru==0.7
 simplejson==3.17.2
 six==1.15.0
