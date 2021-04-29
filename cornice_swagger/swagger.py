@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 
 import colander
+from cornice import Service
 from cornice.util import to_list
 from pyramid.threadlocal import get_current_registry
 import six
@@ -615,7 +616,12 @@ class CorniceSwagger(object):
         # If 'produces' are not defined in the view, try get from renderers
         renderer = args.get('renderer', '')
 
-        if "json" in renderer:  # allows for "json" or "simplejson"
+        is_json_renderer = (
+            "json" in renderer  # allows for "json" or "simplejson"
+            or renderer == Service.renderer  # default renderer is json.
+        )
+
+        if is_json_renderer:
             produces = ['application/json']
         elif renderer == 'xml':
             produces = ['text/xml']
