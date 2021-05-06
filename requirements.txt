@@ -7,7 +7,7 @@ plaster==1.0
 plaster-pastedeploy==0.7
 pyramid==1.10.4
 repoze.lru==0.7
-six==1.15.0
+six==1.16.0
 translationstring==1.4
 venusian==3.0.0
 WebOb==1.8.7
