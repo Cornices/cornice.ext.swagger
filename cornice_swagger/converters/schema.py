@@ -124,7 +124,7 @@ class TypeConverter(object):
             converted['title'] = schema_node.title
         if schema_node.description:
             converted['description'] = schema_node.description
-        if schema_node.missing not in (colander.required, colander.drop):
+        if schema_node.missing not in (colander.required, colander.drop, colander.null):
             converted['default'] = schema_node.missing
         if 'example' in schema_node.__dict__:
             converted['example'] = schema_node.example
