@@ -53,7 +53,7 @@ class StringConversionTest(unittest.TestCase):
         })
 
     def test_validate_default(self):
-        node = colander.SchemaNode(colander.String(), default='foo')
+        node = colander.SchemaNode(colander.String(), missing='foo')
         ret = convert(node)
         self.assertDictEqual(ret, {
             'type': 'string',
@@ -134,7 +134,7 @@ class IntegerConversionTest(unittest.TestCase):
         })
 
     def test_default(self):
-        node = colander.SchemaNode(colander.Integer(), default=1)
+        node = colander.SchemaNode(colander.Integer(), missing=1)
         ret = convert(node)
         self.assertDictEqual(ret, {
             'type': 'integer',
