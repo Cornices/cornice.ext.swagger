@@ -4,7 +4,7 @@ CHANGES
 1.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Take default value from missing attribute (thanks @sp-schoen)
 
 
 1.0.0 (2020-03-31)
