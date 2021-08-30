@@ -31,7 +31,7 @@ REQUIREMENTS_DEV = [
 
 setup(
     name="cornice_swagger",
-    version='1.0.1',
+    version='1.1.0.dev0',
     description="Generate swagger from a Cornice application",
     long_description=README + "\n\n" + CHANGES,
     license="Apache License (2.0)",
