@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-1.0.1 (unreleased)
+1.0.1 (2021-08-30)
 ------------------
 
 - Take default value from missing attribute (thanks @sp-schoen)
