@@ -2,7 +2,7 @@ colander==1.8.3
 cornice==6.0.1
 hupper==1.10.3
 iso8601==1.1.0
-PasteDeploy==2.1.1
+PasteDeploy==3.0
 plaster==1.0
 plaster-pastedeploy==0.7
 pyramid==2.0
