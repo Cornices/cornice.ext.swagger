@@ -4,7 +4,7 @@ hupper==1.10.3
 iso8601==1.1.0
 PasteDeploy==3.0.1
 plaster==1.1.2
-plaster-pastedeploy==0.7
+plaster-pastedeploy==1.0.1
 pyramid==2.0
 repoze.lru==0.7
 six==1.16.0
