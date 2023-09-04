@@ -5,7 +5,7 @@ iso8601==2.0.0
 PasteDeploy==3.0.1
 plaster==1.1.2
 plaster-pastedeploy==1.0.1
-pyramid==2.0.1
+pyramid==2.0.2
 repoze.lru==0.7
 six==1.16.0
 translationstring==1.4
