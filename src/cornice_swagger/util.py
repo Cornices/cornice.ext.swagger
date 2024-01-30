@@ -10,21 +10,21 @@ def trim(docstring):
     Implementation taken from http://www.python.org/dev/peps/pep-0257/
     """
     if not docstring:
-        return ''
+        return ""
     # Convert tabs to spaces (following the normal Python rules)
     # and split into a list of lines:
     lines = docstring.expandtabs().splitlines()
     lines = [line.strip() for line in lines]
-    res = '\n'.join(lines)
+    res = "\n".join(lines)
     return res
 
 
 def body_schema_transformer(schema, args):
-    validators = args.get('validators', [])
+    validators = args.get("validators", [])
     if colander_body_validator in validators:
         body_schema = schema
         schema = colander.MappingSchema()
-        schema['body'] = body_schema
+        schema["body"] = body_schema
     return schema
 
 
