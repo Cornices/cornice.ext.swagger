@@ -1,14 +1,13 @@
 import unittest
-import mock
+from unittest import mock
 
-from cornice.validators import colander_validator, colander_body_validator
 from cornice.service import Service
+from cornice.validators import colander_body_validator, colander_validator
 from flex.core import validate
 
 from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
 
-from .support import (GetRequestSchema, PutRequestSchema, response_schemas,
-                      BodySchema, HeaderSchema)
+from .support import BodySchema, GetRequestSchema, HeaderSchema, PutRequestSchema, response_schemas
 
 
 class CorniceSwaggerGeneratorTest(unittest.TestCase):

@@ -1,5 +1,4 @@
 import colander
-import six
 from cornice.validators import colander_body_validator
 
 
@@ -14,9 +13,9 @@ def trim(docstring):
         return ''
     # Convert tabs to spaces (following the normal Python rules)
     # and split into a list of lines:
-    lines = six.u(docstring).expandtabs().splitlines()
+    lines = docstring.expandtabs().splitlines()
     lines = [line.strip() for line in lines]
-    res = six.u('\n').join(lines)
+    res = '\n'.join(lines)
     return res
 
 

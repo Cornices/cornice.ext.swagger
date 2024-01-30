@@ -8,7 +8,6 @@ import colander
 from cornice import Service
 from cornice.util import to_list
 from pyramid.threadlocal import get_current_registry
-import six
 
 from cornice_swagger.util import body_schema_transformer, merge_dicts, trim
 from cornice_swagger.converters import (TypeConversionDispatcher as TypeConverter,
@@ -655,7 +654,7 @@ class CorniceSwagger(object):
             op['parameters'] = parameters
 
         # Get summary from docstring
-        if isinstance(view, six.string_types):
+        if isinstance(view, str):
             if 'klass' in args:
                 ob = args['klass']
                 view_ = getattr(ob, view.lower())

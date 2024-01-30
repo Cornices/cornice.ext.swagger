@@ -1,10 +1,18 @@
 import unittest
+
 import colander
 
-from cornice_swagger.swagger import ResponseHandler, CorniceSwaggerException
 from cornice_swagger.converters import convert_schema
-from .support import (BodySchema, HeaderSchema, ResponseSchema, response_schemas,
-                      DeclarativeSchema, AnotherDeclarativeSchema)
+from cornice_swagger.swagger import CorniceSwaggerException, ResponseHandler
+
+from .support import (
+    AnotherDeclarativeSchema,
+    BodySchema,
+    DeclarativeSchema,
+    HeaderSchema,
+    ResponseSchema,
+    response_schemas,
+)
 
 
 class SchemaResponseConversionTest(unittest.TestCase):

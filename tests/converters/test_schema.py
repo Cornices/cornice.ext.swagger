@@ -1,9 +1,9 @@
 import unittest
+
 import colander
 
-
-from cornice_swagger.converters import convert_schema as convert
 from cornice_swagger.converters import TypeConversionDispatcher
+from cornice_swagger.converters import convert_schema as convert
 from cornice_swagger.converters.exceptions import NoSuchConverter
 
 from ..support import AnyType, AnyTypeConverter
