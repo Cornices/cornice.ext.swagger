@@ -1,24 +1,18 @@
 Cornice Swagger
 ===============
 
-|pypi| |docs| |slack| |travis| |master-coverage|
+|pypi| |github-actions| |main-coverage|
 
+.. |github-actions| image:: https://github.com/Cornices/cornice/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/Cornices/cornice.ext.swagger/actions?query=workflow%3A%22Unit+Testing%22
 
-.. |travis| image::  https://travis-ci.org/Cornices/cornice.ext.swagger.png
-    :target: https://travis-ci.org/Cornices/cornice.ext.swagger
-
-.. |master-coverage| image:: https://coveralls.io/repos/github/Cornices/cornice.ext.swagger/badge.svg?branch=master
-    :target: https://coveralls.io/github/Cornices/cornice.ext.swagger?branch=master
+.. |main-coverage| image::
+    https://coveralls.io/repos/Cornices/cornice.ext.swagger/badge.svg?branch=main
+    :alt: Coverage
+    :target: https://coveralls.io/r/Cornices/cornice.ext.swagger
 
 .. |pypi| image:: https://img.shields.io/pypi/v/cornice_swagger.svg
     :target: https://pypi.python.org/pypi/cornice_swagger
-
-.. |slack| image:: https://img.shields.io/badge/slack-chat-blue.svg
-    :target: https://corniceswagger.herokuapp.com/
-
-.. |docs| image:: https://img.shields.io/badge/docs-gh--pages-ff69b4.svg
-    :target: https://cornices.github.io/cornice.ext.swagger/
-
 
 *Cornice extension to generate OpenAPI/Swagger Specification*
 

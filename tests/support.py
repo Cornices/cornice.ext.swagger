@@ -1,5 +1,4 @@
 import colander
-
 from cornice_swagger.converters.schema import TypeConverter
 
 
@@ -11,12 +10,13 @@ class BodySchema(colander.MappingSchema):
     id = colander.SchemaNode(colander.String())
     timestamp = colander.SchemaNode(colander.Int())
     obj = MyNestedSchema()
-    ex = colander.SchemaNode(colander.String(), missing=colander.drop, example='example string')
+    ex = colander.SchemaNode(colander.String(), missing=colander.drop, example="example string")
 
 
 class QuerySchema(colander.MappingSchema):
-    foo = colander.SchemaNode(colander.String(), validator=colander.Length(3),
-                              missing=colander.drop)
+    foo = colander.SchemaNode(
+        colander.String(), validator=colander.Length(3), missing=colander.drop
+    )
 
 
 class HeaderSchema(colander.MappingSchema):
@@ -24,7 +24,7 @@ class HeaderSchema(colander.MappingSchema):
 
 
 class PathSchema(colander.MappingSchema):
-    meh = colander.SchemaNode(colander.String(), default='default')
+    meh = colander.SchemaNode(colander.String(), default="default")
 
 
 class GetRequestSchema(colander.MappingSchema):
@@ -43,25 +43,26 @@ class ResponseSchema(colander.MappingSchema):
 
 
 response_schemas = {
-    '200': ResponseSchema(description='Return ice cream'),
-    '404': ResponseSchema(description='Return sadness')
+    "200": ResponseSchema(description="Return ice cream"),
+    "404": ResponseSchema(description="Return sadness"),
 }
 
 
 class DeclarativeSchema(colander.MappingSchema):
-    @colander.instantiate(description='my body')
+    @colander.instantiate(description="my body")
     class body(colander.MappingSchema):
         id = colander.SchemaNode(colander.String())
 
 
 class AnotherDeclarativeSchema(colander.MappingSchema):
-    @colander.instantiate(description='my another body')
+    @colander.instantiate(description="my another body")
     class body(colander.MappingSchema):
         timestamp = colander.SchemaNode(colander.Int())
 
 
 class AnyType(colander.SchemaType):
     """A simple custom colander type."""
+
     def deserialize(self, cstruct=colander.null):
         return cstruct
 

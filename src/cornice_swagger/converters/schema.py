@@ -9,7 +9,6 @@ from cornice_swagger.converters.exceptions import NoSuchConverter
 
 
 def convert_length_validator_factory(max_key, min_key):
-
     def validator_converter(validator):
         converted = None
 
@@ -26,55 +25,48 @@ def convert_length_validator_factory(max_key, min_key):
 
 
 def convert_oneof_validator_factory():
-
     def validator_converter(validator):
         converted = None
 
         if isinstance(validator, colander.OneOf):
-            converted = {
-                'enum': list(validator.choices)
-            }
+            converted = {"enum": list(validator.choices)}
         return converted
 
     return validator_converter
 
 
 def convert_range_validator(validator):
-
     converted = None
 
     if isinstance(validator, colander.Range):
         converted = {}
 
         if validator.max is not None:
-            converted['maximum'] = validator.max
+            converted["maximum"] = validator.max
         if validator.min is not None:
-            converted['minimum'] = validator.min
+            converted["minimum"] = validator.min
 
     return converted
 
 
 def convert_regex_validator(validator):
-
     converted = None
 
     if isinstance(validator, colander.Regex):
         converted = {}
 
-        if hasattr(colander, 'url') and validator is colander.url:
-            converted['format'] = 'url'
+        if hasattr(colander, "url") and validator is colander.url:
+            converted["format"] = "url"
         elif isinstance(validator, colander.Email):
-            converted['format'] = 'email'
+            converted["format"] = "email"
         else:
-            converted['pattern'] = validator.match_object.pattern
+            converted["pattern"] = validator.match_object.pattern
 
     return converted
 
 
 class ValidatorConversionDispatcher(object):
-
     def __init__(self, *converters):
-
         self.converters = converters
 
     def __call__(self, schema_node, validator=None):
@@ -92,7 +84,6 @@ class ValidatorConversionDispatcher(object):
         return converted
 
     def convert_all_validator(self, validator):
-
         if isinstance(validator, colander.All):
             converted = {}
             for v in validator.validators:
@@ -104,35 +95,29 @@ class ValidatorConversionDispatcher(object):
 
 
 class TypeConverter(object):
-
-    type = ''
+    type = ""
 
     def __init__(self, dispatcher):
-
         self.dispatcher = dispatcher
 
     def convert_validator(self, schema_node):
         return {}
 
     def convert_type(self, schema_node):
-
-        converted = {
-            'type': self.type
-        }
+        converted = {"type": self.type}
 
         if schema_node.title:
-            converted['title'] = schema_node.title
+            converted["title"] = schema_node.title
         if schema_node.description:
-            converted['description'] = schema_node.description
+            converted["description"] = schema_node.description
         if schema_node.missing not in (colander.required, colander.drop, colander.null):
-            converted['default'] = schema_node.missing
-        if 'example' in schema_node.__dict__:
-            converted['example'] = schema_node.example
+            converted["default"] = schema_node.missing
+        if "example" in schema_node.__dict__:
+            converted["example"] = schema_node.example
 
         return converted
 
     def __call__(self, schema_node):
-
         converted = self.convert_type(schema_node)
         converted.update(self.convert_validator(schema_node))
 
@@ -140,34 +125,32 @@ class TypeConverter(object):
 
 
 class BaseStringTypeConverter(TypeConverter):
-    type = 'string'
+    type = "string"
     format = None
 
     def convert_type(self, schema_node):
-
-        converted = super(BaseStringTypeConverter,
-                          self).convert_type(schema_node)
+        converted = super(BaseStringTypeConverter, self).convert_type(schema_node)
 
         if self.format is not None:
-            converted['format'] = self.format
+            converted["format"] = self.format
 
         return converted
 
 
 class BooleanTypeConverter(TypeConverter):
-    type = 'boolean'
+    type = "boolean"
 
 
 class DateTypeConverter(BaseStringTypeConverter):
-    format = 'date'
+    format = "date"
 
 
 class DateTimeTypeConverter(BaseStringTypeConverter):
-    format = 'date-time'
+    format = "date-time"
 
 
 class NumberTypeConverter(TypeConverter):
-    type = 'number'
+    type = "number"
 
     convert_validator = ValidatorConversionDispatcher(
         convert_range_validator,
@@ -176,29 +159,26 @@ class NumberTypeConverter(TypeConverter):
 
 
 class IntegerTypeConverter(NumberTypeConverter):
-    type = 'integer'
+    type = "integer"
 
 
 class StringTypeConverter(BaseStringTypeConverter):
-
     convert_validator = ValidatorConversionDispatcher(
-        convert_length_validator_factory('maxLength', 'minLength'),
+        convert_length_validator_factory("maxLength", "minLength"),
         convert_regex_validator,
         convert_oneof_validator_factory(),
     )
 
 
 class TimeTypeConverter(BaseStringTypeConverter):
-    format = 'time'
+    format = "time"
 
 
 class ObjectTypeConverter(TypeConverter):
-    type = 'object'
+    type = "object"
 
     def convert_type(self, schema_node):
-
-        converted = super(ObjectTypeConverter,
-                          self).convert_type(schema_node)
+        converted = super(ObjectTypeConverter, self).convert_type(schema_node)
 
         properties = {}
         required = []
@@ -209,38 +189,34 @@ class ObjectTypeConverter(TypeConverter):
                 required.append(sub_node.name)
 
         if len(properties) > 0:
-            converted['properties'] = properties
+            converted["properties"] = properties
 
         if len(required) > 0:
-            converted['required'] = required
+            converted["required"] = required
 
-        if schema_node.typ.unknown == 'preserve':
-            converted['additionalProperties'] = {}
+        if schema_node.typ.unknown == "preserve":
+            converted["additionalProperties"] = {}
 
         return converted
 
 
 class ArrayTypeConverter(TypeConverter):
-    type = 'array'
+    type = "array"
 
     convert_validator = ValidatorConversionDispatcher(
-        convert_length_validator_factory('maxItems', 'minItems'),
+        convert_length_validator_factory("maxItems", "minItems"),
     )
 
     def convert_type(self, schema_node):
+        converted = super(ArrayTypeConverter, self).convert_type(schema_node)
 
-        converted = super(ArrayTypeConverter,
-                          self).convert_type(schema_node)
-
-        converted['items'] = self.dispatcher(schema_node.children[0])
+        converted["items"] = self.dispatcher(schema_node.children[0])
 
         return converted
 
 
 class TypeConversionDispatcher(object):
-
     def __init__(self, custom_converters={}, default_converter=None):
-
         self.converters = {
             colander.Boolean: BooleanTypeConverter,
             colander.Date: DateTypeConverter,
