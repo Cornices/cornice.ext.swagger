@@ -1,4 +1,5 @@
 """Cornice Swagger 2.0 documentor"""
+
 import inspect
 import warnings
 from collections import OrderedDict

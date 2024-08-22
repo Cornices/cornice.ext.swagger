@@ -1,6 +1,7 @@
 import unittest
 
 import colander
+
 from cornice_swagger.converters import convert_schema
 from cornice_swagger.swagger import CorniceSwaggerException, ResponseHandler
 
