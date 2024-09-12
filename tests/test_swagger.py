@@ -3,8 +3,9 @@ from unittest import mock
 
 from cornice.service import Service
 from cornice.validators import colander_body_validator, colander_validator
-from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
 from flex.core import validate
+
+from cornice_swagger.swagger import CorniceSwagger, CorniceSwaggerException
 
 from .support import BodySchema, GetRequestSchema, HeaderSchema, PutRequestSchema, response_schemas
 

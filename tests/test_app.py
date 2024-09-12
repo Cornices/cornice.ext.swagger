@@ -4,9 +4,10 @@ import webtest
 from cornice import Service
 from cornice.service import clear_services
 from cornice.validators import colander_validator
-from cornice_swagger import CorniceSwagger
 from flex.core import validate
 from pyramid import testing
+
+from cornice_swagger import CorniceSwagger
 
 from .support import GetRequestSchema, PutRequestSchema, response_schemas
 
